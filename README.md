@@ -13,6 +13,10 @@ AutoLyap streamlines the process of constructing and verifying Lyapunov analyses
 User guide and API reference:
 ➡️  [https://autolyap.github.io](https://autolyap.github.io/)
 
+## Companion paper
+
+The complete mathematical development and examples to get started are available in the companion paper on [arXiv](https://arxiv.org/abs/2506.24076).
+
 ## Installation
 
 ```bash
