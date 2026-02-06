@@ -7,6 +7,21 @@ from autolyap.problemclass.base import OperatorInterpolationCondition
 from autolyap.problemclass.indices import InterpolationIndices
 from autolyap.utils.validation import ensure_real_number
 
+
+def _ensure_positive_finite(value: Union[int, float], parameter_name: str, error_message: str) -> float:
+    numeric_value = ensure_real_number(value, parameter_name)
+    if not np.isfinite(numeric_value) or numeric_value <= 0:
+        raise ValueError(error_message)
+    return numeric_value
+
+
+def _ensure_finite(value: Union[int, float], parameter_name: str, error_message: str) -> float:
+    numeric_value = ensure_real_number(value, parameter_name)
+    if not np.isfinite(numeric_value):
+        raise ValueError(error_message)
+    return numeric_value
+
+
 class MaximallyMonotone(OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for maximally monotone operators.
@@ -96,11 +111,11 @@ class StronglyMonotone(OperatorInterpolationCondition):
     - `ValueError`: If `mu` is not a number, :math:`\le 0`, or infinite.
     """
     def __init__(self, mu: Union[int, float]):
-        mu = ensure_real_number(mu, "Strong monotonicity parameter")
-        if not np.isfinite(mu):
-            raise ValueError("Strong monotonicity parameter (mu) must be finite.")
-        if mu <= 0:
-            raise ValueError("Strong monotonicity parameter (mu) must be greater than 0.")
+        mu = _ensure_positive_finite(
+            mu,
+            "Strong monotonicity parameter",
+            "Strong monotonicity parameter (mu) must be greater than 0 and finite.",
+        )
         self.mu = mu
 
     def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
@@ -156,9 +171,11 @@ class LipschitzOperator(OperatorInterpolationCondition):
     - `ValueError`: If `L` is not a number, :math:`\le 0`, or infinite.
     """
     def __init__(self, L: Union[int, float]):
-        L = ensure_real_number(L, "Lipschitz parameter")
-        if not np.isfinite(L) or L <= 0:
-            raise ValueError("Lipschitz parameter (L) must be greater than 0 and finite.")
+        L = _ensure_positive_finite(
+            L,
+            "Lipschitz parameter",
+            "Lipschitz parameter (L) must be greater than 0 and finite.",
+        )
         self.L = L
 
     def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
@@ -214,9 +231,11 @@ class Cocoercive(OperatorInterpolationCondition):
     - `ValueError`: If `beta` is not a number, :math:`\le 0`, or infinite.
     """
     def __init__(self, beta: Union[int, float]):
-        beta = ensure_real_number(beta, "Cocoercivity parameter")
-        if not np.isfinite(beta) or beta <= 0:
-            raise ValueError("Cocoercivity parameter (beta) must be greater than 0 and finite.")
+        beta = _ensure_positive_finite(
+            beta,
+            "Cocoercivity parameter",
+            "Cocoercivity parameter (beta) must be greater than 0 and finite.",
+        )
         self.beta = beta
 
     def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
@@ -277,9 +296,11 @@ class WeakMintyVariationalInequality(OperatorInterpolationCondition):
     - `ValueError`: If `rho_minty` is not a number or not finite.
     """
     def __init__(self, rho_minty: Union[int, float]):
-        rho_minty = ensure_real_number(rho_minty, "Weak MVI parameter")
-        if not np.isfinite(rho_minty):
-            raise ValueError("Weak MVI parameter (rho_minty) must be finite.")
+        rho_minty = _ensure_finite(
+            rho_minty,
+            "Weak MVI parameter",
+            "Weak MVI parameter (rho_minty) must be finite.",
+        )
         self.rho_minty = rho_minty
 
     def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
@@ -303,6 +324,3 @@ class WeakMintyVariationalInequality(OperatorInterpolationCondition):
         ])
         interp_idx = InterpolationIndices("j1!=star")
         return [(matrix, interp_idx)]
-
-# ---------------------------------------------------------------------------
-# Concrete Function Interpolation Condition Classes

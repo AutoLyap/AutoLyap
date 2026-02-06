@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Type, Optional, Tuple, Union, List, Dict
+from typing import Type, Optional, Tuple, Union, List, Dict, Iterator
 from itertools import combinations
 from mosek.fusion import Model, Domain, ObjectiveSense, OptimizeError
 import mosek.fusion.pythonic
@@ -10,6 +10,12 @@ from autolyap.utils.validation import (
 )
 from autolyap.problemclass import InclusionProblem
 from autolyap.algorithms import Algorithm
+
+Pair = Union[Tuple[int, int], Tuple[str, str]]
+PairTuple = Tuple[Pair, ...]
+OperatorInterpolationData = Tuple[np.ndarray, str]
+FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, str]
+InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
 
 class IterationDependent:
     r"""
@@ -204,6 +210,96 @@ class IterationDependent:
         return K, n, m_bar, m, m_bar_func, m_func, m_op, m_bar_op, dim_Q, dim_q
 
     @staticmethod
+    def _expected_pairs_len(interp_key: str) -> int:
+        r"""Return the expected interpolation-pair arity for a pattern key."""
+        if interp_key == 'j1':
+            return 1
+        if interp_key in ('j1<j2', 'j1!=j2', 'j1!=star'):
+            return 2
+        raise ValueError(f"Error: Invalid interpolation indices: {interp_key}.")
+
+    @staticmethod
+    def _iter_pair_patterns(
+            interp_key: str,
+            pairs_with_star: List[Pair],
+            pairs_no_star: List[Tuple[int, int]],
+            star_pair: Pair,
+    ) -> Iterator[PairTuple]:
+        r"""Yield concrete pair tuples matching one interpolation-index pattern."""
+        if interp_key == 'j1':
+            for pair in pairs_with_star:
+                yield (pair,)
+            return
+
+        if interp_key == 'j1<j2':
+            yield from combinations(pairs_with_star, 2)
+            return
+
+        if interp_key == 'j1!=j2':
+            n_pairs = len(pairs_with_star)
+            for idx1 in range(n_pairs):
+                pair1 = pairs_with_star[idx1]
+                for idx2 in range(n_pairs):
+                    if idx1 == idx2:
+                        continue
+                    yield (pair1, pairs_with_star[idx2])
+            return
+
+        if interp_key == 'j1!=star':
+            for pair in pairs_no_star:
+                yield (pair, star_pair)
+            return
+
+        raise ValueError(f"Error: Invalid interpolation indices: {interp_key}.")
+
+    @staticmethod
+    def _collect_iteration_dependent_component_data(
+            prob: Type[InclusionProblem],
+            m: int,
+            op_components: set,
+    ) -> Dict[int, List[Tuple[InterpolationData, str, bool, bool]]]:
+        r"""Validate interpolation payloads and cache per-component metadata."""
+        component_data: Dict[int, List[Tuple[InterpolationData, str, bool, bool]]] = {}
+        for i in range(1, m + 1):
+            is_op = i in op_components
+            data = prob.get_component_data(i)
+            validated: List[Tuple[InterpolationData, str, bool, bool]] = []
+            for o, interp_data in enumerate(data):
+                interp_idx = interp_data[1] if is_op else interp_data[3]
+                interp_key = str(interp_idx)
+                expected_len = IterationDependent._expected_pairs_len(interp_key)
+                expected_dim = 2 * expected_len
+
+                if is_op:
+                    M, _ = interp_data
+                    if getattr(M, 'shape', None) != (expected_dim, expected_dim):
+                        raise ValueError(
+                            f"Interpolation matrix for component {i}, condition {o} must have "
+                            f"shape ({expected_dim}, {expected_dim}) for indices {interp_key}. "
+                            f"Got {getattr(M, 'shape', None)}."
+                        )
+                    has_quadratic = bool(np.any(M))
+                    validated.append((interp_data, interp_key, has_quadratic, False))
+                else:
+                    M, a, _eq, _ = interp_data
+                    if getattr(a, 'shape', None) != (expected_len,):
+                        raise ValueError(
+                            f"Interpolation vector for component {i}, condition {o} must have "
+                            f"length {expected_len} for indices {interp_key}. Got {getattr(a, 'shape', None)}."
+                        )
+                    if getattr(M, 'shape', None) != (expected_dim, expected_dim):
+                        raise ValueError(
+                            f"Interpolation matrix for component {i}, condition {o} must have "
+                            f"shape ({expected_dim}, {expected_dim}) for indices {interp_key}. "
+                            f"Got {getattr(M, 'shape', None)}."
+                        )
+                    has_quadratic = bool(np.any(M))
+                    has_linear = bool(np.any(a))
+                    validated.append((interp_data, interp_key, has_quadratic, has_linear))
+            component_data[i] = validated
+        return component_data
+
+    @staticmethod
     def _build_iteration_dependent_model(
             prob: Type[InclusionProblem],
             algo: Type[Algorithm],
@@ -282,22 +378,45 @@ class IterationDependent:
         # ---------------------------------------------------------------------
         n = algo.n
         m_bar = algo.m_bar
+        m_bar_func = algo.m_bar_func
         op_components = set(algo.I_op)
         m = algo.m
         m_bar_is = algo.m_bar_is
-        compute_W = algo.compute_W
-        compute_F_aggregated = algo.compute_F_aggregated
+        compute_E = algo.compute_E
+        get_Fs = algo.get_Fs
         mod_variable = Mod.variable
         domain_ge0 = Domain.greaterThan(0.0)
         domain_unbounded = Domain.unbounded()
         star_pair = ('star', 'star')
+        lifted_E_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
+        lifted_F_basis_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
+
+        def _get_lifted_E(k, i, pairs):
+            cache_key = (k, i, pairs)
+            E_matrix = lifted_E_cache.get(cache_key)
+            if E_matrix is None:
+                E_matrix = compute_E(i, list(pairs), k, k + 1, validate=False)
+                lifted_E_cache[cache_key] = E_matrix
+            return E_matrix
+
+        def _get_lifted_F_basis(k, i, pairs):
+            cache_key = (k, i, pairs)
+            F_basis = lifted_F_basis_cache.get(cache_key)
+            if F_basis is None:
+                Fs_dict = get_Fs(k, k + 1)
+                total_dim = 2 * m_bar_func + m_func
+                F_basis = np.empty((total_dim, len(pairs)))
+                for col_idx, (j, k_idx) in enumerate(pairs):
+                    key = (i, 'star', 'star') if (j == 'star' and k_idx == 'star') else (i, j, k_idx)
+                    F_basis[:, col_idx] = Fs_dict[key].reshape(-1)
+                lifted_F_basis_cache[cache_key] = F_basis
+            return F_basis
 
         def process_pairs(k: int,
                           i: int,
                           o: int,
-                          interpolation_data: Union[Tuple[np.ndarray, str],
-                                                    Tuple[np.ndarray, np.ndarray, bool, str]],
-                          pairs: Tuple[Union[Tuple[int, int], Tuple[str, str]], ...],
+                          interpolation_data: InterpolationData,
+                          pairs: PairTuple,
                           comp_type: str,
                           has_quadratic: bool,
                           has_linear: bool) -> None:
@@ -321,7 +440,8 @@ class IterationDependent:
             # Compute the lifted matrix W for the given pairs.
             W_matrix = None
             if has_quadratic:
-                W_matrix = compute_W(i, pairs, k, k + 1, M, validate=False)
+                E_matrix = _get_lifted_E(k, i, pairs)
+                W_matrix = E_matrix.T @ M @ E_matrix
 
             if comp_type == 'op':
                 lambda_var = mod_variable(1, domain_ge0)
@@ -331,7 +451,8 @@ class IterationDependent:
                 # For functional components, compute the aggregated F vector.
                 F_vector = None
                 if has_linear:
-                    F_vector = compute_F_aggregated(i, pairs, k, k + 1, a, validate=False)
+                    F_basis = _get_lifted_F_basis(k, i, pairs)
+                    F_vector = (F_basis @ a).reshape(-1, 1)
                 if eq:
                     nu_var = mod_variable(1, domain_unbounded)
                     nus_func[key] = nu_var
@@ -346,144 +467,11 @@ class IterationDependent:
                         PSD_constraint_sums[k] = PSD_constraint_sums[k] + lambda_var[0] * W_matrix
                     if has_linear:
                         eq_constraint_sums[k] = eq_constraint_sums[k] + lambda_var[0] * F_vector
+        component_data = IterationDependent._collect_iteration_dependent_component_data(
+            prob, m, op_components
+        )
 
-        def _handle_j1_lt_j2(k: int,
-                             i: int,
-                             o: int,
-                             interp_data: Union[Tuple[np.ndarray, str],
-                                                Tuple[np.ndarray, np.ndarray, bool, str]],
-                             pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
-                             _pairs_no_star: List[Tuple[int, int]],
-                             comp_type: str,
-                             has_quadratic: bool,
-                             has_linear: bool) -> None:
-            for pair1, pair2 in combinations(pairs_with_star, 2):
-                process_pairs(k, i, o, interp_data, (pair1, pair2), comp_type, has_quadratic, has_linear)
-
-        def _handle_j1_ne_j2(k: int,
-                             i: int,
-                             o: int,
-                             interp_data: Union[Tuple[np.ndarray, str],
-                                                Tuple[np.ndarray, np.ndarray, bool, str]],
-                             pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
-                             _pairs_no_star: List[Tuple[int, int]],
-                             comp_type: str,
-                             has_quadratic: bool,
-                             has_linear: bool) -> None:
-            n_pairs = len(pairs_with_star)
-            for idx1 in range(n_pairs):
-                pair1 = pairs_with_star[idx1]
-                for idx2 in range(n_pairs):
-                    if idx1 == idx2:
-                        continue
-                    pair2 = pairs_with_star[idx2]
-                    process_pairs(k, i, o, interp_data, (pair1, pair2), comp_type, has_quadratic, has_linear)
-
-        def _handle_j1(k: int,
-                       i: int,
-                       o: int,
-                       interp_data: Union[Tuple[np.ndarray, str],
-                                          Tuple[np.ndarray, np.ndarray, bool, str]],
-                       pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
-                       _pairs_no_star: List[Tuple[int, int]],
-                       comp_type: str,
-                       has_quadratic: bool,
-                       has_linear: bool) -> None:
-            for pair in pairs_with_star:
-                process_pairs(k, i, o, interp_data, (pair,), comp_type, has_quadratic, has_linear)
-
-        def _handle_j1_ne_star(k: int,
-                               i: int,
-                               o: int,
-                               interp_data: Union[Tuple[np.ndarray, str],
-                                                  Tuple[np.ndarray, np.ndarray, bool, str]],
-                               _pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
-                               pairs_no_star: List[Tuple[int, int]],
-                               comp_type: str,
-                               has_quadratic: bool,
-                               has_linear: bool) -> None:
-            for pair in pairs_no_star:
-                process_pairs(k, i, o, interp_data, (pair, star_pair), comp_type, has_quadratic, has_linear)
-
-        handlers = {
-            'j1<j2': _handle_j1_lt_j2,
-            'j1!=j2': _handle_j1_ne_j2,
-            'j1': _handle_j1,
-            'j1!=star': _handle_j1_ne_star,
-        }
-
-        def _expected_pairs_len(interp_key: str) -> int:
-            if interp_key == 'j1':
-                return 1
-            if interp_key in ('j1<j2', 'j1!=j2', 'j1!=star'):
-                return 2
-            raise ValueError(f"Error: Invalid interpolation indices: {interp_key}.")
-
-        def process_interpolation(k: int,
-                                  i: int,
-                                  o: int,
-                                  interp_data: Union[Tuple[np.ndarray, str],
-                                                     Tuple[np.ndarray, np.ndarray, bool, str]],
-                                  pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
-                                  pairs_no_star: List[Tuple[int, int]],
-                                  comp_type: str,
-                                  interpolation_indices: str,
-                                  has_quadratic: bool,
-                                  has_linear: bool) -> None:
-            r"""
-            Internal dispatcher for interpolation-index patterns.
-
-            Selects the handler matching `interpolation_indices` and applies it
-            to the provided pair lists.
-            """
-            interp_key = str(interpolation_indices)
-            handler = handlers.get(interp_key)
-            if handler is None:
-                raise ValueError(f"Error: Invalid interpolation indices: {interpolation_indices}.")
-            handler(k, i, o, interp_data, pairs_with_star, pairs_no_star, comp_type, has_quadratic, has_linear)
-
-        # Cache interpolation data and validate expected pair dimensions once.
-        component_data: Dict[int, List[Tuple[Union[Tuple[np.ndarray, str],
-                                                  Tuple[np.ndarray, np.ndarray, bool, str]], str, bool, bool]]] = {}
-        for i in range(1, m + 1):
-            is_op = i in op_components
-            data = prob.get_component_data(i)
-            validated: List[Tuple[Union[Tuple[np.ndarray, str],
-                                        Tuple[np.ndarray, np.ndarray, bool, str]], str, bool, bool]] = []
-            for o, interp_data in enumerate(data):
-                interp_idx = interp_data[1] if is_op else interp_data[3]
-                interp_key = str(interp_idx)
-                expected_len = _expected_pairs_len(interp_key)
-                expected_dim = 2 * expected_len
-                if is_op:
-                    M, _ = interp_data
-                    if getattr(M, 'shape', None) != (expected_dim, expected_dim):
-                        raise ValueError(
-                            f"Interpolation matrix for component {i}, condition {o} must have "
-                            f"shape ({expected_dim}, {expected_dim}) for indices {interp_key}. "
-                            f"Got {getattr(M, 'shape', None)}."
-                        )
-                    has_quadratic = bool(np.any(M))
-                    validated.append((interp_data, interp_key, has_quadratic, False))
-                else:
-                    M, a, _eq, _ = interp_data
-                    if getattr(a, 'shape', None) != (expected_len,):
-                        raise ValueError(
-                            f"Interpolation vector for component {i}, condition {o} must have "
-                            f"length {expected_len} for indices {interp_key}. Got {getattr(a, 'shape', None)}."
-                        )
-                    if getattr(M, 'shape', None) != (expected_dim, expected_dim):
-                        raise ValueError(
-                            f"Interpolation matrix for component {i}, condition {o} must have "
-                            f"shape ({expected_dim}, {expected_dim}) for indices {interp_key}. "
-                            f"Got {getattr(M, 'shape', None)}."
-                        )
-                    has_quadratic = bool(np.any(M))
-                    has_linear = bool(np.any(a))
-                    validated.append((interp_data, interp_key, has_quadratic, has_linear))
-            component_data[i] = validated
-
-        # Loop over iterations; cache (j, k) pairs per component for this k.
+        # Loop over iterations and process interpolation constraints via explicit pair-pattern iterators.
         for k in range(0, K):
             k_range = range(k, k + 2)
             for i in range(1, m + 1):
@@ -492,20 +480,20 @@ class IterationDependent:
                 pairs_with_star = pairs_no_star + [star_pair]
                 is_op = i in op_components
                 comp_type = 'op' if is_op else 'func'
-                # Retrieve the interpolation data for component i.
                 for o, (interp_data, interp_key, has_quadratic, has_linear) in enumerate(component_data[i]):
-                    process_interpolation(
-                        k,
-                        i,
-                        o,
-                        interp_data,
-                        pairs_with_star,
-                        pairs_no_star,
-                        comp_type,
-                        interp_key,
-                        has_quadratic,
-                        has_linear,
-                    )
+                    for pair_pattern in IterationDependent._iter_pair_patterns(
+                        interp_key, pairs_with_star, pairs_no_star, star_pair
+                    ):
+                        process_pairs(
+                            k,
+                            i,
+                            o,
+                            interp_data,
+                            pair_pattern,
+                            comp_type,
+                            has_quadratic,
+                            has_linear,
+                        )
 
         # ---------------------------------------------------------------------
         # Add final constraints to the model.

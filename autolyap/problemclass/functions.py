@@ -7,6 +7,25 @@ from autolyap.problemclass.base import FunctionInterpolationCondition
 from autolyap.problemclass.indices import InterpolationIndices
 from autolyap.utils.validation import ensure_real_number
 
+INF = float("inf")
+
+
+def _ensure_positive_finite(value: Union[int, float], parameter_name: str, error_message: str) -> float:
+    numeric_value = ensure_real_number(value, parameter_name)
+    if not np.isfinite(numeric_value) or numeric_value <= 0:
+        raise ValueError(error_message)
+    return numeric_value
+
+
+def _ensure_positive_mu_tilde(mu_tilde: Union[int, float], context_name: str) -> Tuple[float, float]:
+    validated = _ensure_positive_finite(
+        mu_tilde,
+        "Parameter mu_tilde",
+        f"For {context_name}, mu_tilde must be > 0 and finite.",
+    )
+    return validated, -validated
+
+
 class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition):
     r"""
     Base class for function interpolation conditions parameterized by :math:`\mu` and :math:`L`.
@@ -92,9 +111,9 @@ class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition)
     def _validate_mu_L(mu: Union[int, float], L: Union[int, float]) -> Tuple[float, float]:
         mu = ensure_real_number(mu, "Parameter mu")
         L = ensure_real_number(L, "Parameter L")
-        if L <= 0 and L != float('inf'):
+        if L != INF and L <= 0:
             raise ValueError("Parameter L must be positive or +inf.")
-        if mu == float('-inf'):
+        if mu == -INF:
             raise ValueError("ParametrizedFunctionInterpolationCondition: mu cannot be -inf.")
         if not (mu < L):
             raise ValueError("ParametrizedFunctionInterpolationCondition requires that -inf < mu < L <= +inf.")
@@ -122,7 +141,7 @@ class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition)
           matrix, vector, eq flag, and interpolation indices.
 
         """
-        if L == float('inf'):
+        if L == INF:
             matrix = 0.5 * np.array([
                 [mu, -mu, 0, 1],
                 [-mu, mu, 0, -1],
@@ -192,7 +211,7 @@ class Convex(ParametrizedFunctionInterpolationCondition):
 
     """
     def __init__(self):
-        super().__init__(mu=0.0, L=float('inf'))
+        super().__init__(mu=0.0, L=INF)
 
 class StronglyConvex(ParametrizedFunctionInterpolationCondition):
     r"""
@@ -237,12 +256,8 @@ class StronglyConvex(ParametrizedFunctionInterpolationCondition):
     - `ValueError`: If `mu` is not valid.
     """
     def __init__(self, mu: Union[int, float]):
-        mu = ensure_real_number(mu, "Parameter mu")
-        if not np.isfinite(mu):
-            raise ValueError("For StronglyConvex, mu must be finite.")
-        if mu <= 0:
-            raise ValueError("For StronglyConvex, mu must be > 0.")
-        super().__init__(mu=mu, L=float('inf'))
+        mu = _ensure_positive_finite(mu, "Parameter mu", "For StronglyConvex, mu must be > 0 and finite.")
+        super().__init__(mu=mu, L=INF)
 
 class WeaklyConvex(ParametrizedFunctionInterpolationCondition):
     r"""
@@ -287,13 +302,8 @@ class WeaklyConvex(ParametrizedFunctionInterpolationCondition):
     - `ValueError`: If `mu_tilde` is not valid.
     """
     def __init__(self, mu_tilde: Union[int, float]):
-        mu_tilde = ensure_real_number(mu_tilde, "Parameter mu_tilde")
-        if not np.isfinite(mu_tilde):
-            raise ValueError("For WeaklyConvex, mu_tilde must be > 0 and finite.")
-        mu = -mu_tilde
-        if mu >= 0:
-            raise ValueError("For WeaklyConvex, mu_tilde must be > 0.")
-        super().__init__(mu=mu, L=float('inf'))
+        mu_tilde, mu = _ensure_positive_mu_tilde(mu_tilde, "WeaklyConvex")
+        super().__init__(mu=mu, L=INF)
         self.mu_tilde = mu_tilde
 
 class Smooth(ParametrizedFunctionInterpolationCondition):
@@ -332,9 +342,7 @@ class Smooth(ParametrizedFunctionInterpolationCondition):
     - `ValueError`: If `L` is not valid.
     """
     def __init__(self, L: Union[int, float]):
-        L = ensure_real_number(L, "Parameter L")
-        if not np.isfinite(L) or L <= 0:
-            raise ValueError("For Smooth, L must be > 0 and finite.")
+        L = _ensure_positive_finite(L, "Parameter L", "For Smooth, L must be > 0 and finite.")
         super().__init__(mu=-L, L=L)
 
 class SmoothConvex(ParametrizedFunctionInterpolationCondition):
@@ -378,9 +386,7 @@ class SmoothConvex(ParametrizedFunctionInterpolationCondition):
     - `ValueError`: If `L` is not valid.
     """
     def __init__(self, L: Union[int, float]):
-        L = ensure_real_number(L, "Parameter L")
-        if not np.isfinite(L) or L <= 0:
-            raise ValueError("For SmoothConvex, L must be > 0 and finite.")
+        L = _ensure_positive_finite(L, "Parameter L", "For SmoothConvex, L must be > 0 and finite.")
         super().__init__(mu=0.0, L=L)
 
 class SmoothStronglyConvex(ParametrizedFunctionInterpolationCondition):
@@ -426,14 +432,16 @@ class SmoothStronglyConvex(ParametrizedFunctionInterpolationCondition):
     - `ValueError`: If parameters are not valid.
     """
     def __init__(self, mu: Union[int, float], L: Union[int, float]):
-        mu = ensure_real_number(mu, "Parameter mu")
-        L = ensure_real_number(L, "Parameter L")
-        if not np.isfinite(mu):
-            raise ValueError("For SmoothStronglyConvex, mu must be finite.")
-        if mu <= 0:
-            raise ValueError("For SmoothStronglyConvex, mu must be > 0.")
-        if not np.isfinite(L) or L <= 0:
-            raise ValueError("For SmoothStronglyConvex, L must be > 0 and finite.")
+        mu = _ensure_positive_finite(
+            mu,
+            "Parameter mu",
+            "For SmoothStronglyConvex, mu must be > 0 and finite.",
+        )
+        L = _ensure_positive_finite(
+            L,
+            "Parameter L",
+            "For SmoothStronglyConvex, L must be > 0 and finite.",
+        )
         if mu >= L:
             raise ValueError("For SmoothStronglyConvex, mu must be less than L.")
         super().__init__(mu=mu, L=L)
@@ -480,15 +488,12 @@ class SmoothWeaklyConvex(ParametrizedFunctionInterpolationCondition):
     - `ValueError`: If parameters are not valid.
     """
     def __init__(self, mu_tilde: Union[int, float], L: Union[int, float]):
-        mu_tilde = ensure_real_number(mu_tilde, "Parameter mu_tilde")
-        L = ensure_real_number(L, "Parameter L")
-        if not np.isfinite(mu_tilde):
-            raise ValueError("For SmoothWeaklyConvex, mu_tilde must be > 0 and finite.")
-        mu = -mu_tilde
-        if mu >= 0:
-            raise ValueError("For SmoothWeaklyConvex, mu_tilde must be > 0.")
-        if not np.isfinite(L) or L <= 0:
-            raise ValueError("For SmoothWeaklyConvex, L must be > 0 and finite.")
+        mu_tilde, mu = _ensure_positive_mu_tilde(mu_tilde, "SmoothWeaklyConvex")
+        L = _ensure_positive_finite(
+            L,
+            "Parameter L",
+            "For SmoothWeaklyConvex, L must be > 0 and finite.",
+        )
         super().__init__(mu=mu, L=L)
         self.mu_tilde = mu_tilde
 
@@ -668,9 +673,11 @@ class GradientDominated(FunctionInterpolationCondition):
     - `ValueError`: If `mu_gd` is not a number, :math:`\le 0`, or infinite.
     """
     def __init__(self, mu_gd: Union[int, float]):
-        mu_gd = ensure_real_number(mu_gd, "Gradient-dominated parameter")
-        if not np.isfinite(mu_gd) or mu_gd <= 0:
-            raise ValueError("Gradient-dominated parameter (mu_gd) must be greater than 0 and finite.")
+        mu_gd = _ensure_positive_finite(
+            mu_gd,
+            "Gradient-dominated parameter",
+            "Gradient-dominated parameter (mu_gd) must be greater than 0 and finite.",
+        )
         self.mu_gd = mu_gd
 
     def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]]:
@@ -699,6 +706,3 @@ class GradientDominated(FunctionInterpolationCondition):
             (M1, a1, eq_flag, interp_idx),
             (M2, a2, eq_flag, interp_idx)
         ]
-
-# ---------------------------------------------------------------------------
-# InclusionProblem Class
