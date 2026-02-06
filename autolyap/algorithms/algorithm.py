@@ -9,7 +9,11 @@ from autolyap.utils.validation import (
     ensure_index_list,
     ensure_integral,
     ensure_m_bar_list,
+    ensure_real_number,
 )
+
+Pair = Union[Tuple[int, int], Tuple[str, str]]
+PairList = List[Pair]
 
 class Algorithm(ABC):
     r"""
@@ -265,6 +269,78 @@ class Algorithm(ABC):
     def _readonly_tuple(self, mats: Tuple[np.ndarray, ...]) -> Tuple[np.ndarray, ...]:
         return tuple(self._readonly_view(mat) for mat in mats)
 
+    @staticmethod
+    def _validate_k_bounds(k_min: int, k_max: int) -> Tuple[int, int]:
+        r"""Validate and normalize iteration bounds."""
+        k_min = ensure_integral(k_min, "k_min", minimum=0)
+        k_max = ensure_integral(k_max, "k_max", minimum=0)
+        if k_max < k_min:
+            raise ValueError("Require 0 <= k_min <= k_max")
+        return k_min, k_max
+
+    @staticmethod
+    def _validate_finite_real(value: Any, name: str) -> float:
+        r"""Validate a finite real scalar parameter."""
+        return ensure_real_number(value, name, finite=True)
+
+    @classmethod
+    def _validate_positive_finite_real(cls, value: Any, name: str) -> float:
+        r"""Validate a strictly positive finite real scalar parameter."""
+        value = cls._validate_finite_real(value, name)
+        if value <= 0:
+            raise ValueError(f"{name} must be > 0.")
+        return value
+
+    @staticmethod
+    def _validate_nonnegative_integral(value: Any, name: str) -> int:
+        r"""Validate a nonnegative integer parameter."""
+        return ensure_integral(value, name, minimum=0)
+
+    def _set_dynamic_parameter(self, name: str, value: Any) -> None:
+        r"""
+        Update a dynamic scalar parameter only when its value changes.
+
+        This avoids unnecessary cache invalidation for repeated assignments
+        of the same parameter value.
+        """
+        if hasattr(self, name) and getattr(self, name) == value:
+            return
+        setattr(self, name, value)
+
+    @staticmethod
+    def _validate_pairs_container(pairs: PairList) -> None:
+        r"""Validate that `pairs` is a non-empty list/tuple of 2-tuples."""
+        if pairs is None or not isinstance(pairs, (list, tuple)) or len(pairs) == 0:
+            raise ValueError("Pairs must be a nonempty list of 2-tuples.")
+        for pair in pairs:
+            if not (isinstance(pair, tuple) and len(pair) == 2):
+                raise ValueError("Each element in pairs must be a tuple of two elements (j, k).")
+
+    @staticmethod
+    def _is_star_pair(j: Any, k: Any) -> bool:
+        r"""Return True when a pair corresponds to the star entry."""
+        return j == 'star' and k == 'star'
+
+    @staticmethod
+    def _validate_nonstar_pair(
+            j: Any,
+            k: Any,
+            m_bar_i: int,
+            k_min: int,
+            k_max: int,
+            i: int,
+    ) -> Tuple[int, int]:
+        r"""Validate and normalize a non-star pair `(j, k)`."""
+        if isinstance(j, bool) or isinstance(k, bool) or not isinstance(j, Integral) or not isinstance(k, Integral):
+            raise ValueError("For non-star pairs, (j, k) must be integers.")
+        j = int(j)
+        k = int(k)
+        if not (1 <= j <= m_bar_i):
+            raise ValueError(f"For i = {i}, j must be in [1, {m_bar_i}].")
+        if not (k_min <= k <= k_max):
+            raise ValueError(f"k must be in [{k_min}, {k_max}].")
+        return j, k
+
     @abstractmethod
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         r"""
@@ -325,10 +401,7 @@ class Algorithm(ABC):
 
         - `ValueError`: if :math:`k_{\textup{min}} < 0` or :math:`k_{\textup{max}} < k_{\textup{min}}`.
         """
-        k_min = ensure_integral(k_min, "k_min", minimum=0)
-        k_max = ensure_integral(k_max, "k_max", minimum=0)
-        if k_max < k_min:
-            raise ValueError("Require 0 <= k_min <= k_max")
+        k_min, k_max = self._validate_k_bounds(k_min, k_max)
         # Cache by horizon to reuse repeated calls with the same (k_min, k_max).
         key = (k_min, k_max)
         cached = self._cache_get(self._cache_AsBsCsDs, key)
@@ -488,10 +561,7 @@ class Algorithm(ABC):
 
         - `ValueError`: if :math:`k_{\textup{min}} < 0` or :math:`k_{\textup{max}} < k_{\textup{min}}`.
         """
-        k_min = ensure_integral(k_min, "k_min", minimum=0)
-        k_max = ensure_integral(k_max, "k_max", minimum=0)
-        if k_max < k_min:
-            raise ValueError("Require 0 <= k_min <= k_max")
+        k_min, k_max = self._validate_k_bounds(k_min, k_max)
         key = (k_min, k_max)
         cached = self._cache_get(self._cache_Us, key)
         if cached is not None:
@@ -691,10 +761,7 @@ class Algorithm(ABC):
 
         - `ValueError`: if :math:`k_{\textup{min}} < 0` or :math:`k_{\textup{max}} < k_{\textup{min}}`.
         """
-        k_min = ensure_integral(k_min, "k_min", minimum=0)
-        k_max = ensure_integral(k_max, "k_max", minimum=0)
-        if k_max < k_min:
-            raise ValueError("Require 0 <= k_min <= k_max")
+        k_min, k_max = self._validate_k_bounds(k_min, k_max)
         key = (k_min, k_max)
         cached = self._cache_get(self._cache_Ys, key)
         if cached is not None:
@@ -846,10 +913,7 @@ class Algorithm(ABC):
 
         - `ValueError`: if :math:`k_{\textup{min}} < 0` or :math:`k_{\textup{max}} < k_{\textup{min}}`.
         """
-        k_min = ensure_integral(k_min, "k_min", minimum=0)
-        k_max = ensure_integral(k_max, "k_max", minimum=0)
-        if k_max < k_min:
-            raise ValueError("Require 0 <= k_min <= k_max")
+        k_min, k_max = self._validate_k_bounds(k_min, k_max)
         key = (k_min, k_max)
         cached = self._cache_get(self._cache_Xs, key)
         if cached is not None:
@@ -1083,7 +1147,7 @@ class Algorithm(ABC):
         return dict(Fs)
 
     # --- LIFTED CONSTRAINT MATRICES ---
-    def compute_E(self, i: int, pairs: List[Union[Tuple[int, int], Tuple[str, str]]],
+    def compute_E(self, i: int, pairs: PairList,
                   k_min: int, k_max: int, validate: bool = True) -> np.ndarray:
         r"""
         Compute the E matrix for component :math:`i` from a list of :math:`(j, k)` pairs.
@@ -1138,15 +1202,8 @@ class Algorithm(ABC):
             i = ensure_integral(i, "i", minimum=1)
             if i > self.m:
                 raise ValueError(f"Component index i must be in [1, {self.m}]. Got i = {i}.")
-            if pairs is None or not isinstance(pairs, (list, tuple)) or len(pairs) == 0:
-                raise ValueError("Pairs must be a nonempty list of 2-tuples.")
-            for pair in pairs:
-                if not (isinstance(pair, tuple) and len(pair) == 2):
-                    raise ValueError("Each element in pairs must be a tuple of two elements (j, k).")
-            k_min = ensure_integral(k_min, "k_min", minimum=0)
-            k_max = ensure_integral(k_max, "k_max", minimum=0)
-            if k_max < k_min:
-                raise ValueError("Invalid iteration bounds: ensure 0 <= k_min <= k_max.")
+            self._validate_pairs_container(pairs)
+            k_min, k_max = self._validate_k_bounds(k_min, k_max)
 
         Ys = self.get_Ys(k_min, k_max)
         Us = self.get_Us(k_min, k_max)
@@ -1158,26 +1215,19 @@ class Algorithm(ABC):
         offset = int(self._m_bar_offsets[i - 1])
         star_row = i - 1
         for idx, (j, k) in enumerate(pairs):
-            if j == 'star' and k == 'star':
+            if self._is_star_pair(j, k):
                 E[idx] = Ys['star'][star_row]
                 E[idx + num_pairs] = Us['star'][star_row]
                 continue
             if validate:
-                if isinstance(j, bool) or isinstance(k, bool) or not isinstance(j, Integral) or not isinstance(k, Integral):
-                    raise ValueError("For non-star pairs, (j, k) must be integers.")
-                j = int(j)
-                k = int(k)
-                if not (1 <= j <= m_bar_i):
-                    raise ValueError(f"For i = {i}, j must be in [1, {m_bar_i}].")
-                if not (k_min <= k <= k_max):
-                    raise ValueError(f"k must be in [{k_min}, {k_max}].")
+                j, k = self._validate_nonstar_pair(j, k, m_bar_i, k_min, k_max, i)
             row_idx = offset + int(j) - 1
-            E[idx] = Ys[k][row_idx]
-            E[idx + num_pairs] = Us[k][row_idx]
+            E[idx] = Ys[int(k)][row_idx]
+            E[idx + num_pairs] = Us[int(k)][row_idx]
 
         return E
 
-    def compute_W(self, i: int, pairs: List[Union[Tuple[int, int], Tuple[str, str]]],
+    def compute_W(self, i: int, pairs: PairList,
                   k_min: int, k_max: int, M: np.ndarray, validate: bool = True) -> np.ndarray:
         r"""
         Compute the W matrix for component :math:`i`.
@@ -1222,15 +1272,11 @@ class Algorithm(ABC):
         - `ValueError`: if any input conditions are not met.
         """
         if validate:
-            if pairs is None or not isinstance(pairs, (list, tuple)) or len(pairs) == 0:
-                raise ValueError("Pairs must be a nonempty list of 2-tuples.")
-            for pair in pairs:
-                if not (isinstance(pair, tuple) and len(pair) == 2):
-                    raise ValueError("Each element in pairs must be a tuple of two elements (j, k).")
-            k_min = ensure_integral(k_min, "k_min", minimum=0)
-            k_max = ensure_integral(k_max, "k_max", minimum=0)
-            if k_max < k_min:
-                raise ValueError("Invalid iteration bounds: ensure 0 <= k_min <= k_max.")
+            i = ensure_integral(i, "i", minimum=1)
+            if i > self.m:
+                raise ValueError(f"Component index i must be in [1, {self.m}]. Got i = {i}.")
+            self._validate_pairs_container(pairs)
+            k_min, k_max = self._validate_k_bounds(k_min, k_max)
             if not isinstance(M, np.ndarray):
                 raise ValueError("M must be a numpy array.")
             exp_dim = 2 * len(pairs)
@@ -1243,7 +1289,7 @@ class Algorithm(ABC):
         E = self.compute_E(i, pairs, k_min, k_max, validate=validate)
         return E.T @ M @ E
 
-    def compute_F_aggregated(self, i: int, pairs: List[Union[Tuple[int, int], Tuple[str, str]]],
+    def compute_F_aggregated(self, i: int, pairs: PairList,
                              k_min: int, k_max: int, a: np.ndarray, validate: bool = True) -> np.ndarray:
         r"""
         Compute the aggregated F vector for component :math:`i`.
@@ -1299,21 +1345,17 @@ class Algorithm(ABC):
             i = ensure_integral(i, "i", minimum=1)
             if i not in self.I_func:
                 raise ValueError(f"Component index i must be in I_func. Got i = {i}.")
-            k_min = ensure_integral(k_min, "k_min", minimum=0)
-            k_max = ensure_integral(k_max, "k_max", minimum=0)
-            if k_max < k_min:
-                raise ValueError("Require 0 <= k_min <= k_max")
+            k_min, k_max = self._validate_k_bounds(k_min, k_max)
         total_dim = (k_max - k_min + 1) * self.m_bar_func + self.m_func
 
         if validate:
-            if pairs is None or not isinstance(pairs, (list, tuple)) or len(pairs) == 0:
-                raise ValueError("Pairs must be a nonempty list of 2-tuples.")
+            self._validate_pairs_container(pairs)
             m_bar_i = self.m_bar_is[i - 1]
             for pair in pairs:
                 if not (isinstance(pair, tuple) and len(pair) == 2):
                     raise ValueError("Each element in pairs must be a tuple of two elements (j, k).")
                 j, k = pair
-                if (j == 'star' or k == 'star') and not (j == 'star' and k == 'star'):
+                if (j == 'star' or k == 'star') and not self._is_star_pair(j, k):
                     raise ValueError("For star F matrices, both j and k must be 'star'.")
                 if j != 'star' and k != 'star':
                     if isinstance(j, bool) or isinstance(k, bool) or not isinstance(j, Integral) or not isinstance(k, Integral):
@@ -1329,29 +1371,10 @@ class Algorithm(ABC):
             ensure_finite_array(a, "a")
 
         Fs_dict = self.get_Fs(k_min, k_max)
-        if len(pairs) == 1:
-            j, k = pairs[0]
-            key = (i, 'star', 'star') if (j == 'star' and k == 'star') else (i, j, k)
+        aggregated_F = np.zeros((total_dim, 1))
+        for weight, (j, k) in zip(a, pairs):
+            key = (i, 'star', 'star') if self._is_star_pair(j, k) else (i, j, k)
             if key not in Fs_dict:
                 raise ValueError(f"Key {key} not found in F matrices.")
-            return Fs_dict[key].T * a[0]
-        if len(pairs) == 2:
-            (j1, k1), (j2, k2) = pairs
-            key1 = (i, 'star', 'star') if (j1 == 'star' and k1 == 'star') else (i, j1, k1)
-            key2 = (i, 'star', 'star') if (j2 == 'star' and k2 == 'star') else (i, j2, k2)
-            if key1 not in Fs_dict:
-                raise ValueError(f"Key {key1} not found in F matrices.")
-            if key2 not in Fs_dict:
-                raise ValueError(f"Key {key2} not found in F matrices.")
-            return Fs_dict[key1].T * a[0] + Fs_dict[key2].T * a[1]
-
-        F_cols = []
-        for (j, k) in pairs:
-            key = (i, 'star', 'star') if (j == 'star' and k == 'star') else (i, j, k)
-            if key not in Fs_dict:
-                raise ValueError(f"Key {key} not found in F matrices.")
-            # Stack columns so the linear term matches the interpolation vector `a`.
-            F_cols.append(Fs_dict[key].T)
-        F_stack = np.hstack(F_cols)
-        aggregated_F = F_stack @ a
-        return aggregated_F.reshape(total_dim, 1)
+            aggregated_F += Fs_dict[key].T * weight
+        return aggregated_F

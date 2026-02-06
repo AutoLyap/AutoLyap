@@ -1,7 +1,6 @@
 import numpy as np
 from typing import Tuple
 from .algorithm import Algorithm
-from autolyap.utils.validation import ensure_real_number
 
 class DavisYin(Algorithm):
     r"""
@@ -87,10 +86,8 @@ class DavisYin(Algorithm):
 
         - `ValueError`: If `gamma` is not a finite real number or if :math:`\gamma \le 0`.
         """
-        gamma = ensure_real_number(gamma, "gamma", finite=True)
-        if gamma <= 0:
-            raise ValueError("gamma must be > 0.")
-        self.gamma = gamma
+        gamma = self._validate_positive_finite_real(gamma, "gamma")
+        self._set_dynamic_parameter("gamma", gamma)
 
     def set_lambda(self, lambda_value: float) -> None:
         r"""
@@ -107,8 +104,8 @@ class DavisYin(Algorithm):
 
         - `ValueError`: If `lambda_value` is not a finite real number.
         """
-        lambda_value = ensure_real_number(lambda_value, "lambda_value", finite=True)
-        self.lambda_value = lambda_value
+        lambda_value = self._validate_finite_real(lambda_value, "lambda_value")
+        self._set_dynamic_parameter("lambda_value", lambda_value)
     
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         A = np.array([[1]])

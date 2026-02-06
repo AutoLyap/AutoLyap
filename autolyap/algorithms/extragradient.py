@@ -1,7 +1,6 @@
 import numpy as np
 from typing import Tuple
 from .algorithm import Algorithm
-from autolyap.utils.validation import ensure_real_number
 
 class Extragradient(Algorithm):
     r"""
@@ -139,10 +138,8 @@ class Extragradient(Algorithm):
 
         - `ValueError`: If `gamma` is not a finite real number or if :math:`\gamma \le 0`.
         """
-        gamma = ensure_real_number(gamma, "gamma", finite=True)
-        if gamma <= 0:
-            raise ValueError("gamma must be > 0.")
-        self.gamma = gamma
+        gamma = self._validate_positive_finite_real(gamma, "gamma")
+        self._set_dynamic_parameter("gamma", gamma)
     
     def set_delta(self, delta: float) -> None:
         r"""
@@ -159,10 +156,8 @@ class Extragradient(Algorithm):
 
         - `ValueError`: If `delta` is not a finite real number or if :math:`\delta \le 0`.
         """
-        delta = ensure_real_number(delta, "delta", finite=True)
-        if delta <= 0:
-            raise ValueError("delta must be > 0.")
-        self.delta = delta
+        delta = self._validate_positive_finite_real(delta, "delta")
+        self._set_dynamic_parameter("delta", delta)
     
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if self.type == "unconstrained":

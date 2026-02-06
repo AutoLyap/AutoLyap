@@ -1,7 +1,6 @@
 import numpy as np
 from typing import Tuple
 from .algorithm import Algorithm
-from autolyap.utils.validation import ensure_real_number
 
 class ChambollePock(Algorithm):
     r"""
@@ -100,10 +99,8 @@ class ChambollePock(Algorithm):
 
         - `ValueError`: If `tau` is not a finite real number or if :math:`\tau \le 0`.
         """
-        tau = ensure_real_number(tau, "tau", finite=True)
-        if tau <= 0:
-            raise ValueError("tau must be > 0.")
-        self.tau = tau
+        tau = self._validate_positive_finite_real(tau, "tau")
+        self._set_dynamic_parameter("tau", tau)
     
     def set_sigma(self, sigma: float) -> None:
         r"""
@@ -120,10 +117,8 @@ class ChambollePock(Algorithm):
 
         - `ValueError`: If `sigma` is not a finite real number or if :math:`\sigma \le 0`.
         """
-        sigma = ensure_real_number(sigma, "sigma", finite=True)
-        if sigma <= 0:
-            raise ValueError("sigma must be > 0.")
-        self.sigma = sigma
+        sigma = self._validate_positive_finite_real(sigma, "sigma")
+        self._set_dynamic_parameter("sigma", sigma)
     
     def set_theta(self, theta: float) -> None:
         r"""
@@ -140,8 +135,8 @@ class ChambollePock(Algorithm):
 
         - `ValueError`: If `theta` is not a finite real number.
         """
-        theta = ensure_real_number(theta, "theta", finite=True)
-        self.theta = theta
+        theta = self._validate_finite_real(theta, "theta")
+        self._set_dynamic_parameter("theta", theta)
     
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         A = np.array([[1, -self.tau],
