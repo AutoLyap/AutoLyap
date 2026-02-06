@@ -35,7 +35,7 @@ def test_convergence_item_c_matches_theoretical_bound():
         Q_k = (Xsk[k][1, :] - Ysk["star"]).T @ (Xsk[k][1, :] - Ysk["star"])
         q_k = np.zeros(algorithm.m_bar_func + algorithm.m_func)
 
-        ok, c = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.verify_iteration_dependent_Lyapunov(
             problem,
             algorithm,
             k,
@@ -45,6 +45,15 @@ def test_convergence_item_c_matches_theoretical_bound():
             q_K=q_k,
         )
 
-        assert ok is True
-        assert c is not None
-        assert c == pytest.approx(bound_theoretical, abs=1e-6)
+        assert result["success"] is True
+        assert result["c"] is not None
+        assert result["certificate"] is not None
+        certificate = result["certificate"]
+        assert len(certificate["Q_sequence"]) == k + 1
+        assert np.allclose(certificate["Q_sequence"][0], Q_0)
+        assert np.allclose(certificate["Q_sequence"][-1], Q_k)
+        assert certificate["q_sequence"] is not None
+        assert len(certificate["q_sequence"]) == k + 1
+        assert np.allclose(certificate["q_sequence"][0], q_0)
+        assert np.allclose(certificate["q_sequence"][-1], q_k)
+        assert result["c"] == pytest.approx(bound_theoretical, abs=1e-6)

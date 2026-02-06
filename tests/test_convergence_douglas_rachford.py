@@ -234,7 +234,10 @@ def test_convergence_douglas_rachford_experiment1_operator_mm_strong_lipschitz()
         if (lambda_value / 2) >= (2 / (1 + delta)):
             continue
         algorithm.set_gamma(float(gamma))
-        rho_al = _bisection_rho(problem, algorithm)
+        result = _bisection_rho(problem, algorithm)
+        assert result["success"]
+        assert result["certificate"] is not None
+        rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = _giselsson_thm65_rate_sq(lambda_value, mu, L, gamma)
         assert rho_al == pytest.approx(rho_theoretical, abs=5e-5)
@@ -257,7 +260,10 @@ def test_convergence_douglas_rachford_experiment2_operator_mm_strong_cocoercive(
         if (lambda_value / 2) >= (2 / (1 + delta)):
             continue
         algorithm.set_gamma(float(gamma))
-        rho_al = _bisection_rho(problem, algorithm)
+        result = _bisection_rho(problem, algorithm)
+        assert result["success"]
+        assert result["certificate"] is not None
+        rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = _giselsson_thm74_rate_sq(lambda_value, mu, L, gamma)
         assert rho_al == pytest.approx(rho_theoretical, abs=5e-6)
@@ -274,7 +280,10 @@ def test_convergence_douglas_rachford_experiment3_operator_cocoercive_strong_lam
 
     for lambda_value in np.linspace(0.01, 1.99, 5):
         algorithm.set_lambda(float(lambda_value))
-        rho_al = _bisection_rho(problem, algorithm)
+        result = _bisection_rho(problem, algorithm)
+        assert result["success"]
+        assert result["certificate"] is not None
+        rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = _ryu_thm41_rate(mu, beta, lambda_value, gamma) ** 2
         assert rho_al == pytest.approx(rho_theoretical, abs=5e-6)
@@ -293,7 +302,10 @@ def test_convergence_douglas_rachford_experiment4_operator_mm_lipschitz_strong_l
 
     for lambda_value in np.linspace(0.01, 1.99, 5):
         algorithm.set_lambda(float(lambda_value))
-        rho_al = _bisection_rho(problem, algorithm)
+        result = _bisection_rho(problem, algorithm)
+        assert result["success"]
+        assert result["certificate"] is not None
+        rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = _ryu_thm43_rate(mu, lambda_value, L, gamma) ** 2
         assert rho_al == pytest.approx(rho_theoretical, abs=5e-6)
@@ -313,7 +325,10 @@ def test_convergence_douglas_rachford_experiment5_function_smooth_strong_plus_co
         if (lambda_value / 2) >= (2 / (1 + delta)):
             continue
         algorithm.set_gamma(float(gamma))
-        rho_al = _bisection_rho(problem, algorithm)
+        result = _bisection_rho(problem, algorithm)
+        assert result["success"]
+        assert result["certificate"] is not None
+        rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = _giselsson_boyd_rate_sq(lambda_value, mu, L, gamma)
         assert rho_al == pytest.approx(rho_theoretical, abs=5e-6)

@@ -20,7 +20,7 @@ def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
         bound_theoretical = L / (2 * theta_K ** 2)
 
         Q_k, q_k = IterationDependent.get_parameters_function_value_suboptimality(algorithm, k)
-        ok, c = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.verify_iteration_dependent_Lyapunov(
             problem,
             algorithm,
             k,
@@ -29,6 +29,15 @@ def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
             q_0=q_0,
             q_K=q_k,
         )
-        assert ok is True
-        assert c is not None
-        assert c == pytest.approx(bound_theoretical, rel=0.1, abs=1e-5)
+        assert result["success"] is True
+        assert result["c"] is not None
+        assert result["certificate"] is not None
+        certificate = result["certificate"]
+        assert len(certificate["Q_sequence"]) == k + 1
+        assert np.allclose(certificate["Q_sequence"][0], Q_0)
+        assert np.allclose(certificate["Q_sequence"][-1], Q_k)
+        assert certificate["q_sequence"] is not None
+        assert len(certificate["q_sequence"]) == k + 1
+        assert np.allclose(certificate["q_sequence"][0], q_0)
+        assert np.allclose(certificate["q_sequence"][-1], q_k)
+        assert result["c"] == pytest.approx(bound_theoretical, rel=0.1, abs=1e-5)

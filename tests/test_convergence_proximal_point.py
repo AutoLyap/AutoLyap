@@ -16,7 +16,7 @@ def test_convergence_proximal_point_rho_matches_theory():
     for gamma in gammas:
         algorithm.set_gamma(gamma)
         P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(algorithm)
-        rho_al = IterationIndependent.LinearConvergence.bisection_search_rho(
+        result = IterationIndependent.LinearConvergence.bisection_search_rho(
             problem,
             algorithm,
             P,
@@ -27,6 +27,12 @@ def test_convergence_proximal_point_rho_matches_theory():
             s_equals_t=True,
             remove_C3=True,
         )
+        assert result["success"]
+        assert result["certificate"] is not None
+        assert "Q" in result["certificate"]
+        assert "S" in result["certificate"]
+        assert "multipliers" in result["certificate"]
+        rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = (1 / (1 + gamma * mu)) ** 2
         assert abs(rho_al - rho_theoretical) < 1e-5

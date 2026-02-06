@@ -3,7 +3,7 @@ from typing import Type, Optional, Tuple, Union, List, Dict, Iterator
 from itertools import combinations
 from mosek.fusion import Model, Domain, OptimizeError, Expr
 import mosek.fusion.pythonic
-from autolyap.utils.helper_functions import create_symmetric_matrix_expression
+from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
 from autolyap.utils.validation import (
     ensure_finite_array,
     ensure_integral,
@@ -322,7 +322,7 @@ class LinearConvergence:
             lower_bound: float = 0.0,
             upper_bound: float = 1.0,
             tol: float = 1e-12
-        ) -> Optional[float]:
+        ) -> Dict[str, object]:
         r"""
         Perform a bisection search to find the minimum contraction parameter :math:`\rho`.
 
@@ -365,9 +365,19 @@ class LinearConvergence:
 
         **Returns**
 
-        - (:class:`~typing.Optional`\[:class:`float`\]): The minimal :math:`\rho` in
-          :math:`[{\text{lower_bound}}, {\text{upper_bound}}]` that verifies the Lyapunov inequality within
-          tolerance :math:`{\text{tol}}`, or `None` if the inequality does not hold at the upper bound.
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`object`\]): Result dictionary
+          with keys `success`, `rho`, and `certificate`.
+
+          - `success` (:class:`bool`): `True` iff the bisection finds a feasible
+            contraction factor.
+          - `rho` (:class:`~typing.Optional`\[:class:`float`\]): Best feasible
+            bisection value when `success` is `True`; otherwise `None`.
+          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`object`\]\]):
+            Feasibility certificate at the returned `rho` when `success` is
+            `True`; otherwise `None`.
+
+          The `certificate` schema is exactly the same as in
+          :meth:`~autolyap.iteration_independent.IterationIndependent.verify_iteration_independent_Lyapunov`.
 
         **Raises**
 
@@ -390,7 +400,7 @@ class LinearConvergence:
         Mod = Model()
         rho_param = Mod.parameter(1)
         rho_scalar = rho_param.index(0)
-        Mod = IterationIndependent._build_iteration_independent_model(
+        Mod, solution_handles = IterationIndependent._build_iteration_independent_model(
             prob,
             algo,
             P,
@@ -432,7 +442,7 @@ class LinearConvergence:
         try:
             # Ensure that the inequality holds at the initial upper bound.
             if not _check_rho(upper_bound):
-                return None
+                return {"success": False, "rho": None, "certificate": None}
 
             l = lower_bound
             u = upper_bound
@@ -442,7 +452,11 @@ class LinearConvergence:
                     u = mid
                 else:
                     l = mid
-            return u
+            if not _check_rho(u):
+                return {"success": False, "rho": None, "certificate": None}
+
+            certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
+            return {"success": True, "rho": float(u), "certificate": certificate}
         finally:
             Mod.dispose()
 
@@ -1424,8 +1438,8 @@ class IterationIndependent:
             remove_C4: bool,
             rho_term,
             model: Optional[Model] = None,
-        ) -> Model:
-        r"""Assemble and return the MOSEK Fusion model for the selected Lyapunov conditions."""
+        ) -> Tuple[Model, Dict[str, object]]:
+        r"""Assemble and return the MOSEK Fusion model and variable handles."""
         # Dimensions and indices have already been validated by callers.
         n = algo.n
         m_bar = algo.m_bar
@@ -1443,6 +1457,7 @@ class IterationIndependent:
         Mod = model if model is not None else Model()
 
         # Q variable: either set equal to P or defined as a new symmetric variable.
+        Qij = None
         if Q_equals_P:
             Q = P
         else:
@@ -1450,6 +1465,7 @@ class IterationIndependent:
             Q = create_symmetric_matrix_expression(Qij, dim_P)
 
         # S variable: either set equal to T or defined as a new symmetric variable.
+        Sij = None
         if S_equals_T:
             S = T
         else:
@@ -1457,15 +1473,19 @@ class IterationIndependent:
             S = create_symmetric_matrix_expression(Sij, dim_T)
         
         # For functional components, create variables q and s (or set them equal to p and t).
+        q_var = None
+        s_var = None
         if m_func > 0:
             if q_equals_p:
                 q = p
             else:
-                q = Mod.variable("q", dim_p, Domain.unbounded())
+                q_var = Mod.variable("q", dim_p, Domain.unbounded())
+                q = q_var
             if s_equals_t:
                 s = t
             else:
-                s = Mod.variable("s", dim_t, Domain.unbounded())
+                s_var = Mod.variable("s", dim_t, Domain.unbounded())
+                s = s_var
         
         # ---------------------------------------------------------------------
         # Build the main PSD (positive semidefinite) and equality constraint sums.
@@ -1537,11 +1557,9 @@ class IterationIndependent:
                 eq_constraint_sums[cond] = -ws[cond]
 
         # Dictionaries to hold multipliers for interpolation conditions.
-        if m_op > 0:
-            lambdas_op = {}
-        if m_func > 0:
-            lambdas_func = {}
-            nus_func = {}
+        lambdas_op: Dict[Tuple[str, int, PairTuple, int], object] = {}
+        lambdas_func: Dict[Tuple[str, int, PairTuple, int], object] = {}
+        nus_func: Dict[Tuple[str, int, PairTuple, int], object] = {}
 
         # ---------------------------------------------------------------------
         # Define inner helper functions for processing interpolation data.
@@ -1685,7 +1703,150 @@ class IterationIndependent:
             if m_func > 0:
                 Mod.constraint(eq_constraint_sums[cond] == 0)
 
-        return Mod
+        solution_handles: Dict[str, object] = {
+            "dim_P": dim_P,
+            "dim_T": dim_T,
+            "m_func": m_func,
+            "P": P,
+            "T": T,
+            "p": p,
+            "t": t,
+            "Qij": Qij,
+            "Sij": Sij,
+            "q_var": q_var,
+            "s_var": s_var,
+            "lambdas_op": lambdas_op,
+            "lambdas_func": lambdas_func,
+            "nus_func": nus_func,
+        }
+        return Mod, solution_handles
+
+    @staticmethod
+    def _pairs_to_readable(pairs: PairTuple) -> List[Dict[str, Union[int, str]]]:
+        r"""Convert interpolation-pair tuples into readable dictionaries."""
+        return [{"j": pair[0], "k": pair[1]} for pair in pairs]
+
+    @staticmethod
+    def _serialize_multipliers(
+            multiplier_vars: Dict[Tuple[str, int, PairTuple, int], object]
+    ) -> List[Dict[str, object]]:
+        r"""
+        Convert scalar MOSEK multiplier variables into readable records.
+
+        Schema:
+
+        .. code-block:: text
+
+            {
+              "condition": str,  # active Lyapunov condition key
+              "component": int,  # component index i in the inclusion problem
+              "interpolation_index": int,  # zero-based index o in prob.get_component_data(i)
+              "pairs": List[{"j": int | "star", "k": int | "star"}],  # concrete interpolation pairs
+              "value": float
+            }
+
+        Indexing correspondence:
+        - Each record is built from an internal key :math:`(\text{cond}, i, \text{pairs}, o)`.
+        - `condition` corresponds to :math:`\text{cond}`.
+        - `component` corresponds to :math:`i`.
+        - `interpolation_index` corresponds to :math:`o`, where
+          :math:`o` is the zero-based index from
+          :math:`\text{enumerate}(\text{prob.get_component_data}(i))`.
+        - `pairs` corresponds to the concrete tuple `pairs` instantiated for
+          the selected interpolation pattern and active condition.
+
+        Allowed ranges/values:
+        - `condition` in the active subset of `{"C1", "C2", "C3", "C4"}`.
+        - `component` corresponds to :math:`i` and satisfies :math:`i \in \llbracket 1, m \rrbracket`.
+        - `interpolation_index` corresponds to :math:`o` and satisfies
+          :math:`o \in \llbracket 0, \text{len}(\text{prob.get_component_data}(i))-1 \rrbracket`.
+        - Pair-entry ranges are
+
+          .. math::
+              \begin{aligned}
+              j &\in \llbracket 1, \bar m_i \rrbracket \cup \{\star\}, \\
+              k &\in \llbracket 0, k_{\textup{max}}(\text{condition}) \rrbracket \cup \{\star\}.
+              \end{aligned}
+
+          with :math:`j=\star \Leftrightarrow k=\star`.
+        - `value` is a real scalar.
+        """
+        records: List[Dict[str, object]] = []
+        for key, var in sorted(
+                multiplier_vars.items(),
+                key=lambda item: (item[0][0], item[0][1], item[0][3], str(item[0][2]))):
+            cond, component, pairs, interpolation_index = key
+            value_arr = np.asarray(var.level(), dtype=float).reshape(-1)
+            value = float(value_arr[0]) if value_arr.size > 0 else 0.0
+            records.append({
+                "condition": cond,
+                "component": component,
+                "interpolation_index": interpolation_index,
+                "pairs": IterationIndependent._pairs_to_readable(pairs),
+                "value": value,
+            })
+        return records
+
+    @staticmethod
+    def _extract_iteration_independent_certificate(solution_handles: Dict[str, object]) -> Dict[str, object]:
+        r"""
+        Extract a solved iteration-independent certificate into NumPy/Python values.
+
+        The returned dictionary has keys `Q`, `S`, `q`, `s`, and `multipliers`.
+        Matrices `Q` and `S` are always full NumPy arrays. Vectors `q` and `s` are
+        returned only for functional-component settings (`m_func > 0`), and are
+        otherwise `None`.
+        """
+        dim_P = int(solution_handles["dim_P"])
+        dim_T = int(solution_handles["dim_T"])
+        m_func = int(solution_handles["m_func"])
+        P = solution_handles["P"]
+        T = solution_handles["T"]
+        p = solution_handles["p"]
+        t = solution_handles["t"]
+        Qij = solution_handles["Qij"]
+        Sij = solution_handles["Sij"]
+        q_var = solution_handles["q_var"]
+        s_var = solution_handles["s_var"]
+
+        if Qij is None:
+            Q_mat = np.array(P, dtype=float, copy=True)
+        else:
+            Q_levels = np.asarray(Qij.level(), dtype=float).reshape(-1)
+            Q_mat = create_symmetric_matrix(Q_levels, dim_P)
+
+        if Sij is None:
+            S_mat = np.array(T, dtype=float, copy=True)
+        else:
+            S_levels = np.asarray(Sij.level(), dtype=float).reshape(-1)
+            S_mat = create_symmetric_matrix(S_levels, dim_T)
+
+        q_vec = None
+        s_vec = None
+        if m_func > 0:
+            if q_var is None:
+                q_vec = np.array(p, dtype=float, copy=True).reshape(-1) if p is not None else None
+            else:
+                q_vec = np.asarray(q_var.level(), dtype=float).reshape(-1)
+            if s_var is None:
+                s_vec = np.array(t, dtype=float, copy=True).reshape(-1) if t is not None else None
+            else:
+                s_vec = np.asarray(s_var.level(), dtype=float).reshape(-1)
+
+        lambdas_op = solution_handles["lambdas_op"]
+        lambdas_func = solution_handles["lambdas_func"]
+        nus_func = solution_handles["nus_func"]
+        return {
+            "Q": Q_mat,
+            "S": S_mat,
+            "q": q_vec,
+            "s": s_vec,
+            "multipliers": {
+                "operator_lambda": IterationIndependent._serialize_multipliers(lambdas_op),
+                "function_lambda": IterationIndependent._serialize_multipliers(lambdas_func),
+                "function_nu": IterationIndependent._serialize_multipliers(nus_func),
+            },
+        }
 
     @staticmethod
     def verify_iteration_independent_Lyapunov(
@@ -1705,7 +1866,7 @@ class IterationIndependent:
             remove_C2: bool = False,
             remove_C3: bool = False,
             remove_C4: bool = True
-    ) -> bool:
+    ) -> Dict[str, object]:
         r"""
         Verify feasibility of an iteration-independent Lyapunov inequality via an SDP.
 
@@ -1766,9 +1927,76 @@ class IterationIndependent:
 
         **Returns**
 
-        - (:class:`bool`): Returns `True` if the SDP is solved successfully. In that case, there exist
-          :math:`(Q,q,S,s)` such that the enabled constraints among (C1)–(C4) hold, with
-          (C2)–(C4) possibly removed. Returns `False` otherwise.
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`object`\]): Result dictionary
+          with keys `success`, `rho`, and `certificate`.
+
+          - `success` (:class:`bool`): `True` iff the SDP is feasible.
+          - `rho` (:class:`float`): The input contraction factor.
+          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`object`\]\]):
+            `None` when `success` is `False`; otherwise a feasible certificate.
+
+          When `success` is `True`, `certificate` has:
+
+          .. code-block:: text
+
+              {
+                "Q": np.ndarray,   # full symmetric matrix
+                "S": np.ndarray,   # full symmetric matrix
+                "q": np.ndarray | None,  # None when m_func == 0
+                "s": np.ndarray | None,  # None when m_func == 0
+                "multipliers": {
+                  "operator_lambda": List[record],
+                  "function_lambda": List[record],
+                  "function_nu": List[record]
+                }
+              }
+
+          Each multiplier list entry is a `record` with:
+
+          .. code-block:: text
+
+              record = {
+                "condition": str,
+                "component": int,
+                "interpolation_index": int,
+                "pairs": List[{"j": int | "star", "k": int | "star"}],
+                "value": float
+              }
+
+          Field meanings and ranges:
+
+          - `condition` is in the active subset of `{"C1", "C2", "C3", "C4"}`
+            (always including `"C1"`).
+          - `component` corresponds to :math:`i` and satisfies
+            :math:`i \in \llbracket 1, m \rrbracket`.
+          - `interpolation_index` corresponds to :math:`o`, where
+            :math:`o` is the zero-based index from
+            :math:`\text{enumerate}(\text{prob.get_component_data}(i))`, so
+            :math:`o \in \llbracket 0, \text{len}(\text{prob.get_component_data}(i)) - 1 \rrbracket`.
+          - `pairs` is the concrete interpolation-pair list used by that multiplier.
+            Its length is 1 (pattern `"j1"`) or 2 (patterns `"j1<j2"`,
+            `"j1!=j2"`, `"j1!=star"`). Typical examples are
+            `[{"j": 2, "k": 0}]` and
+            `[{"j": 1, "k": 0}, {"j": "star", "k": "star"}]`.
+
+            Pair entries satisfy
+
+            .. math::
+                \begin{aligned}
+                j &\in \llbracket 1, \bar m_i \rrbracket \cup \{\star\}, \\
+                k &\in \llbracket 0, k_{\textup{max}}(\text{condition}) \rrbracket \cup \{\star\},
+                \end{aligned}
+
+            with :math:`j=\star \Leftrightarrow k=\star`, where
+
+            .. math::
+                \begin{aligned}
+                k_{\textup{max}}(\text{"C1"}) &= h+\alpha+1, \\
+                k_{\textup{max}}(\text{"C2"}) &= h, \\
+                k_{\textup{max}}(\text{"C3"}) &= h+\alpha+1, \\
+                k_{\textup{max}}(\text{"C4"}) &= h+\alpha+2.
+                \end{aligned}
+          - `value` is the scalar MOSEK multiplier for that record.
 
         **Raises**
 
@@ -1786,7 +2014,7 @@ class IterationIndependent:
         )
         rho = ensure_real_number(rho, "rho", finite=True, minimum=0.0)
 
-        Mod = IterationIndependent._build_iteration_independent_model(
+        Mod, solution_handles = IterationIndependent._build_iteration_independent_model(
             prob,
             algo,
             P,
@@ -1804,25 +2032,26 @@ class IterationIndependent:
             remove_C4,
             rho_term=rho,
         )
+        licence_markers = (
+            "err_license_max",         # 1016 – all floating tokens in use
+            "err_license_server",      # 1015 – server unreachable / down
+            "err_missing_license_file" # 1008 – no licence file / server path
+        )
         try:
             Mod.solve()
             Mod.primalObjValue()
+            certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
+            return {"success": True, "rho": float(rho), "certificate": certificate}
         except OptimizeError as e:
-            licence_markers = (
-                "err_license_max",         # 1016 – all floating tokens in use
-                "err_license_server",      # 1015 – server unreachable / down
-                "err_missing_license_file" # 1008 – no licence file / server path
-            )
             if any(mark in str(e) for mark in licence_markers):
                 raise
-            return False
-        except Exception as e:
+            return {"success": False, "rho": float(rho), "certificate": None}
+        except Exception:
             # Uncomment the following line for debugging if needed.
             # print("Error during solve: {0}".format(e))
-            return False
+            return {"success": False, "rho": float(rho), "certificate": None}
         finally:
             Mod.dispose()
-        return True
     
     @staticmethod
     def _compute_Thetas(algo: Type[Algorithm], h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:
