@@ -2,7 +2,6 @@ import numpy as np
 import math
 from typing import Tuple
 from .algorithm import Algorithm
-from autolyap.utils.validation import ensure_integral, ensure_real_number
 
 class OptimizedGradientMethod(Algorithm):
     r"""
@@ -112,10 +111,8 @@ class OptimizedGradientMethod(Algorithm):
 
         - `ValueError`: If `L` is not a finite real number or if :math:`L \le 0`.
         """
-        L = ensure_real_number(L, "L", finite=True)
-        if L <= 0:
-            raise ValueError("L must be > 0.")
-        self.L = L
+        L = self._validate_positive_finite_real(L, "L")
+        self._set_dynamic_parameter("L", L)
     
     def set_K(self, K: int) -> None:
         r"""
@@ -132,8 +129,8 @@ class OptimizedGradientMethod(Algorithm):
 
         - `ValueError`: If `K` is not an integer or if :math:`K < 0`.
         """
-        K = ensure_integral(K, "K", minimum=0)
-        self.K = K
+        K = self._validate_nonnegative_integral(K, "K")
+        self._set_dynamic_parameter("K", K)
     
     def _compute_theta(self, k: int, K: int) -> float:
         if k < 0 or k > K:

@@ -1,7 +1,6 @@
 import numpy as np
 from typing import Tuple
 from .algorithm import Algorithm
-from autolyap.utils.validation import ensure_real_number
 
 class ProximalPoint(Algorithm):
     r"""
@@ -72,10 +71,8 @@ class ProximalPoint(Algorithm):
 
         - `ValueError`: If `gamma` is not a finite real number or if :math:`\gamma \le 0`.
         """
-        gamma = ensure_real_number(gamma, "gamma", finite=True)
-        if gamma <= 0:
-            raise ValueError("gamma must be > 0.")
-        self.gamma = gamma
+        gamma = self._validate_positive_finite_real(gamma, "gamma")
+        self._set_dynamic_parameter("gamma", gamma)
     
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         A = np.array([[1]])

@@ -1,7 +1,6 @@
 import numpy as np
 from typing import Tuple
 from .algorithm import Algorithm
-from autolyap.utils.validation import ensure_real_number
 
 class TripleMomentum(Algorithm):
     r"""
@@ -98,10 +97,8 @@ class TripleMomentum(Algorithm):
 
         - `ValueError`: If `mu` is not a finite real number or if :math:`\mu \le 0`.
         """
-        mu = ensure_real_number(mu, "mu", finite=True)
-        if mu <= 0:
-            raise ValueError("mu must be > 0.")
-        self.mu = mu
+        mu = self._validate_positive_finite_real(mu, "mu")
+        self._set_dynamic_parameter("mu", mu)
 
     def set_L(self, L: float) -> None:
         r"""
@@ -118,10 +115,8 @@ class TripleMomentum(Algorithm):
 
         - `ValueError`: If `L` is not a finite real number or if :math:`L \le 0`.
         """
-        L = ensure_real_number(L, "L", finite=True)
-        if L <= 0:
-            raise ValueError("L must be > 0.")
-        self.L = L
+        L = self._validate_positive_finite_real(L, "L")
+        self._set_dynamic_parameter("L", L)
 
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         q = self.mu / self.L
