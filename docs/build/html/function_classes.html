@@ -1,0 +1,585 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Function classes &mdash; AutoLyap 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=45df9099" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Operator classes" href="operator_classes.html" />
+    <link rel="prev" title="Problem classes" href="problem_class.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoLyap
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api_reference.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="problem_class.html">Problem classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem"><code class="docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem_class.html#autolyap.problemclass.InterpolationIndices"><code class="docutils literal notranslate"><span class="pre">InterpolationIndices</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem_class.html#autolyap.problemclass.InterpolationCondition"><code class="docutils literal notranslate"><span class="pre">InterpolationCondition</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem_class.html#autolyap.problemclass.OperatorInterpolationCondition"><code class="docutils literal notranslate"><span class="pre">OperatorInterpolationCondition</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem_class.html#autolyap.problemclass.FunctionInterpolationCondition"><code class="docutils literal notranslate"><span class="pre">FunctionInterpolationCondition</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem_class.html#autolyap.problemclass.ParametrizedFunctionInterpolationCondition"><code class="docutils literal notranslate"><span class="pre">ParametrizedFunctionInterpolationCondition</span></code></a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Function classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.Convex"><code class="docutils literal notranslate"><span class="pre">Convex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.StronglyConvex"><code class="docutils literal notranslate"><span class="pre">StronglyConvex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.WeaklyConvex"><code class="docutils literal notranslate"><span class="pre">WeaklyConvex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.Smooth"><code class="docutils literal notranslate"><span class="pre">Smooth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.SmoothConvex"><code class="docutils literal notranslate"><span class="pre">SmoothConvex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.SmoothStronglyConvex"><code class="docutils literal notranslate"><span class="pre">SmoothStronglyConvex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.SmoothWeaklyConvex"><code class="docutils literal notranslate"><span class="pre">SmoothWeaklyConvex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.IndicatorFunctionOfClosedConvexSet"><code class="docutils literal notranslate"><span class="pre">IndicatorFunctionOfClosedConvexSet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.SupportFunctionOfClosedConvexSet"><code class="docutils literal notranslate"><span class="pre">SupportFunctionOfClosedConvexSet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.problemclass.GradientDominated"><code class="docutils literal notranslate"><span class="pre">GradientDominated</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="operator_classes.html">Operator classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lyapunov_analyses.html">Lyapunov analyses</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoLyap</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="api_reference.html">API reference</a></li>
+          <li class="breadcrumb-item"><a href="problem_class.html">Problem classes</a></li>
+      <li class="breadcrumb-item active">Function classes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/function_classes.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="function-classes">
+<h1>Function classes<a class="headerlink" href="#function-classes" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="#autolyap.problemclass.Convex" title="autolyap.problemclass.Convex"><code class="xref py py-class docutils literal notranslate"><span class="pre">Convex</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.StronglyConvex" title="autolyap.problemclass.StronglyConvex"><code class="xref py py-class docutils literal notranslate"><span class="pre">StronglyConvex</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.WeaklyConvex" title="autolyap.problemclass.WeaklyConvex"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeaklyConvex</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.Smooth" title="autolyap.problemclass.Smooth"><code class="xref py py-class docutils literal notranslate"><span class="pre">Smooth</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.SmoothConvex" title="autolyap.problemclass.SmoothConvex"><code class="xref py py-class docutils literal notranslate"><span class="pre">SmoothConvex</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.SmoothStronglyConvex" title="autolyap.problemclass.SmoothStronglyConvex"><code class="xref py py-class docutils literal notranslate"><span class="pre">SmoothStronglyConvex</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.SmoothWeaklyConvex" title="autolyap.problemclass.SmoothWeaklyConvex"><code class="xref py py-class docutils literal notranslate"><span class="pre">SmoothWeaklyConvex</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.IndicatorFunctionOfClosedConvexSet" title="autolyap.problemclass.IndicatorFunctionOfClosedConvexSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndicatorFunctionOfClosedConvexSet</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.SupportFunctionOfClosedConvexSet" title="autolyap.problemclass.SupportFunctionOfClosedConvexSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">SupportFunctionOfClosedConvexSet</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.problemclass.GradientDominated" title="autolyap.problemclass.GradientDominated"><code class="xref py py-class docutils literal notranslate"><span class="pre">GradientDominated</span></code></a></p></li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.Convex">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">Convex</span></span><a class="headerlink" href="#autolyap.problemclass.Convex" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.ParametrizedFunctionInterpolationCondition" title="autolyap.problemclass.functions.ParametrizedFunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParametrizedFunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for proper, lower semicontinuous, and convex functions.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(f: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span>.</p>
+<ul>
+<li><p>Effective domain:</p>
+<p><span class="math notranslate nohighlight">\(\operatorname{dom} f = \{x \in \calH \mid f(x) &lt; +\infty\}\)</span>.</p>
+</li>
+<li><p>Proper:</p>
+<p><span class="math notranslate nohighlight">\(-\infty \notin f(\calH)\)</span> and <span class="math notranslate nohighlight">\(\operatorname{dom} f \neq \emptyset\)</span>.</p>
+</li>
+<li><p>Lower semicontinuous:</p>
+<p><span class="math notranslate nohighlight">\(\liminf_{y \to x} f(y) \geq f(x)\)</span> for each <span class="math notranslate nohighlight">\(x \in \calH\)</span>.</p>
+</li>
+<li><p>Convex:</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[f((1-\lambda)x + \lambda y) \leq (1-\lambda) f(x) + \lambda f(y)
+\quad \text{for each } x,y \in \calH,\; \lambda \in [0,1].\]</div>
+<ul>
+<li><p>Interpolation inequality:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} \in \partial f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} \in \partial f(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = f(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.StronglyConvex">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">StronglyConvex</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.StronglyConvex" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.ParametrizedFunctionInterpolationCondition" title="autolyap.problemclass.functions.ParametrizedFunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParametrizedFunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for proper, lower semicontinuous, and strongly convex functions.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(f: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span>.</p>
+<ul>
+<li><p>Effective domain:</p>
+<p><span class="math notranslate nohighlight">\(\operatorname{dom} f = \{x \in \calH \mid f(x) &lt; +\infty\}\)</span>.</p>
+</li>
+<li><p>Proper:</p>
+<p><span class="math notranslate nohighlight">\(-\infty \notin f(\calH)\)</span> and <span class="math notranslate nohighlight">\(\operatorname{dom} f \neq \emptyset\)</span>.</p>
+</li>
+<li><p>Lower semicontinuous:</p>
+<p><span class="math notranslate nohighlight">\(\liminf_{y \to x} f(y) \geq f(x)\)</span> for each <span class="math notranslate nohighlight">\(x \in \calH\)</span>.</p>
+</li>
+<li><p><span class="math notranslate nohighlight">\(\mu\)</span>-strongly convex with <span class="math notranslate nohighlight">\(\mu \in \mathbb{R}_{++}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[f - \frac{\mu}{2}\|\cdot\|^2 \quad \text{is convex}.\]</div>
+</li>
+<li><p>Interpolation inequality:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} \in \partial f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} \in \partial f(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = f(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle + \frac{\mu}{2}\|x_{j_1} - x_{j_2}\|^2.\]</div>
+</li>
+</ul>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>mu</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Strong convexity parameter corresponding to
+<span class="math notranslate nohighlight">\(\mu\)</span> (must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite).</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>mu</cite> is not valid.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.WeaklyConvex">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">WeaklyConvex</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu_tilde</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.WeaklyConvex" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.ParametrizedFunctionInterpolationCondition" title="autolyap.problemclass.functions.ParametrizedFunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParametrizedFunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for proper, lower semicontinuous, and weakly convex functions.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(f: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span>.</p>
+<ul>
+<li><p>Effective domain:</p>
+<p><span class="math notranslate nohighlight">\(\operatorname{dom} f = \{x \in \calH \mid f(x) &lt; +\infty\}\)</span>.</p>
+</li>
+<li><p>Proper:</p>
+<p><span class="math notranslate nohighlight">\(-\infty \notin f(\calH)\)</span> and <span class="math notranslate nohighlight">\(\operatorname{dom} f \neq \emptyset\)</span>.</p>
+</li>
+<li><p>Lower semicontinuous:</p>
+<p><span class="math notranslate nohighlight">\(\liminf_{y \to x} f(y) \geq f(x)\)</span> for each <span class="math notranslate nohighlight">\(x \in \calH\)</span>.</p>
+</li>
+<li><p><span class="math notranslate nohighlight">\(\tilde{\mu}\)</span>-weakly convex with <span class="math notranslate nohighlight">\(\tilde{\mu} \in \mathbb{R}_{++}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[f + \frac{\tilde{\mu}}{2}\|\cdot\|^2 \quad \text{is convex}.\]</div>
+</li>
+<li><p>Interpolation inequality:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} \in \partial f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} \in \partial f(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = f(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle - \frac{\tilde{\mu}}{2}\|x_{j_1} - x_{j_2}\|^2.\]</div>
+</li>
+</ul>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>mu_tilde</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Weak convexity parameter corresponding to
+<span class="math notranslate nohighlight">\(\tilde{\mu}\)</span> (must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite).</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>mu_tilde</cite> is not valid.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.Smooth">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">Smooth</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.Smooth" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.ParametrizedFunctionInterpolationCondition" title="autolyap.problemclass.functions.ParametrizedFunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParametrizedFunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for smooth functions.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(f: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span>.</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(L\)</span>-smooth with <span class="math notranslate nohighlight">\(L \in \mathbb{R}_{++}\)</span>:
+The function <span class="math notranslate nohighlight">\(f\)</span> is Fréchet differentiable and its gradient is
+<span class="math notranslate nohighlight">\(L\)</span>-Lipschitz continuous, i.e.,</p>
+<div class="math notranslate nohighlight">
+\[\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|
+\quad \text{for each } x,y \in \calH.\]</div>
+</li>
+<li><p>Interpolation inequality:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} = \nabla f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} = \nabla f(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = f(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle
++ \frac{1}{4L}\|g_{j_1} - g_{j_2} + L(x_{j_1} - x_{j_2})\|^2
+- \frac{L}{2}\|x_{j_1} - x_{j_2}\|^2.\]</div>
+</li>
+</ul>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>L</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Smoothness parameter corresponding to
+<span class="math notranslate nohighlight">\(L\)</span> (must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite).</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>L</cite> is not valid.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.SmoothConvex">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">SmoothConvex</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.SmoothConvex" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.ParametrizedFunctionInterpolationCondition" title="autolyap.problemclass.functions.ParametrizedFunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParametrizedFunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for smooth and convex functions.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(f: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span>.</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(L\)</span>-smooth with <span class="math notranslate nohighlight">\(L \in \mathbb{R}_{++}\)</span>:
+The function <span class="math notranslate nohighlight">\(f\)</span> is Fréchet differentiable and its gradient is
+<span class="math notranslate nohighlight">\(L\)</span>-Lipschitz continuous, i.e.,</p>
+<div class="math notranslate nohighlight">
+\[\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|
+\quad \text{for each } x,y \in \calH.\]</div>
+</li>
+<li><p>Convex:</p>
+<div class="math notranslate nohighlight">
+\[f((1-\lambda)x + \lambda y) \leq (1-\lambda) f(x) + \lambda f(y)
+\quad \text{for each } x,y \in \calH,\; \lambda \in [0,1].\]</div>
+</li>
+<li><p>Interpolation inequality:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} = \nabla f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} = \nabla f(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = f(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle
++ \frac{1}{2L}\|g_{j_1} - g_{j_2}\|^2.\]</div>
+</li>
+</ul>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>L</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Smoothness parameter corresponding to
+<span class="math notranslate nohighlight">\(L\)</span> (must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite).</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>L</cite> is not valid.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.SmoothStronglyConvex">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">SmoothStronglyConvex</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.SmoothStronglyConvex" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.ParametrizedFunctionInterpolationCondition" title="autolyap.problemclass.functions.ParametrizedFunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParametrizedFunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for smooth and strongly convex functions.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(f: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span>.</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(L\)</span>-smooth with <span class="math notranslate nohighlight">\(L \in \mathbb{R}_{++}\)</span>:
+The function <span class="math notranslate nohighlight">\(f\)</span> is Fréchet differentiable and its gradient is
+<span class="math notranslate nohighlight">\(L\)</span>-Lipschitz continuous, i.e.,</p>
+<div class="math notranslate nohighlight">
+\[\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|
+\quad \text{for each } x,y \in \calH.\]</div>
+</li>
+<li><p><span class="math notranslate nohighlight">\(\mu\)</span>-strongly convex with <span class="math notranslate nohighlight">\(\mu \in \mathbb{R}_{++}\)</span>
+and <span class="math notranslate nohighlight">\(\mu &lt; L\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[f - \frac{\mu}{2}\|\cdot\|^2 \quad \text{is convex}.\]</div>
+</li>
+<li><p>Interpolation inequality:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} = \nabla f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} = \nabla f(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = f(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle + \frac{\mu}{2}\|x_{j_1} - x_{j_2}\|^2
++ \frac{1}{2(L-\mu)}\|g_{j_1} - g_{j_2} - \mu(x_{j_1} - x_{j_2})\|^2.\]</div>
+</li>
+</ul>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>mu</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Strong convexity parameter corresponding to
+<span class="math notranslate nohighlight">\(\mu\)</span> (must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite).</p></li>
+<li><p><cite>L</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Smoothness parameter corresponding to <span class="math notranslate nohighlight">\(L\)</span>
+(must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite) with <span class="math notranslate nohighlight">\(\mu &lt; L\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If parameters are not valid.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.SmoothWeaklyConvex">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">SmoothWeaklyConvex</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu_tilde</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.SmoothWeaklyConvex" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.ParametrizedFunctionInterpolationCondition" title="autolyap.problemclass.functions.ParametrizedFunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParametrizedFunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for smooth and weakly convex functions.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(f: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span>.</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(L\)</span>-smooth with <span class="math notranslate nohighlight">\(L \in \mathbb{R}_{++}\)</span>:
+The function <span class="math notranslate nohighlight">\(f\)</span> is Fréchet differentiable and its gradient is
+<span class="math notranslate nohighlight">\(L\)</span>-Lipschitz continuous, i.e.,</p>
+<div class="math notranslate nohighlight">
+\[\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|
+\quad \text{for each } x,y \in \calH.\]</div>
+</li>
+<li><p><span class="math notranslate nohighlight">\(\tilde{\mu}\)</span>-weakly convex with <span class="math notranslate nohighlight">\(\tilde{\mu} \in \mathbb{R}_{++}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[f + \frac{\tilde{\mu}}{2}\|\cdot\|^2 \quad \text{is convex}.\]</div>
+</li>
+<li><p>Interpolation inequality:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} = \nabla f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} = \nabla f(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = f(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = f(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle - \frac{\tilde{\mu}}{2}\|x_{j_1} - x_{j_2}\|^2
++ \frac{1}{2(L+\tilde{\mu})}\|g_{j_1} - g_{j_2} + \tilde{\mu}(x_{j_1} - x_{j_2})\|^2.\]</div>
+</li>
+</ul>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>mu_tilde</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Weak convexity parameter corresponding to
+<span class="math notranslate nohighlight">\(\tilde{\mu}\)</span> (must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite).</p></li>
+<li><p><cite>L</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Smoothness parameter corresponding to
+<span class="math notranslate nohighlight">\(L\)</span> (must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite).</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If parameters are not valid.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.IndicatorFunctionOfClosedConvexSet">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">IndicatorFunctionOfClosedConvexSet</span></span><a class="headerlink" href="#autolyap.problemclass.IndicatorFunctionOfClosedConvexSet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.FunctionInterpolationCondition" title="autolyap.problemclass.base.FunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">FunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for indicator functions of nonempty, closed, and convex sets.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(C \subseteq \calH\)</span> be nonempty, closed, and convex.</p>
+<ul>
+<li><p>Indicator function:</p>
+<p>Functions <span class="math notranslate nohighlight">\(\delta_C: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span> that can be written as</p>
+</li>
+</ul>
+<div class="math notranslate nohighlight">
+\[\begin{split}\delta_C(x) =
+\begin{cases}
+    0, &amp; x \in C, \\
+    +\infty, &amp; x \notin C.
+\end{cases}\end{split}\]</div>
+<ul>
+<li><p>Normal cone:</p>
+<div class="math notranslate nohighlight">
+\[N_C(x) = \{g \in \calH \mid \langle g, y - x \rangle \le 0
+\ \text{for all } y \in C\}.\]</div>
+<p>For <span class="math notranslate nohighlight">\(x \in C\)</span>, the subdifferential of the indicator function satisfies</p>
+<div class="math notranslate nohighlight">
+\[\partial \delta_C(x) = N_C(x).\]</div>
+</li>
+<li><p>Interpolation inequalities used:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in C\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} \in N_C(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} \in N_C(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = \delta_C(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = \delta_C(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\langle g_{j_2}, x_{j_1} - x_{j_2} \rangle \le 0 \quad \text{for } j_1 \ne j_2,\]</div>
+</li>
+</ul>
+<p>and</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[F_{j_1} = 0 \quad \text{for each interpolation point } x_{j_1} \in C.\]</div>
+</div></blockquote>
+<p>This condition has no parameters.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.SupportFunctionOfClosedConvexSet">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">SupportFunctionOfClosedConvexSet</span></span><a class="headerlink" href="#autolyap.problemclass.SupportFunctionOfClosedConvexSet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.FunctionInterpolationCondition" title="autolyap.problemclass.base.FunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">FunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for support functions of nonempty, closed, and convex sets.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(C \subseteq \calH\)</span> be nonempty, closed, and convex.</p>
+<ul>
+<li><p>Support function:</p>
+<p>Functions <span class="math notranslate nohighlight">\(\sigma_C: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span> that can be written as</p>
+</li>
+</ul>
+<div class="math notranslate nohighlight">
+\[\sigma_C(x) = \sup_{y \in C} \langle x, y \rangle.\]</div>
+<ul>
+<li><p>Interpolation inequalities used:</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(g_{j_1} \in \partial \sigma_C(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(g_{j_2} \in \partial \sigma_C(x_{j_2})\)</span>,
+and <span class="math notranslate nohighlight">\(F_{j_1} = \sigma_C(x_{j_1})\)</span>, <span class="math notranslate nohighlight">\(F_{j_2} = \sigma_C(x_{j_2})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} = \langle x_{j_1}, g_{j_1} \rangle,\]</div>
+</li>
+</ul>
+<p>and</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[\langle x_{j_2}, g_{j_1} - g_{j_2} \rangle \le 0 \quad \text{for } j_1 \ne j_2\]</div>
+</div></blockquote>
+<p>This condition has no parameters.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.problemclass.GradientDominated">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">GradientDominated</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu_gd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.GradientDominated" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.FunctionInterpolationCondition" title="autolyap.problemclass.base.FunctionInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">FunctionInterpolationCondition</span></code></a></p>
+<p>Function interpolation condition for gradient-dominated functions.</p>
+<p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
+<span class="math notranslate nohighlight">\(f: \calH \to \mathbb{R} \cup \{\pm\infty\}\)</span>.</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(\mu_{\textup{gd}}\)</span>-gradient dominated with <span class="math notranslate nohighlight">\(\mu_{\textup{gd}} \in \mathbb{R}_{++}\)</span>, i.e.,
+the function <span class="math notranslate nohighlight">\(f\)</span> is Fréchet differentiable and</p>
+<div class="math notranslate nohighlight">
+\[f(x) - \inf_{y \in \calH} f(y) \leq \frac{1}{2\mu_{\textup{gd}}}\|\nabla f(x)\|^2
+\quad \text{for each } x \in \calH.\]</div>
+</li>
+<li><p>Interpolation inequalities used:</p>
+<p>Let <span class="math notranslate nohighlight">\(x_\star\)</span> be a minimizer with <span class="math notranslate nohighlight">\(F_\star = f(x_\star)\)</span>.
+For any <span class="math notranslate nohighlight">\(x_{j_1} \in \calH\)</span> with <span class="math notranslate nohighlight">\(g_{j_1} = \nabla f(x_{j_1})\)</span> and
+<span class="math notranslate nohighlight">\(F_{j_1} = f(x_{j_1})\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[F_{j_1} - F_\star \le \frac{1}{2\mu_{\textup{gd}}}\|g_{j_1}\|^2
+\quad \text{and} \quad
+F_{j_1} \ge F_\star.\]</div>
+</li>
+</ul>
+<p>Note: This gradient-dominated condition is only sufficient for the analysis in AutoLyap,
+and there is no guarantee of tightness of the resulting analysis.</p>
+<p>Note: When used inside <a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>, AutoLyap enforces that the total number
+of components is exactly one (i.e., <span class="math notranslate nohighlight">\(m = 1\)</span>) if any component uses this condition.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>mu_gd</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The gradient-dominated parameter corresponding
+to <span class="math notranslate nohighlight">\(\mu_{\textup{gd}}\)</span> (must be <span class="math notranslate nohighlight">\(&gt; 0\)</span> and finite).</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>mu_gd</cite> is not a number, <span class="math notranslate nohighlight">\(\le 0\)</span>, or infinite.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="problem_class.html" class="btn btn-neutral float-left" title="Problem classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="operator_classes.html" class="btn btn-neutral float-right" title="Operator classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Manu Upadhyaya.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

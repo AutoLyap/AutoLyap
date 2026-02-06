@@ -1,13 +1,29 @@
 import numpy as np
-from typing import Type, Optional, Tuple, Union, List
-from itertools import combinations, product
-from mosek.fusion import Model, Domain, OptimizeError
+from typing import Type, Optional, Tuple, Union, List, Dict
+from itertools import combinations
+from mosek.fusion import Model, Domain, OptimizeError, Expr
 import mosek.fusion.pythonic
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression
+from autolyap.utils.validation import (
+    ensure_finite_array,
+    ensure_integral,
+    ensure_real_number,
+)
 from autolyap.problemclass import InclusionProblem
 from autolyap.algorithms import Algorithm
 
 class LinearConvergence:
+    r"""
+    Class-level namespace for linear-convergence tools in iteration-independent analysis.
+
+    **Scope**
+    
+    - Static constructors for linear-convergence metrics.
+    - Bisection utility
+      :meth:`~autolyap.iteration_independent.LinearConvergence.bisection_search_rho`.
+
+    Method-level docstrings provide full API details.
+    """
     @staticmethod
     def get_parameters_distance_to_solution(
             algo: Type[Algorithm], 
@@ -20,71 +36,98 @@ class LinearConvergence:
                    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
                    ]:
         r"""
-        Compute the matrices for the distance to solution.
+        Compute matrices for the distance-to-solution metric.
 
-        This method computes the following matrix
+        Mathematical notation and shared definitions follow the class-level
+        reference in :class:`~autolyap.iteration_independent.IterationIndependent`.
+
+        This method computes the matrix
 
         .. math::
-            P = \left( P_{(i,j)}\, Y_\tau^{0,h} - P_{(i,\star)}\, Y_\star^{0,h} \right)^T
+            P = \left( P_{(i,j)}\, Y_\tau^{0,h} - P_{(i,\star)}\, Y_\star^{0,h} \right)^{\top}
                 \left( P_{(i,j)}\, Y_\tau^{0,h} - P_{(i,\star)}\, Y_\star^{0,h} \right),
 
-        and constructs :math:`T` (and, if functional components exist, the vectors :math:`p` and :math:`t`) as zero.
+        and sets :math:`T` (and, if functional components exist, the vectors :math:`p` and :math:`t`) to zero.
 
         **Definitions**
 
-        - :math:`Y_\tau^{0,h}` is the Y matrix at iteration :math:`\tau` over the horizon :math:`[0, h]`.
-        - :math:`Y_\star^{0,h}` is the “star” Y matrix over :math:`[0, h]`.
-        - :math:`P_{(i,j)}` and :math:`P_{(i,\star)}` are the projection matrices for component :math:`i`.
+        - :math:`Y_\tau^{0,h}` is the :math:`Y` matrix at iteration :math:`\tau` over :math:`\llbracket 0, h\rrbracket`,
+          retrieved via :meth:`~autolyap.algorithms.Algorithm.get_Ys` with `k_min = 0` and `k_max = h`.
+        - :math:`Y_\star^{0,h}` is the “star” :math:`Y` matrix over :math:`\llbracket 0, h\rrbracket`,
+          also returned by :meth:`~autolyap.algorithms.Algorithm.get_Ys`.
+        - :math:`P_{(i,j)}` and :math:`P_{(i,\star)}` are the projection matrices for component :math:`i`,
+          returned by :meth:`~autolyap.algorithms.Algorithm.get_Ps`.
 
-        **Dimensions**
+        **Resulting lower bounds**
 
-        - :math:`\dim(P) = n + (h+1)\bar{m} + m,`
-        - :math:`\dim(T) = n + (h+\alpha+2)\bar{m} + m,`
-        - If :math:`algo.m_func > 0`:
-        
-          - :math:`\mathrm{len}(p) = (h+1)\bar{m}_{\text{func}} + m\_func,`
-          - :math:`\mathrm{len}(t) = (h+\alpha+2)\bar{m}_{\text{func}} + m\_func.`
+        With this choice of :math:`(P,p,T,t)`,
+
+        .. math::
+            \begin{aligned}
+            \mathcal{V}(P,p,k) &= \|y_{i,j}^{k+\tau} - y^\star\|^2,\\
+            \mathcal{R}(T,t,k) &= 0.
+            \end{aligned}
 
         **Parameters**
         
-        :param algo: An instance of Algorithm. It must provide:
-                   - ``algo.m`` (total number of components),
-                   - ``algo.m_bar_is`` (a list where the *i*-th entry gives the number of evaluations for component *i*),
-                   - Methods ``get_Ys(k_min, k_max)`` and ``get_Ps()``.
-        :param h: A nonnegative integer defining the time horizon :math:`[0, h]` for Y matrices.
-        :param alpha: A nonnegative integer for extending the horizon for :math:`T` (and :math:`t`).
-        :param i: Component index (1-indexed). Default is 1; must satisfy :math:`1 \le i \le algo.m`.
-        :param j: Evaluation index for component :math:`i`. Default is 1; must satisfy :math:`1 \le j \le algo.m_bar_is[i-1]`.
-        :param tau: Iteration index. Default is 0; must satisfy :math:`0 \le \tau \le h`.
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm`. It must
+          provide `algo.m`, `algo.m_bar_is`, and the methods
+          :meth:`~autolyap.algorithms.Algorithm.get_Ys` and
+          :meth:`~autolyap.algorithms.Algorithm.get_Ps`.
+        - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h` defining the time horizon
+          :math:`\llbracket 0, h\rrbracket`
+          for :math:`Y` matrices.
+        - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha` for extending the horizon
+          for :math:`T` (and :math:`t`).
+        - `i` (:class:`int`): Component index (1-indexed) corresponding to :math:`i`. Default is 1; must satisfy
+          :math:`i \in \llbracket 1, m\rrbracket`, where `m = algo.m`.
+        - `j` (:class:`int`): Evaluation index for component `i` corresponding to :math:`j`. Default is 1; must satisfy
+          :math:`j \in \llbracket 1, \NumEval_i\rrbracket`, where :math:`\NumEval_i` is given by
+          `algo.m_bar_is[i-1]`.
+        - `tau` (:class:`int`): Iteration index corresponding to :math:`\tau`. Default is 0; must satisfy
+          :math:`\tau \in \llbracket 0, h\rrbracket`.
 
         **Returns**
         
-        - If :math:`algo.m_func == 0`:
-          
-          :return: A tuple ``(P, T)``
-        
-        - Otherwise:
-        
-          :return: A tuple ``(P, p, T, t)``, where :math:`P` is computed as above and :math:`T`, :math:`p`, and :math:`t` are zero arrays with the appropriate dimensions.
+        - (:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`\]\]):
+          If `algo.m_func == 0`, returns `(P, T)` with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m}.
+              \end{aligned}
+
+          Otherwise, returns `(P, p, T, t)`, where :math:`P` is computed as above and
+          :math:`T`, :math:`p`, and :math:`t` are zero arrays with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m},\\
+              p &\in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc},\\
+              t &\in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
+              \end{aligned}
 
         **Raises**
         
-        :raises ValueError: If any input is out of its valid range or if required matrices are missing.
+        - `ValueError`: If any input is out of its valid range or if required matrices are missing.
         """
         # ----- Input Checking -----
-        if not isinstance(h, int) or h < 0:
-            raise ValueError("Parameter h must be a nonnegative integer.")
-        if not isinstance(alpha, int) or alpha < 0:
-            raise ValueError("Parameter alpha must be a nonnegative integer.")
-        
-        if not isinstance(i, int) or i < 1 or i > algo.m:
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
+
+        i = ensure_integral(i, "i", minimum=1)
+        if i > algo.m:
             raise ValueError(f"Component index i must be in [1, {algo.m}]. Got {i}.")
-        
+
         num_eval = algo.m_bar_is[i - 1]
-        if not isinstance(j, int) or j < 1 or j > num_eval:
+        j = ensure_integral(j, "j", minimum=1)
+        if j > num_eval:
             raise ValueError(f"For component {i}, evaluation index j must be in [1, {num_eval}]. Got {j}.")
-        
-        if not isinstance(tau, int) or tau < 0 or tau > h:
+
+        tau = ensure_integral(tau, "tau", minimum=0)
+        if tau > h:
             raise ValueError(f"Iteration index tau must be in [0, {h}]. Got {tau}.")
 
         # ----- Dimensions for P and T -----
@@ -140,67 +183,85 @@ class LinearConvergence:
             tau: int = 0
         ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         r"""
-        Compute the matrices/vectors for function-value suboptimality.
+        Compute matrices and vectors for function-value suboptimality.
 
-        This function is only applicable when :math:`m = m\_func = 1`.
+        Mathematical notation and shared definitions follow the class-level
+        reference in :class:`~autolyap.iteration_independent.IterationIndependent`.
+
+        This method is only applicable when :math:`m = \NumFunc = 1`.
 
         It returns a tuple :math:`(P, p, T, t)` where:
 
         - :math:`p` is computed as
 
           .. math::
-              p = \left( F_{(1,j,tau)}^{0,h} - F_{(1,\star,\star)}^{0,h} \right)^T,
+              p = \left( F_{(1,j,\tau)}^{0,h} - F_{(1,\star,\star)}^{0,h} \right)^{\top},
 
-          with :math:`p` returned as a 1D numpy array of length 
-          :math:`(h+1)\bar{m}_{\text{func}} + m\_func`.
-        - :math:`P` is a zero matrix of dimension
+          with :math:`p` returned as a one-dimensional NumPy array.
 
-          .. math::
-              n + (h+1)\bar{m} + m,
-          
-        - :math:`T` is a zero matrix of dimension
+        The matrices :math:`F_{(1,j,\tau)}^{0,h}` and :math:`F_{(1,\star,\star)}^{0,h}` are retrieved via
+        :meth:`~autolyap.algorithms.Algorithm.get_Fs` with `k_min = 0` and `k_max = h`.
 
-          .. math::
-              n + (h+\alpha+2)\bar{m} + m,
-          
-        - :math:`t` is a zero vector of dimension
+        **Resulting lower bounds**
 
-          .. math::
-              (h+\alpha+2)\bar{m}_{\text{func}} + m\_func.
+        With this choice of :math:`(P,p,T,t)`,
+
+        .. math::
+            \begin{aligned}
+            \mathcal{V}(P,p,k) &= f_1(y_{1,j}^{k+\tau}) - f_1(y^\star),\\
+            \mathcal{R}(T,t,k) &= 0.
+            \end{aligned}
 
         **Parameters**
 
-        :param algo: An instance of Algorithm. It must satisfy :math:`algo.m = 1` and :math:`algo.m\_func = 1`.
-        :param h: A nonnegative integer defining the horizon :math:`[0, h]` for F matrices.
-        :param alpha: A nonnegative integer for extending the horizon for :math:`T` and :math:`t`.
-        :param j: Evaluation index for component 1. Default is 1; must satisfy :math:`1 \le j \le algo.m_bar_is[0]`.
-        :param tau: Iteration index. Default is 0; must satisfy :math:`0 \le \tau \le h`.
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm`. It must
+          satisfy `algo.m == 1`, `algo.m_func == 1`, and provide
+          :meth:`~autolyap.algorithms.Algorithm.get_Fs`.
+        - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h` defining the horizon
+          :math:`\llbracket 0, h\rrbracket` for
+          :math:`F` matrices.
+        - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha` for extending the horizon
+          for :math:`T` and :math:`t`.
+        - `j` (:class:`int`): Evaluation index for component 1 corresponding to :math:`j`. Default is 1; must satisfy
+          :math:`j \in \llbracket 1, \NumEval_1\rrbracket`, where :math:`\NumEval_1` is given by
+          `algo.m_bar_is[0]`.
+        - `tau` (:class:`int`): Iteration index corresponding to :math:`\tau`. Default is 0; must satisfy
+          :math:`\tau \in \llbracket 0, h\rrbracket`.
 
         **Returns**
 
-        :return: A tuple :math:`(P, p, T, t)`, where :math:`p` is computed as above (a 1D numpy array)
-                 and :math:`P`, :math:`T`, and :math:`t` are zero arrays with appropriate dimensions.
+        - (:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`\]): A tuple :math:`(P, p, T, t)`,
+          where :math:`p` is computed as above (a one-dimensional NumPy array), and :math:`P`, :math:`T`, and
+          :math:`t` are zero arrays, with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m},\\
+              p &\in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc},\\
+              t &\in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
+              \end{aligned}
 
         **Raises**
 
-        :raises ValueError: If :math:`algo.m \ne 1` or :math:`algo.m\_func \ne 1`, if any input parameter is out of range,
-                            or if the required F matrices are not found.
+        - `ValueError`: If `algo.m != 1` or `algo.m_func != 1`, if any input parameter is out of range,
+          or if the required :math:`F` matrices are not found.
         """
         # ----- Check that m and m_func equal 1 -----
         if algo.m != 1 or algo.m_func != 1:
             raise ValueError("get_parameters_function_value_suboptimality is only applicable when m = m_func = 1.")
         
         # ----- Validate inputs -----
-        if not isinstance(h, int) or h < 0:
-            raise ValueError("Parameter h must be a nonnegative integer.")
-        if not isinstance(alpha, int) or alpha < 0:
-            raise ValueError("Parameter alpha must be a nonnegative integer.")
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
         
         num_eval = algo.m_bar_is[0]
-        if not isinstance(j, int) or j < 1 or j > num_eval:
+        j = ensure_integral(j, "j", minimum=1)
+        if j > num_eval:
             raise ValueError(f"For component 1, evaluation index j must be in [1, {num_eval}]. Got {j}.")
-        
-        if not isinstance(tau, int) or tau < 0 or tau > h:
+
+        tau = ensure_integral(tau, "tau", minimum=0)
+        if tau > h:
             raise ValueError(f"Iteration index tau must be in [0, {h}]. Got {tau}.")
         
         # ----- Retrieve F matrices for the horizon [0, h] -----
@@ -257,66 +318,138 @@ class LinearConvergence:
             tol: float = 1e-12
         ) -> Optional[float]:
         r"""
-        Perform a bisection search to find the minimal contraction parameter :math:`\rho`.
+        Perform a bisection search to find the minimum contraction parameter :math:`\rho`.
+
+        Mathematical notation and shared definitions follow the class-level
+        reference in :class:`~autolyap.iteration_independent.IterationIndependent`.
 
         This method performs a bisection search over :math:`\rho` in the interval 
-        :math:`[{\text{lower\_bound}}, {\text{upper\_bound}}]` to find the minimal value for which the 
-        iteration-independent Lyapunov inequality holds. At each iteration it calls
-        ``verify_iteration_independent_Lyapunov`` until the interval size is below :math:`{\text{tol}}`.
+        :math:`[{\text{lower_bound}}, {\text{upper_bound}}]` to find the minimal value for which the 
+        iteration-independent Lyapunov inequality holds. At each step it re-solves the same
+        model with an updated :math:`\rho` until the interval size is below :math:`{\text{tol}}`.
+
+        Each feasibility check is performed by
+        :meth:`~autolyap.iteration_independent.IterationIndependent.verify_iteration_independent_Lyapunov`;
+        see its documentation for the enforced SDP feasibility checks.
+        The Lyapunov conditions and convergence conclusions are documented in the
+        class-level reference of :class:`~autolyap.iteration_independent.IterationIndependent`.
 
         **Parameters**
 
-        :param prob: An InclusionProblem instance containing interpolation conditions.
-        :param algo: An Algorithm instance providing dimensions and methods.
-        :param P: A symmetric matrix of dimension 
-                  :math:`n + (h+1)\bar{m} + m` by :math:`n + (h+1)\bar{m} + m`.
-        :param T: A symmetric matrix of dimension 
-                  :math:`n + (h+\alpha+2)\bar{m} + m` by :math:`n + (h+\alpha+2)\bar{m} + m`.
-        :param p: A vector for functional components (if applicable).
-        :param t: A vector for functional components (if applicable).
-        :param h: Nonnegative integer defining the history for the matrices.
-        :param alpha: Nonnegative integer for extending the horizon.
-        :param Q_equals_P: If True, set Q equal to P.
-        :param S_equals_T: If True, set S equal to T.
-        :param q_equals_p: For functional components, if True, set q equal to p.
-        :param s_equals_t: For functional components, if True, set s equal to t.
-        :param remove_C2: Flag to remove constraint C2.
-        :param remove_C3: Flag to remove constraint C3.
-        :param remove_C4: Flag to remove constraint C4.
-        :param lower_bound: Lower bound for :math:`\rho`.
-        :param upper_bound: Upper bound for :math:`\rho`.
-        :param tol: Tolerance for the bisection search stopping criterion.
+        - `prob` (:class:`~typing.Type`\[:class:`~autolyap.problemclass.InclusionProblem`\]): An :class:`~autolyap.problemclass.InclusionProblem`
+          instance containing interpolation conditions.
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An :class:`~autolyap.algorithms.Algorithm` instance providing
+          dimensions and methods.
+        - `P` (:class:`numpy.ndarray`): A symmetric matrix corresponding to :math:`P \in \sym^{n + (h+1)\NumEval + m}`.
+        - `T` (:class:`numpy.ndarray`): A symmetric matrix corresponding to :math:`T \in \sym^{n + (h+\alpha+2)\NumEval + m}`.
+        - `p` (:class:`~typing.Optional`\[:class:`numpy.ndarray`\]): A vector corresponding to :math:`p \in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc}` for functional components (if applicable).
+        - `t` (:class:`~typing.Optional`\[:class:`numpy.ndarray`\]): A vector corresponding to :math:`t \in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}` for functional components (if applicable).
+        - `h` (:class:`int`): Nonnegative integer corresponding to :math:`h` defining the history for the matrices.
+        - `alpha` (:class:`int`): Nonnegative integer corresponding to :math:`\alpha` for extending the horizon.
+        - `Q_equals_P` (:class:`bool`): If True, set Q equal to P.
+        - `S_equals_T` (:class:`bool`): If True, set S equal to T.
+        - `q_equals_p` (:class:`bool`): For functional components, if True, set q equal to p.
+        - `s_equals_t` (:class:`bool`): For functional components, if True, set s equal to t.
+        - `remove_C2` (:class:`bool`): Flag to remove constraint C2.
+        - `remove_C3` (:class:`bool`): Flag to remove constraint C3.
+        - `remove_C4` (:class:`bool`): Flag to remove constraint C4.
+        - `lower_bound` (:class:`float`): Lower bound for :math:`\rho`.
+        - `upper_bound` (:class:`float`): Upper bound for :math:`\rho`.
+        - `tol` (:class:`float`): Tolerance for the bisection search stopping criterion.
 
         **Returns**
 
-        :return: The minimal :math:`\rho` in :math:`[{\text{lower\_bound}}, {\text{upper\_bound}}]` that verifies the 
-                 Lyapunov inequality within tolerance :math:`{\text{tol}}`, or ``None`` if the inequality does not hold 
-                 at the upper bound.
+        - (:class:`~typing.Optional`\[:class:`float`\]): The minimal :math:`\rho` in
+          :math:`[{\text{lower_bound}}, {\text{upper_bound}}]` that verifies the Lyapunov inequality within
+          tolerance :math:`{\text{tol}}`, or `None` if the inequality does not hold at the upper bound.
+
+        **Raises**
+
+        - `ValueError`: If any input is out of range or the bounds are inconsistent.
+        - `mosek.fusion.OptimizeError`: If MOSEK raises a license-related error during optimization.
         """
-        # Ensure that the inequality holds at the initial upper bound.
-        if not IterationIndependent.verify_iteration_independent_Lyapunov(
-                prob, algo, P, T, p, t, rho=upper_bound, h=h, alpha=alpha,
-                Q_equals_P=Q_equals_P, S_equals_T=S_equals_T,
-                q_equals_p=q_equals_p, s_equals_t=s_equals_t,
-                remove_C2=remove_C2, remove_C3=remove_C3, remove_C4=remove_C4):
-            return None
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
+        lower_bound = ensure_real_number(lower_bound, "lower_bound", finite=True, minimum=0.0)
+        upper_bound = ensure_real_number(upper_bound, "upper_bound", finite=True, minimum=0.0)
+        if upper_bound < lower_bound:
+            raise ValueError("upper_bound must be >= lower_bound.")
+        tol = ensure_real_number(tol, "tol", finite=True, minimum=0.0)
+        if tol <= 0:
+            raise ValueError("tol must be > 0.")
+        h, alpha, _, _, _, _, _, _, _ = IterationIndependent._validate_iteration_independent_inputs(
+            prob, algo, P, T, p, t, h, alpha
+        )
 
-        l = lower_bound
-        u = upper_bound
-        while (u - l) > tol:
-            mid = (l + u) / 2.0
-            if IterationIndependent.verify_iteration_independent_Lyapunov(
-                    prob, algo, P, T, p, t, rho=mid, h=h, alpha=alpha,
-                    Q_equals_P=Q_equals_P, S_equals_T=S_equals_T,
-                    q_equals_p=q_equals_p, s_equals_t=s_equals_t,
-                    remove_C2=remove_C2, remove_C3=remove_C3, remove_C4=remove_C4):
-                u = mid
-            else:
-                l = mid
+        Mod = Model()
+        rho_param = Mod.parameter(1)
+        rho_scalar = rho_param.index(0)
+        Mod = IterationIndependent._build_iteration_independent_model(
+            prob,
+            algo,
+            P,
+            T,
+            p,
+            t,
+            h,
+            alpha,
+            Q_equals_P,
+            S_equals_T,
+            q_equals_p,
+            s_equals_t,
+            remove_C2,
+            remove_C3,
+            remove_C4,
+            rho_term=rho_scalar,
+            model=Mod,
+        )
 
-        return u
+        licence_markers = (
+            "err_license_max",         # 1016 – all floating tokens in use
+            "err_license_server",      # 1015 – server unreachable / down
+            "err_missing_license_file" # 1008 – no licence file / server path
+        )
+
+        def _check_rho(rho_value: float) -> bool:
+            rho_param.setValue([rho_value])
+            try:
+                Mod.solve()
+                Mod.primalObjValue()
+            except OptimizeError as e:
+                if any(mark in str(e) for mark in licence_markers):
+                    raise
+                return False
+            except Exception:
+                return False
+            return True
+
+        try:
+            # Ensure that the inequality holds at the initial upper bound.
+            if not _check_rho(upper_bound):
+                return None
+
+            l = lower_bound
+            u = upper_bound
+            while (u - l) > tol:
+                mid = (l + u) / 2.0
+                if _check_rho(mid):
+                    u = mid
+                else:
+                    l = mid
+            return u
+        finally:
+            Mod.dispose()
 
 class SublinearConvergence:
+    r"""
+    Class-level namespace for sublinear-convergence tools in iteration-independent analysis.
+
+    **Scope**
+
+    - Static constructors for sublinear-convergence metrics.
+
+    Method-level docstrings provide full API details.
+    """
     @staticmethod
     def get_parameters_fixed_point_residual(
             algo: Type[Algorithm],
@@ -327,54 +460,70 @@ class SublinearConvergence:
                    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
                    ]:
         r"""
-        Compute the matrices for the fixed-point residual.
+        Compute matrices for the fixed-point residual.
 
-        For a given iteration index :math:`\tau` (with :math:`0 \le \tau \le h+\alpha+1`), define
+        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`), define
 
         .. math::
-            T = \left( X_{\tau+1}^{0, h+\alpha+1} - X_{\tau}^{0, h+\alpha+1} \right)^T
+            T = \left( X_{\tau+1}^{0, h+\alpha+1} - X_{\tau}^{0, h+\alpha+1} \right)^{\top}
                 \left( X_{\tau+1}^{0, h+\alpha+1} - X_{\tau}^{0, h+\alpha+1} \right),
 
-        where :math:`X_{\tau}^{0, h+\alpha+1}` is the X matrix computed over the horizon :math:`[0, h+\alpha+1]` 
-        (via ``algo.get_Xs``).
+        where :math:`X_{\tau}^{0, h+\alpha+1}` is the :math:`X` matrix over the horizon
+        :math:`\llbracket 0, h+\alpha+1\rrbracket`, retrieved via
+        :meth:`~autolyap.algorithms.Algorithm.get_Xs`.
 
-        **Dimensions**
+        **Resulting lower bounds**
 
-        - :math:`P` is a zero matrix of dimension :math:`n + (h+1)\bar{m} + m`.
-        - :math:`T` is computed as above and has dimension :math:`n + (h+\alpha+2)\bar{m} + m`.
-        - If :math:`algo.m_func > 0`:
-        
-          - :math:`p` is a zero vector of length :math:`(h+1)\bar{m}_{\text{func}} + m\_func,`
-          - :math:`t` is a zero vector of length :math:`(h+\alpha+2)\bar{m}_{\text{func}} + m\_func.`
+        With this choice of :math:`(P,p,T,t)`,
+
+        .. math::
+            \begin{aligned}
+            \mathcal{V}(P,p,k) &= 0,\\
+            \mathcal{R}(T,t,k) &= \|x^{k+\tau+1} - x^{k+\tau}\|^2.
+            \end{aligned}
 
         **Parameters**
 
-        :param algo: An instance of Algorithm.
-        :param h: A nonnegative integer defining the time horizon :math:`[0, h]` for :math:`P`.
-        :param alpha: A nonnegative integer for extending the horizon for :math:`T` (and :math:`t`).
-        :param tau: Iteration index for computing the fixed-point residual.
-                  Must satisfy :math:`0 \le \tau \le h+\alpha+1`.
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm`.
+        - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h` defining the time horizon
+          :math:`\llbracket 0, h\rrbracket` for
+          :math:`P`.
+        - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha` for extending the horizon
+          for :math:`T` (and :math:`t`).
+        - `tau` (:class:`int`): Iteration index corresponding to :math:`\tau` for computing the fixed-point residual.
+          Must satisfy
+          :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`.
 
         **Returns**
 
-        - If :math:`algo.m_func == 0`:
-          
-          :return: A tuple ``(P, T)``.
-        
-        - Otherwise:
-          
-          :return: A tuple ``(P, p, T, t)``.
+        - (:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`\]\]):
+          If `algo.m_func == 0`, returns `(P, T)` with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m}.
+              \end{aligned}
+
+          Otherwise, returns `(P, p, T, t)` with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m},\\
+              p &\in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc},\\
+              t &\in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
+              \end{aligned}
 
         **Raises**
 
-        :raises ValueError: If any input parameter is out of its valid range or if the required X matrices are missing.
+        - `ValueError`: If any input parameter is out of its valid range or if the required :math:`X` matrices are missing.
         """
         # ----- Input Checking -----
-        if not isinstance(h, int) or h < 0:
-            raise ValueError("Parameter h must be a nonnegative integer.")
-        if not isinstance(alpha, int) or alpha < 0:
-            raise ValueError("Parameter alpha must be a nonnegative integer.")
-        if not isinstance(tau, int) or tau < 0 or tau > h + alpha + 1:
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
+        tau = ensure_integral(tau, "tau", minimum=0)
+        if tau > h + alpha + 1:
             raise ValueError(f"Iteration index tau must be in [0, {h+alpha+1}]. Got {tau}.")
 
         # ----- Dimensions for P and T -----
@@ -418,15 +567,15 @@ class SublinearConvergence:
             tau: int = 0
         ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         r"""
-        Compute the matrices for the duality gap.
+        Compute matrices for the duality gap.
 
-        For a given iteration index :math:`\tau` (with :math:`0 \le \tau \le h+\alpha+1`), define
+        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`), define
 
         .. math::
             T = -\frac{1}{2} \sum_{i=1}^{m} \begin{bmatrix}
             P_{(i,\star)}\, U_\star^{0,h+\alpha+1} \\
             P_{(i,1)}\, Y_\tau^{0,h+\alpha+1}
-            \end{bmatrix}^T
+            \end{bmatrix}^{\top}
             \begin{bmatrix}
             0 & 1 \\
             1 & 0 
@@ -439,48 +588,80 @@ class SublinearConvergence:
         and
 
         .. math::
-            t = \sum_{i=1}^{m} \left( F_{(i,1,\tau)}^{0,h+\alpha+1} - F_{(i,\star,\star)}^{0,h+\alpha+1} \right)^T.
+            t = \sum_{i=1}^{m} \left( F_{(i,1,\tau)}^{0,h+\alpha+1} - F_{(i,\star,\star)}^{0,h+\alpha+1} \right)^{\top}.
 
         All other matrices are set to zero.
 
+        Here, :math:`U_\star^{0,h+\alpha+1}` and :math:`Y_\tau^{0,h+\alpha+1}` are retrieved via
+        :meth:`~autolyap.algorithms.Algorithm.get_Us` and
+        :meth:`~autolyap.algorithms.Algorithm.get_Ys`, :math:`F_{(i,1,\tau)}^{0,h+\alpha+1}` and
+        :math:`F_{(i,\star,\star)}^{0,h+\alpha+1}` are retrieved via
+        :meth:`~autolyap.algorithms.Algorithm.get_Fs`, and projection matrices
+        :math:`P_{(i,\star)}` and :math:`P_{(i,1)}` come from :meth:`~autolyap.algorithms.Algorithm.get_Ps`.
+
+        **Resulting lower bounds**
+
+        With this choice of :math:`(P,p,T,t)`,
+
+        .. math::
+            \mathcal{V}(P,p,k) = 0,
+
+        and
+
+        .. math::
+            \mathcal{R}(T,t,k)
+            = -\sum_{i=1}^{m}
+            \left\langle
+            P_{(i,\star)}U_{\star}^{0,h+\alpha+1}\boldsymbol{z}_{\mathcal{R}}^{k},
+            P_{(i,1)}Y_{\tau}^{0,h+\alpha+1}\boldsymbol{z}_{\mathcal{R}}^{k}
+            \right\rangle
+            + \sum_{i=1}^{m}
+            \left(F_{(i,1,\tau)}^{0,h+\alpha+1} - F_{(i,\star,\star)}^{0,h+\alpha+1}\right)^{\top}
+            \boldsymbol{f}_{\mathcal{R}}^{k}.
+
         **Requirements**
 
-        It is required that :math:`m = m\_func` (i.e. all components are functional).
-
-        **Dimensions**
-
-        - :math:`P` is a zero matrix of dimension :math:`n + (h+1)\bar{m} + m`.
-        - :math:`p` is a zero vector of length :math:`(h+1)\bar{m}_{\text{func}} + m\_func`.
-        - :math:`T` is computed as above and has dimension :math:`n + (h+\alpha+2)\bar{m} + m`.
-        - :math:`t` is computed as above and has length :math:`(h+\alpha+2)\bar{m}_{\text{func}} + m\_func`.
+        Requires :math:`m = \NumFunc` (i.e., all components are functional).
 
         **Parameters**
 
-        :param algo: An instance of Algorithm (with :math:`m = m\_func`).
-        :param h: A nonnegative integer defining the time horizon :math:`[0, h]` for :math:`P`.
-        :param alpha: A nonnegative integer for extending the horizon for :math:`T` and :math:`t`.
-        :param tau: Iteration index for computing the duality gap.
-                  Must satisfy :math:`0 \le \tau \le h+\alpha+1`.
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm` (with
+          `algo.m == algo.m_func`).
+        - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h` defining the time horizon
+          :math:`\llbracket 0, h\rrbracket` for
+          :math:`P`.
+        - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha` for extending the horizon
+          for :math:`T` and :math:`t`.
+        - `tau` (:class:`int`): Iteration index corresponding to :math:`\tau` for computing the duality gap. Must satisfy
+          :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`.
 
         **Returns**
 
-        :return: A tuple :math:`(P, p, T, t)`, where :math:`t` is a one-dimensional array.
+        - (:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`\]): A tuple :math:`(P, p, T, t)`, where
+          :math:`t` is a one-dimensional NumPy array, with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m},\\
+              p &\in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc},\\
+              t &\in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
+              \end{aligned}
 
         **Raises**
 
-        :raises ValueError: If any input parameter is out of its valid range, if the required matrices
-                            are missing, or if :math:`m \ne m\_func`.
+        - `ValueError`: If any input parameter is out of its valid range, if required matrices
+          are missing, or if :math:`m \ne \NumFunc`.
         """
         # ----- Check that m = m_func -----
         if algo.m != algo.m_func:
             raise ValueError("get_parameters_duality_gap is only applicable when m = m_func.")
         
         # ----- Input Checking -----
-        if not isinstance(h, int) or h < 0:
-            raise ValueError("Parameter h must be a nonnegative integer.")
-        if not isinstance(alpha, int) or alpha < 0:
-            raise ValueError("Parameter alpha must be a nonnegative integer.")
-        if not isinstance(tau, int) or tau < 0 or tau > h + alpha + 1:
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
+        tau = ensure_integral(tau, "tau", minimum=0)
+        if tau > h + alpha + 1:
             raise ValueError(f"Iteration index tau must be in [0, {h+alpha+1}]. Got {tau}.")
         
         # ----- Dimensions for P, T, p, and t -----
@@ -534,7 +715,7 @@ class SublinearConvergence:
             
             # Stack to form a 2 x dim_T matrix.
             block = np.vstack([block1, block2])
-            # Contribution from component i: block^T mid block.
+            # Contribution from component i: block^{\top} mid block.
             T_sum += block.T @ mid @ block
         T_mat = -0.5 * T_sum
         
@@ -569,67 +750,82 @@ class SublinearConvergence:
             tau: int = 0
         ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         r"""
-        Compute the matrices/vectors for function value suboptimality.
+        Compute matrices and vectors for function-value suboptimality.
 
-        This function is only applicable when :math:`m = m\_func = 1`.
+        This method is only applicable when :math:`m = \NumFunc = 1`.
 
         It returns a tuple :math:`(P, p, T, t)` where:
 
         - :math:`t` is computed as
 
           .. math::
-              t = \left( F_{(1,j,\tau)}^{0,h+\alpha+1} - F_{(1,\star,\star)}^{0,h+\alpha+1} \right)^T,
+              t = \left( F_{(1,j,\tau)}^{0,h+\alpha+1} - F_{(1,\star,\star)}^{0,h+\alpha+1} \right)^{\top},
 
-          with :math:`t` returned as a 1D numpy array of length 
-          :math:`(h+\alpha+2)\bar{m}_{\text{func}} + m\_func`.
-        - :math:`P` is a zero matrix of dimension
+          with :math:`t` returned as a one-dimensional NumPy array.
 
-          .. math::
-              n + (h+1)\bar{m} + m,
-          
-        - :math:`T` is a zero matrix of dimension
+        The matrices :math:`F_{(1,j,\tau)}^{0,h+\alpha+1}` and :math:`F_{(1,\star,\star)}^{0,h+\alpha+1}` are
+        retrieved via :meth:`~autolyap.algorithms.Algorithm.get_Fs` with `k_min = 0` and
+        `k_max = h+\alpha+1`.
 
-          .. math::
-              n + (h+\alpha+2)\bar{m} + m,
-          
-        - :math:`t` is a zero vector of dimension
+        **Resulting lower bounds**
 
-          .. math::
-              (h+1)\bar{m}_{\text{func}} + m\_func.
+        With this choice of :math:`(P,p,T,t)`,
+
+        .. math::
+            \begin{aligned}
+            \mathcal{V}(P,p,k) &= 0,\\
+            \mathcal{R}(T,t,k) &= f_1(y_{1,j}^{k+\tau}) - f_1(y^\star).
+            \end{aligned}
 
         **Parameters**
 
-        :param algo: An instance of Algorithm. It must satisfy :math:`algo.m = 1` and :math:`algo.m\_func = 1`.
-        :param h: A nonnegative integer defining the horizon :math:`[0, h]` for F matrices.
-        :param alpha: A nonnegative integer for extending the horizon for :math:`T` and :math:`t`.
-        :param j: Evaluation index for component 1. Default is 1; must satisfy :math:`1 \le j \le algo.m_bar_is[0]`.
-        :param tau: Iteration index. Default is 0; must satisfy :math:`0 \le \tau \le h+\alpha+1`.
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm`. It must
+          satisfy `algo.m == 1`, `algo.m_func == 1`, and provide
+          :meth:`~autolyap.algorithms.Algorithm.get_Fs`.
+        - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h` defining the horizon
+          :math:`\llbracket 0, h + \alpha + 1\rrbracket` for :math:`F` matrices.
+        - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha` for extending the horizon
+          for :math:`T` and :math:`t`.
+        - `j` (:class:`int`): Evaluation index for component 1 corresponding to :math:`j`. Default is 1; must satisfy
+          :math:`j \in \llbracket 1, \NumEval_1\rrbracket`, where :math:`\NumEval_1` is given by
+          `algo.m_bar_is[0]`.
+        - `tau` (:class:`int`): Iteration index corresponding to :math:`\tau`. Default is 0; must satisfy
+          :math:`\tau \in \llbracket 0, h + \alpha + 1\rrbracket`.
 
         **Returns**
 
-        :return: A tuple :math:`(P, p, T, t)`, where :math:`t` is computed as above (a 1D numpy array)
-                 and :math:`P`, :math:`T`, and :math:`p` are zero arrays with appropriate dimensions.
+        - (:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`\]): A tuple :math:`(P, p, T, t)`, where
+          :math:`t` is computed as above (a one-dimensional NumPy array), and :math:`P`, :math:`T`, and :math:`p`
+          are zero arrays, with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m},\\
+              p &\in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc},\\
+              t &\in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
+              \end{aligned}
 
         **Raises**
 
-        :raises ValueError: If :math:`algo.m \ne 1` or :math:`algo.m\_func \ne 1`, if any input parameter is out of range,
-                            or if the required F matrices are not found.
+        - `ValueError`: If `algo.m != 1` or `algo.m_func != 1`, if any input parameter is out of range,
+          or if the required :math:`F` matrices are not found.
         """
         # ----- Check that m and m_func equal 1 -----
         if algo.m != 1 or algo.m_func != 1:
             raise ValueError("get_parameters_function_value_suboptimality is only applicable when m = m_func = 1.")
         
         # ----- Validate inputs -----
-        if not isinstance(h, int) or h < 0:
-            raise ValueError("Parameter h must be a nonnegative integer.")
-        if not isinstance(alpha, int) or alpha < 0:
-            raise ValueError("Parameter alpha must be a nonnegative integer.")
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
         
         num_eval = algo.m_bar_is[0]
-        if not isinstance(j, int) or j < 1 or j > num_eval:
+        j = ensure_integral(j, "j", minimum=1)
+        if j > num_eval:
             raise ValueError(f"For component 1, evaluation index j must be in [1, {num_eval}]. Got {j}.")
-        
-        if not isinstance(tau, int) or tau < 0 or tau > h:
+
+        tau = ensure_integral(tau, "tau", minimum=0)
+        if tau > h + alpha + 1:
             raise ValueError(f"Iteration index tau must be in [0, {h+alpha+1}]. Got {tau}.")
         
         # ----- Dimensions for P, T, p, and t -----
@@ -677,58 +873,91 @@ class SublinearConvergence:
                    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
                    ]:
         r"""
-        Compute the matrices for the optimality measure.
+        Compute matrices for the optimality measure.
 
-        For a given iteration index :math:`\tau` (with :math:`0 \le \tau \le h+\alpha+1`), define
+        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`), define
 
         .. math::
             T =
             \begin{cases}
-              \left( P_{(1,1)}\, U_\tau^{0,h+\alpha+1} \right)^T \left( P_{(1,1)}\, U_\tau^{0,h+\alpha+1} \right)
+              \left( P_{(1,1)}\, U_\tau^{0,h+\alpha+1} \right)^{\top} \left( P_{(1,1)}\, U_\tau^{0,h+\alpha+1} \right)
               & \text{if } m = 1, \\[1em]
-              \left( \left( \sum_{i=1}^{m} P_{(i,1)}\, U_\tau^{0,h+\alpha+1} \right)^T \left( \sum_{i=1}^{m} P_{(i,1)}\, U_\tau^{0,h+\alpha+1} \right)
-              + \sum_{i=2}^{m} \left( \left( P_{(1,1)} - P_{(i,1)} \right) Y_\tau^{0,h+\alpha+1} \right)^T \left( \left( P_{(1,1)} - P_{(i,1)} \right) Y_\tau^{0,h+\alpha+1} \right) \right)
+              \left( \left( \sum_{i=1}^{m} P_{(i,1)}\, U_\tau^{0,h+\alpha+1} \right)^{\top} \left( \sum_{i=1}^{m} P_{(i,1)}\, U_\tau^{0,h+\alpha+1} \right)
+              + \sum_{i=2}^{m} \left( \left( P_{(1,1)} - P_{(i,1)} \right) Y_\tau^{0,h+\alpha+1} \right)^{\top} \left( \left( P_{(1,1)} - P_{(i,1)} \right) Y_\tau^{0,h+\alpha+1} \right) \right)
               & \text{if } m > 1.
             \end{cases}
 
         All other matrices are set to zero.
 
-        **Dimensions**
+        Here:
 
-        - :math:`P` is a zero matrix of dimension :math:`n + (h+1)\bar{m} + m`.
-        - If :math:`algo.m_func > 0`:
-        
-          - :math:`p` is a zero vector of length :math:`(h+1)\bar{m}_{\text{func}} + m\_func,`
-          - :math:`t` is a zero vector of length :math:`(h+\alpha+2)\bar{m}_{\text{func}} + m\_func.`
+        - :math:`U_\tau^{0,h+\alpha+1}` is retrieved via :meth:`~autolyap.algorithms.Algorithm.get_Us`
+          with `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`Y_\tau^{0,h+\alpha+1}` is retrieved via :meth:`~autolyap.algorithms.Algorithm.get_Ys`
+          with `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`P_{(i,1)}` are the projection matrices returned by
+          :meth:`~autolyap.algorithms.Algorithm.get_Ps`.
+
+        **Resulting lower bounds**
+
+        With this choice of :math:`(P,p,T,t)`,
+
+        .. math::
+            \mathcal{V}(P,p,k) = 0,
+
+        and
+
+        .. math::
+            \mathcal{R}(T,t,k)
+            =
+            \begin{cases}
+                \|u_{1,1}^{k+\tau}\|^2 & \text{if } m = 1, \\
+                \left\|\sum_{i=1}^{m} u_{i,1}^{k+\tau}\right\|^2
+                + \sum_{i=2}^{m} \|y_{1,1}^{k+\tau} - y_{i,1}^{k+\tau}\|^2
+                & \text{if } m > 1.
+            \end{cases}
 
         **Parameters**
 
-        :param algo: An instance of Algorithm.
-        :param h: A nonnegative integer defining the time horizon :math:`[0, h]` for :math:`P`.
-        :param alpha: A nonnegative integer for extending the horizon for :math:`T` (and :math:`t`).
-        :param tau: Iteration index for computing the optimality measure.
-                  Must satisfy :math:`0 \le \tau \le h+\alpha+1`.
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm`.
+        - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h` defining the time horizon
+          :math:`\llbracket 0, h\rrbracket` for
+          :math:`P`.
+        - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha` for extending the horizon
+          for :math:`T` (and :math:`t`).
+        - `tau` (:class:`int`): Iteration index corresponding to :math:`\tau` for computing the optimality measure. Must satisfy
+          :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`.
 
         **Returns**
 
-        - If :math:`algo.m_func == 0`:
-          
-          :return: A tuple ``(P, T)``.
-        
-        - Otherwise:
-          
-          :return: A tuple ``(P, p, T, t)``.
+        - (:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`\]\]):
+          If `algo.m_func == 0`, returns `(P, T)` with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m}.
+              \end{aligned}
+
+          Otherwise, returns `(P, p, T, t)` with
+
+          .. math::
+              \begin{aligned}
+              P &\in \sym^{n + (h+1)\NumEval + m},\\
+              T &\in \sym^{n + (h+\alpha+2)\NumEval + m},\\
+              p &\in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc},\\
+              t &\in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
+              \end{aligned}
 
         **Raises**
 
-        :raises ValueError: If any input parameter is out of its valid range or if required matrices are missing.
+        - `ValueError`: If any input parameter is out of its valid range or if required matrices are missing.
         """
         # ----- Input Checking -----
-        if not isinstance(h, int) or h < 0:
-            raise ValueError("Parameter h must be a nonnegative integer.")
-        if not isinstance(alpha, int) or alpha < 0:
-            raise ValueError("Parameter alpha must be a nonnegative integer.")
-        if not isinstance(tau, int) or tau < 0 or tau > h + alpha + 1:
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
+        tau = ensure_integral(tau, "tau", minimum=0)
+        if tau > h + alpha + 1:
             raise ValueError(f"Iteration index tau must be in [0, {h+alpha+1}]. Got {tau}.")
         
         # ----- Dimensions for P and T -----
@@ -802,65 +1031,200 @@ class SublinearConvergence:
 
 
 class IterationIndependent:
+    r"""
+    Iteration-independent Lyapunov analysis utilities.
+
+    Class-level reference
+    =====================
+
+    This class-level docstring centralizes notation shared across methods.
+    Method-level docstrings focus on API details: inputs, outputs, and validation.
+
+    **Problem and algorithm context**
+
+    Notation follows :class:`~autolyap.problemclass.InclusionProblem` and
+    :class:`~autolyap.algorithms.Algorithm`.
+    The sets :math:`\IndexFunc`, :math:`\IndexOp` and counts
+    :math:`\NumEval`, :math:`\NumEvalFunc`, :math:`\NumFunc` are inherited from those classes.
+    We consider sequences
+
+    .. math::
+        (\bx^{k},\bu^{k},\by^{k},\bFcn^{k})_{k\in\naturals}
+
+    generated by the state-space representation, together with a solution triplet
+    :math:`(y^{\star},\hat{\bu}^{\star},\bFcn^{\star})`.
+
+    **Star variables**
+
+    A solution triplet means there exists a vector
+
+    .. math::
+        \bu^{\star} = (u_1^{\star},\ldots,u_m^{\star}),
+
+    such that
+
+    .. math::
+        \forall i \in \IndexFunc, \quad u_i^{\star}\in\partial f_i(y^{\star}), \qquad
+        \forall i \in \IndexOp, \quad u_i^{\star}\in G_i(y^{\star}), \qquad
+        \sum_{i=1}^{m} u_i^{\star}=0.
+
+    Hence, each :math:`u_i^{\star}` is the component output at :math:`y^{\star}`.
+
+    The reduced vector :math:`\hat{\bu}^{\star}` collects the first :math:`m-1` components of
+    :math:`\bu^{\star}`:
+
+    .. math::
+        \hat{\bu}^{\star} = (u_1^{\star},\ldots,u_{m-1}^{\star}), \qquad
+        u_m^{\star} = -\sum_{i=1}^{m-1} u_i^{\star}.
+
+    The function-value vector is
+
+    .. math::
+        \bFcn^{\star}=(f_i(y^{\star}))_{i\in\IndexFunc}.
+
+    **Lyapunov ansatzes**
+
+    Let :math:`h \in \naturals` be the history parameter and
+    :math:`\alpha \in \naturals` the overlap parameter.
+    For each :math:`(W,w) \in \{(Q,q),(P,p)\}` and :math:`k \in \naturals`, define
+
+    .. math::
+        \boldsymbol{z}_{\mathcal{V}}^{k}
+        =
+        \begin{bmatrix}
+        \bx^{k} \\ \bu^{k} \\ \vdots \\ \bu^{k+h} \\ \hat{\bu}^{\star} \\ y^{\star}
+        \end{bmatrix}, \qquad
+        \boldsymbol{f}_{\mathcal{V}}^{k}
+        =
+        \begin{bmatrix}
+        \bFcn^{k} \\ \vdots \\ \bFcn^{k+h} \\ \bFcn^{\star}
+        \end{bmatrix},
+
+    .. math::
+        \mathcal{V}(W,w,k)
+        =
+        \inner{
+        \boldsymbol{z}_{\mathcal{V}}^{k}
+        }{
+        (W \kron \Id)\boldsymbol{z}_{\mathcal{V}}^{k}
+        }
+        + w^{\top}\boldsymbol{f}_{\mathcal{V}}^{k}.
+
+    Similarly, for each :math:`(W,w) \in \{(S,s),(T,t)\}`, define
+
+    .. math::
+        \boldsymbol{z}_{\mathcal{R}}^{k}
+        =
+        \begin{bmatrix}
+        \bx^{k} \\ \bu^{k} \\ \vdots \\ \bu^{k+h+\alpha+1} \\ \hat{\bu}^{\star} \\ y^{\star}
+        \end{bmatrix}, \qquad
+        \boldsymbol{f}_{\mathcal{R}}^{k}
+        =
+        \begin{bmatrix}
+        \bFcn^{k} \\ \vdots \\ \bFcn^{k+h+\alpha+1} \\ \bFcn^{\star}
+        \end{bmatrix},
+
+    .. math::
+        \mathcal{R}(W,w,k)
+        =
+        \inner{
+        \boldsymbol{z}_{\mathcal{R}}^{k}
+        }{
+        (W \kron \Id)\boldsymbol{z}_{\mathcal{R}}^{k}
+        }
+        + w^{\top}\boldsymbol{f}_{\mathcal{R}}^{k}.
+
+    **Dimensions**
+
+    .. math::
+        P,Q \in \sym^{n + (h+1)\NumEval + m}, \qquad
+        T,S \in \sym^{n + (h+\alpha+2)\NumEval + m},
+
+    .. math::
+        p,q \in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc}, \qquad
+        t,s \in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
+
+    Here :math:`n` is the state dimension (as in :class:`~autolyap.algorithms.Algorithm`).
+    When :math:`\NumFunc = 0`, the vectors :math:`p,q,s,t` are omitted.
+
+    **Quadratic Lyapunov inequality**
+
+    For all :math:`k \in \naturals`, the quadratic Lyapunov inequalities are
+
+    .. math::
+        \mathcal{V}(Q,q,k+\alpha+1) \le \rho\,\mathcal{V}(Q,q,k) - \mathcal{R}(S,s,k), \tag{C1}
+
+    .. math::
+        \mathcal{V}(Q,q,k) \ge \mathcal{V}(P,p,k) \ge 0, \tag{C2}
+
+    .. math::
+        \mathcal{R}(S,s,k) \ge \mathcal{R}(T,t,k) \ge 0, \tag{C3}
+
+    .. math::
+        \mathcal{R}(S,s,k+1) \le \mathcal{R}(S,s,k). \tag{C4}
+
+    Condition (C4) is optional.
+
+    **Role of h and alpha**
+
+    - :math:`h` is the history parameter in :math:`\mathcal{V}`.
+    - :math:`\alpha` is the overlap parameter in :math:`\mathcal{R}` and in the
+      shift :math:`k \mapsto k+\alpha+1` appearing in the Lyapunov inequality.
+
+    **Convergence conclusions**
+
+    When :math:`(Q,q,S,s)` satisfy the enabled Lyapunov inequalities (in particular (C1)–(C3)) used in
+    :meth:`~autolyap.iteration_independent.IterationIndependent.verify_iteration_independent_Lyapunov`,
+    the following conclusions hold.
+
+    - Linear setting (:math:`\rho \in [0,1)`):
+
+      .. math::
+          0 \le \mathcal{V}(P,p,k) \le \rho^{\lfloor k/(\alpha+1)\rfloor}
+          \max_{i \in \llbracket 0,\alpha\rrbracket} \mathcal{V}(Q,q,i).
+
+      Thus, :math:`\mathcal{V}(P,p,k)` converges to zero
+
+      .. math::
+          \sqrt[\alpha+1]{\rho}\text{-linearly}.
+
+    - Sublinear setting (:math:`\rho = 1`):
+
+      .. math::
+          \sum_{i=0}^{k}\mathcal{R}(T,t,i)
+          \le \sum_{i=0}^{k}\mathcal{R}(S,s,i)
+          \le \sum_{j=0}^{\alpha}\mathcal{V}(Q,q,j),
+
+      so :math:`\mathcal{R}(T,t,k)` is summable and
+
+      .. math::
+          \min_{i \in \llbracket 0,k \rrbracket}\mathcal{R}(T,t,i) \in \mathcal{O}(1/k),
+
+      with :math:`\mathcal{R}(T,t,k) \in o(1/k)` if (C4) holds.
+    """
     
     LinearConvergence = LinearConvergence
     SublinearConvergence = SublinearConvergence
 
     @staticmethod
-    def verify_iteration_independent_Lyapunov(
+    def _scale_by_rho(rho_term, expr):
+        r"""Scale a matrix/vector expression by :math:`\rho` for scalar and Fusion-parameter cases."""
+        if isinstance(rho_term, (int, float, np.floating)):
+            return rho_term * expr
+        return Expr.mul(rho_term, expr)
+
+    @staticmethod
+    def _validate_iteration_independent_inputs(
             prob: Type[InclusionProblem],
             algo: Type[Algorithm],
             P: np.ndarray,
             T: np.ndarray,
-            p: Optional[np.ndarray] = None,
-            t: Optional[np.ndarray] = None,
-            rho: float = 1.0,
-            h: int = 0,
-            alpha: int = 0,
-            Q_equals_P: bool = False,
-            S_equals_T: bool = False,
-            q_equals_p: bool = False,
-            s_equals_t: bool = False,
-            remove_C2: bool = False,
-            remove_C3: bool = False,
-            remove_C4: bool = True
-        ) -> bool:
-        r"""
-        Verify an iteration-independent Lyapunov inequality via an SDP.
-
-        This method sets up and solves a semidefinite program (SDP) using Mosek Fusion to 
-        verify a Lyapunov inequality for a given inclusion problem and algorithm.
-
-        **Parameters**
-
-        :param prob: An InclusionProblem instance containing interpolation conditions.
-        :param algo: An Algorithm instance providing dimensions and methods to compute matrices.
-        :param P: A symmetric numpy array of dimension 
-                  :math:`n + (h+1)\bar{m} + m` by :math:`n + (h+1)\bar{m} + m`.
-        :param T: A symmetric numpy array of dimension 
-                  :math:`n + (h+\alpha+2)\bar{m} + m` by :math:`n + (h+\alpha+2)\bar{m} + m`.
-        :param p: A vector for functional components (if any) with appropriate dimensions.
-        :param t: A vector for functional components (if any) with appropriate dimensions.
-        :param rho: A scalar contraction parameter used in forming the Lyapunov inequality.
-        :param h: Nonnegative integer defining history.
-        :param alpha: Nonnegative integer defining overlap.
-        :param Q_equals_P: If True, sets Q equal to P.
-        :param S_equals_T: If True, sets S equal to T.
-        :param q_equals_p: For functional components, if True, sets q equal to p.
-        :param s_equals_t: For functional components, if True, sets s equal to t.
-        :param remove_C2: Flag to remove constraint C2.
-        :param remove_C3: Flag to remove constraint C3.
-        :param remove_C4: Flag to remove constraint C4.
-
-        **Returns**
-
-        :return: True if the SDP is solved successfully (i.e. a Lyapunov inequality exists), False otherwise.
-
-        **Raises**
-
-        :raises ValueError: If input dimensions or other conditions are violated.
-        """
-
+            p: Optional[np.ndarray],
+            t: Optional[np.ndarray],
+            h: int,
+            alpha: int,
+        ) -> Tuple[int, int, int, int, int, int, int, int, int]:
+        r"""Validate problem/algorithm consistency and array shapes, then return normalized dimensions."""
         # -------------------------------------------------------------------------
         # Validate consistency between the problem and the algorithm.
         # -------------------------------------------------------------------------
@@ -874,11 +1238,9 @@ class IterationIndependent:
             raise ValueError("Mismatch in operator component indices between prob and algo")
         
         # Ensure h and alpha are nonnegative.
-        if h < 0:
-            raise ValueError("Parameter 'h' must be >= 0.")
-        if alpha < 0:
-            raise ValueError("Parameter 'alpha' must be >= 0.")
-        
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
+
         # -------------------------------------------------------------------------
         # Retrieve dimensions from the algorithm instance.
         # -------------------------------------------------------------------------
@@ -893,14 +1255,22 @@ class IterationIndependent:
         # Expected dimension for matrix P: [n + (h+1)*m_bar + m] x [n + (h+1)*m_bar + m].
         dim_P = n + (h + 1) * m_bar + m
         if not (isinstance(P, np.ndarray) and P.ndim == 2 and P.shape[0] == P.shape[1] == dim_P):
-            raise ValueError(f"P must be a symmetric matrix of dimension {dim_P}x{dim_P}. Got shape {P.shape}.")
+            raise ValueError(
+                f"P must be a symmetric matrix of dimension {dim_P}x{dim_P}. "
+                f"Got shape {getattr(P, 'shape', None)}."
+            )
+        ensure_finite_array(P, "P")
         if not np.allclose(P, P.T, atol=1e-8):
             raise ValueError("P must be symmetric.")
         
         # Expected dimension for matrix T: [n + (h+alpha+2)*m_bar + m] x [n + (h+alpha+2)*m_bar + m].
         dim_T = n + (h + alpha + 2) * m_bar + m
         if not (isinstance(T, np.ndarray) and T.ndim == 2 and T.shape[0] == T.shape[1] == dim_T):
-            raise ValueError(f"T must be a symmetric matrix of dimension {dim_T}x{dim_T}. Got shape {T.shape}.")
+            raise ValueError(
+                f"T must be a symmetric matrix of dimension {dim_T}x{dim_T}. "
+                f"Got shape {getattr(T, 'shape', None)}."
+            )
+        ensure_finite_array(T, "T")
         if not np.allclose(T, T.T, atol=1e-8):
             raise ValueError("T must be symmetric.")
         
@@ -920,6 +1290,7 @@ class IterationIndependent:
                     f"p must be a 1D numpy array of length {dim_p}. Got shape "
                     f"{getattr(p, 'shape', None)}."
                 )
+            ensure_finite_array(p, "p")
 
             # Check t
             if t is None:
@@ -931,292 +1302,581 @@ class IterationIndependent:
                     f"t must be a 1D numpy array of length {dim_t}. Got shape "
                     f"{getattr(t, 'shape', None)}."
                 )
+            ensure_finite_array(t, "t")
+        else:
+            if p is not None or t is not None:
+                raise ValueError("p and t must be None when there are no functional components.")
 
+        return h, alpha, n, m_bar, m, m_bar_func, m_func, m_op, m_bar_op
 
-        # -------------------------------------------------------------------------
-        # Set up the Mosek Fusion model and decision variables.
-        # -------------------------------------------------------------------------
-        with Model() as Mod:
-            # Q variable: either set equal to P or defined as a new symmetric variable.
-            if Q_equals_P:
-                Q = P
+    @staticmethod
+    def _build_iteration_independent_model(
+            prob: Type[InclusionProblem],
+            algo: Type[Algorithm],
+            P: np.ndarray,
+            T: np.ndarray,
+            p: Optional[np.ndarray],
+            t: Optional[np.ndarray],
+            h: int,
+            alpha: int,
+            Q_equals_P: bool,
+            S_equals_T: bool,
+            q_equals_p: bool,
+            s_equals_t: bool,
+            remove_C2: bool,
+            remove_C3: bool,
+            remove_C4: bool,
+            rho_term,
+            model: Optional[Model] = None,
+        ) -> Model:
+        r"""Assemble and return the MOSEK Fusion model for the selected Lyapunov conditions."""
+        # Dimensions and indices have already been validated by callers.
+        n = algo.n
+        m_bar = algo.m_bar
+        m = algo.m
+        m_bar_func = algo.m_bar_func
+        m_func = algo.m_func
+        m_op = algo.m_op
+        m_bar_op = algo.m_bar_op
+
+        dim_P = n + (h + 1) * m_bar + m
+        dim_T = n + (h + alpha + 2) * m_bar + m
+        dim_p = (h + 1) * m_bar_func + m_func
+        dim_t = (h + alpha + 2) * m_bar_func + m_func
+
+        Mod = model if model is not None else Model()
+
+        # Q variable: either set equal to P or defined as a new symmetric variable.
+        if Q_equals_P:
+            Q = P
+        else:
+            Qij = Mod.variable("Q_upper_triangle_vars", dim_P * (dim_P + 1) // 2, Domain.unbounded())
+            Q = create_symmetric_matrix_expression(Qij, dim_P)
+
+        # S variable: either set equal to T or defined as a new symmetric variable.
+        if S_equals_T:
+            S = T
+        else:
+            Sij = Mod.variable("S_upper_triangle_vars", dim_T * (dim_T + 1) // 2, Domain.unbounded())
+            S = create_symmetric_matrix_expression(Sij, dim_T)
+        
+        # For functional components, create variables q and s (or set them equal to p and t).
+        if m_func > 0:
+            if q_equals_p:
+                q = p
             else:
-                Qij = Mod.variable("Q_upper_triangle_vars", dim_P * (dim_P + 1) // 2, Domain.unbounded())
-                Q = create_symmetric_matrix_expression(Qij, dim_P)
-
-            # S variable: either set equal to T or defined as a new symmetric variable.
-            if S_equals_T:
-                S = T
+                q = Mod.variable("q", dim_p, Domain.unbounded())
+            if s_equals_t:
+                s = t
             else:
-                Sij = Mod.variable("S_upper_triangle_vars", dim_T * (dim_T + 1) // 2, Domain.unbounded())
-                S = create_symmetric_matrix_expression(Sij, dim_T)
-            
-            # For functional components, create variables q and s (or set them equal to p and t).
-            if m_func > 0:
-                if q_equals_p:
-                    q = p
-                else:
-                    q = Mod.variable("q", dim_p, Domain.unbounded())
-                if s_equals_t:
-                    s = t
-                else:
-                    s = Mod.variable("s", dim_t, Domain.unbounded())
-            
-            # ---------------------------------------------------------------------
-            # Build the main PSD (positive semidefinite) and equality constraint sums.
-            # These will later be constrained to be in the PSD cone or equal zero, respectively.
-            # ---------------------------------------------------------------------
-            Ws = {}       # Dictionary for matrix constraint sums.
-            k_maxs = {}   # Dictionary to store the maximum iteration index for each condition.
+                s = Mod.variable("s", dim_t, Domain.unbounded())
+        
+        # ---------------------------------------------------------------------
+        # Build the main PSD (positive semidefinite) and equality constraint sums.
+        # These will later be constrained to be in the PSD cone or equal zero, respectively.
+        # ---------------------------------------------------------------------
+        Ws = {}       # Dictionary for matrix constraint sums.
+        k_maxs = {}   # Dictionary to store the maximum iteration index for each condition.
 
-            # For condition "C1": use _compute_Thetas with k_max = h + alpha + 1.
-            Theta0_C1, Theta1_C1 = IterationIndependent._compute_Thetas(algo, h, alpha, condition='C1')
-            Ws["C1"] = Theta1_C1.T @ Q @ Theta1_C1 - rho * Theta0_C1.T @ Q @ Theta0_C1 + S
-            k_maxs["C1"] = h + alpha + 1
+        # For condition "C1": use _compute_Thetas with k_max = h + alpha + 1.
+        Theta0_C1, Theta1_C1 = IterationIndependent._compute_Thetas(algo, h, alpha, condition='C1')
+        Ws["C1"] = Expr.add(
+            Expr.sub(
+                Theta1_C1.T @ Q @ Theta1_C1,
+                IterationIndependent._scale_by_rho(rho_term, Theta0_C1.T @ Q @ Theta0_C1),
+            ),
+            S,
+        )
+        k_maxs["C1"] = h + alpha + 1
 
-            # Condition "C2": if not removed, enforce P - Q.
+        # Condition "C2": if not removed, enforce P - Q.
+        if not remove_C2:
+            Ws["C2"] = P - Q
+            k_maxs["C2"] = h
+
+        # Condition "C3": if not removed, enforce T - S.
+        if not remove_C3:
+            Ws["C3"] = T - S
+            k_maxs["C3"] = h + alpha + 1
+
+        # Condition "C4": if not removed, use _compute_Thetas with k_max = h + alpha + 2.
+        if not remove_C4:
+            Theta0_C4, Theta1_C4 = IterationIndependent._compute_Thetas(algo, h, alpha, condition='C4')
+            Ws["C4"] = Theta1_C4.T @ S @ Theta1_C4 - Theta0_C4.T @ S @ Theta0_C4
+            k_maxs["C4"] = h + alpha + 2
+
+        # For functional components, build the analogous vector constraints.
+        if m_func > 0:
+            ws = {}
+            theta0_C1, theta1_C1 = IterationIndependent._compute_thetas(algo, h, alpha, condition='C1')
+            term1 = theta1_C1.T @ q
+            term2 = IterationIndependent._scale_by_rho(rho_term, theta0_C1.T @ q)
+            ws["C1"] = Expr.add(Expr.sub(term1, term2), s)
+
             if not remove_C2:
-                Ws["C2"] = P - Q
-                k_maxs["C2"] = h
+                ws["C2"] = p - q
 
-            # Condition "C3": if not removed, enforce T - S.
             if not remove_C3:
-                Ws["C3"] = T - S
-                k_maxs["C3"] = h + alpha + 1
+                ws["C3"] = t - s
 
-            # Condition "C4": if not removed, use _compute_Thetas with k_max = h + alpha + 2.
             if not remove_C4:
-                Theta0_C4, Theta1_C4 = IterationIndependent._compute_Thetas(algo, h, alpha, condition='C4')
-                Ws["C4"] = Theta1_C4.T @ S @ Theta1_C4 - Theta0_C4.T @ S @ Theta0_C4
-                k_maxs["C4"] = h + alpha + 2
+                theta0_C4, theta1_C4 = IterationIndependent._compute_thetas(algo, h, alpha, condition='C4')
+                ws["C4"] = (theta1_C4.T - theta0_C4.T) @ s
 
-            # For functional components, build the analogous vector constraints.
+        # Initialize lists of active conditions.
+        conds = ["C1"]
+        if not remove_C2:
+            conds.append("C2")
+        if not remove_C3:
+            conds.append("C3")
+        if not remove_C4:
+            conds.append("C4")
+
+        # Initialize dictionaries to sum up the PSD and equality constraints.
+        PSD_constraint_sums = {}
+        eq_constraint_sums = {}
+        for cond in conds:
+            PSD_constraint_sums[cond] = -Ws[cond]
             if m_func > 0:
-                ws = {}
-                theta0_C1, theta1_C1 = IterationIndependent._compute_thetas(algo, h, alpha, condition='C1')
-                ws["C1"] = (theta1_C1.T - rho * theta0_C1.T) @ q + s
+                eq_constraint_sums[cond] = -ws[cond]
 
-                if not remove_C2:
-                    ws["C2"] = p - q
+        # Dictionaries to hold multipliers for interpolation conditions.
+        if m_op > 0:
+            lambdas_op = {}
+        if m_func > 0:
+            lambdas_func = {}
+            nus_func = {}
 
-                if not remove_C3:
-                    ws["C3"] = t - s
+        # ---------------------------------------------------------------------
+        # Define inner helper functions for processing interpolation data.
+        # These functions handle both operator and function conditions.
+        # ---------------------------------------------------------------------
+        op_components = set(algo.I_op)
+        m_bar_is = algo.m_bar_is
+        compute_W = algo.compute_W
+        compute_F_aggregated = algo.compute_F_aggregated
+        mod_variable = Mod.variable
+        domain_ge0 = Domain.greaterThan(0.0)
+        domain_unbounded = Domain.unbounded()
+        star_pair = ('star', 'star')
 
-                if not remove_C4:
-                    theta0_C4, theta1_C4 = IterationIndependent._compute_thetas(algo, h, alpha, condition='C4')
-                    ws["C4"] = (theta1_C4.T - theta0_C4.T) @ s
+        def process_pairs(cond: str,
+                        i: int,
+                        o: int,
+                        interpolation_data: Union[Tuple[np.ndarray, str],
+                                                    Tuple[np.ndarray, np.ndarray, bool, str]],
+                        pairs: Tuple[Union[Tuple[int, int], Tuple[str, str]], ...],
+                        comp_type: str,
+                        has_quadratic: bool,
+                        has_linear: bool) -> None:
+            r"""
+            Internal helper for a single interpolation-pair pattern.
 
-            # Initialize lists of active conditions.
-            conds = ["C1"]
-            if not remove_C2:
-                conds.append("C2")
-            if not remove_C3:
-                conds.append("C3")
-            if not remove_C4:
-                conds.append("C4")
+            It creates the appropriate multiplier variables and accumulates contributions
+            to PSD/equality constraints for the active Lyapunov condition.
+            """
+            key = (cond, i, pairs, o)
 
-            # Initialize dictionaries to sum up the PSD and equality constraints.
-            PSD_constraint_sums = {}
-            eq_constraint_sums = {}
-            for cond in conds:
-                PSD_constraint_sums[cond] = -Ws[cond]
-                if m_func > 0:
-                    eq_constraint_sums[cond] = -ws[cond]
+            if comp_type == 'op':
+                if not has_quadratic:
+                    return
+                M, _ = interpolation_data
+            else:
+                M, a, eq, _ = interpolation_data
+                if not has_quadratic and not has_linear:
+                    return
 
-            # Dictionaries to hold multipliers for interpolation conditions.
-            if m_op > 0:
-                lambdas_op = {}
-            if m_func > 0:
-                lambdas_func = {}
-                nus_func = {}
+            # Compute the lifted matrix W for the given pairs.
+            W_matrix = None
+            if has_quadratic:
+                W_matrix = compute_W(i, pairs, 0, k_maxs[cond], M, validate=False)
 
-            # ---------------------------------------------------------------------
-            # Define inner helper functions for processing interpolation data.
-            # These functions handle both operator and function conditions.
-            # ---------------------------------------------------------------------
-            def process_pairs(cond: str, 
-                            i: int, 
-                            o: int, 
-                            interpolation_data: Union[Tuple[np.ndarray, str],
-                                                        Tuple[np.ndarray, np.ndarray, bool, str]], 
-                            pairs: List[Union[Tuple[int, int], Tuple[str, str]]], 
-                            comp_type: str) -> None:
-                r"""
-                Process a given set of interpolation pairs.
-
-                Constructs a unique key based on condition, component, pairs, and interpolation index.
-                For operator conditions, creates a nonnegative multiplier.
-                For functional conditions, if the constraint is an equality, creates an unrestricted multiplier;
-                otherwise, creates a nonnegative multiplier.
-                Updates the PSD and equality constraint sums accordingly.
-
-                :param cond: The condition identifier (e.g. "C1", "C2", etc.).
-                :param i: The component index.
-                :param o: The interpolation index.
-                :param interpolation_data: Interpolation data tuple.
-                :param pairs: A list of (j, k) pairs.
-                :param comp_type: A string, either 'op' for operator or 'func' for functional.
-                """
-                key_parts = [cond, f"i:{i}"]
-                for (j, k) in pairs:
-                    key_parts.append(f"(j:{j},k:{k})")
-                key_parts.append(f"o:{o}")
-                key = tuple(key_parts)
-
-                if comp_type == 'op':
-                    M, _ = interpolation_data
-                else:
-                    M, a, eq, _ = interpolation_data
-
-                # Compute the lifted matrix W for the given pairs.
-                W_matrix = algo.compute_W(i, pairs, 0, k_maxs[cond], M)
-
-                if comp_type == 'op':
-                    lambda_var = Mod.variable(1, Domain.greaterThan(0.0))
-                    lambdas_op[key] = lambda_var
-                    PSD_constraint_sums[cond] = PSD_constraint_sums[cond] + lambda_var[0] * W_matrix
-                else:
-                    # For functional components, compute the aggregated F vector.
-                    F_vector = algo.compute_F_aggregated(i, pairs, 0, k_maxs[cond], a)
-                    if eq:
-                        nu_var = Mod.variable(1, Domain.unbounded())
-                        nus_func[key] = nu_var
+            if comp_type == 'op':
+                lambda_var = mod_variable(1, domain_ge0)
+                lambdas_op[key] = lambda_var
+                PSD_constraint_sums[cond] = PSD_constraint_sums[cond] + lambda_var[0] * W_matrix
+            else:
+                # For functional components, compute the aggregated F vector.
+                F_vector = None
+                if has_linear:
+                    F_vector = compute_F_aggregated(i, pairs, 0, k_maxs[cond], a, validate=False)
+                if eq:
+                    nu_var = mod_variable(1, domain_unbounded)
+                    nus_func[key] = nu_var
+                    if has_quadratic:
                         PSD_constraint_sums[cond] = PSD_constraint_sums[cond] + nu_var[0] * W_matrix
+                    if has_linear:
                         eq_constraint_sums[cond] = eq_constraint_sums[cond] + nu_var[0] * F_vector
-                    else:
-                        lambda_var = Mod.variable(1, Domain.greaterThan(0.0))
-                        lambdas_func[key] = lambda_var
+                else:
+                    lambda_var = mod_variable(1, domain_ge0)
+                    lambdas_func[key] = lambda_var
+                    if has_quadratic:
                         PSD_constraint_sums[cond] = PSD_constraint_sums[cond] + lambda_var[0] * W_matrix
+                    if has_linear:
                         eq_constraint_sums[cond] = eq_constraint_sums[cond] + lambda_var[0] * F_vector
 
-            def process_interpolation(cond: str,
-                                    i: int,
-                                    o: int,
-                                    interp_data: Union[Tuple[np.ndarray, str],
-                                                        Tuple[np.ndarray, np.ndarray, bool, str]]
-                                    ) -> None:
-                r"""
-                Process the interpolation condition for a given component.
+        def _handle_j1_lt_j2(cond: str,
+                             i: int,
+                             o: int,
+                             interp_data: Union[Tuple[np.ndarray, str],
+                                                Tuple[np.ndarray, np.ndarray, bool, str]],
+                             pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
+                             _pairs_no_star: List[Tuple[int, int]],
+                             comp_type: str,
+                             has_quadratic: bool,
+                             has_linear: bool) -> None:
+            for pair1, pair2 in combinations(pairs_with_star, 2):
+                process_pairs(cond, i, o, interp_data, (pair1, pair2), comp_type, has_quadratic, has_linear)
 
-                Generates all (j, k) pairs (including the special ('star', 'star') case) and 
-                processes them according to the type of interpolation indices.
+        def _handle_j1_ne_j2(cond: str,
+                             i: int,
+                             o: int,
+                             interp_data: Union[Tuple[np.ndarray, str],
+                                                Tuple[np.ndarray, np.ndarray, bool, str]],
+                             pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
+                             _pairs_no_star: List[Tuple[int, int]],
+                             comp_type: str,
+                             has_quadratic: bool,
+                             has_linear: bool) -> None:
+            n_pairs = len(pairs_with_star)
+            for idx1 in range(n_pairs):
+                pair1 = pairs_with_star[idx1]
+                for idx2 in range(n_pairs):
+                    if idx1 == idx2:
+                        continue
+                    pair2 = pairs_with_star[idx2]
+                    process_pairs(cond, i, o, interp_data, (pair1, pair2), comp_type, has_quadratic, has_linear)
 
-                :param cond: The condition identifier.
-                :param i: The component index.
-                :param o: The interpolation index.
-                :param interp_data: Interpolation data tuple.
-                """
-                # Build the complete list of (j, k) pairs, including the star case.
-                j_k_pairs_with_star = [(j, k) for j in range(1, algo.m_bar_is[i - 1] + 1) 
-                                            for k in range(k_maxs[cond] + 1)]
-                j_k_pairs_with_star.append(('star', 'star'))
-                
-                # Determine the type and extract the appropriate interpolation indices.
-                if i in algo.I_op:
-                    comp_type = 'op'
-                    interpolation_indices = interp_data[1]
-                else: 
-                    comp_type = 'func'
-                    interpolation_indices = interp_data[3]
+        def _handle_j1(cond: str,
+                       i: int,
+                       o: int,
+                       interp_data: Union[Tuple[np.ndarray, str],
+                                          Tuple[np.ndarray, np.ndarray, bool, str]],
+                       pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
+                       _pairs_no_star: List[Tuple[int, int]],
+                       comp_type: str,
+                       has_quadratic: bool,
+                       has_linear: bool) -> None:
+            for pair in pairs_with_star:
+                process_pairs(cond, i, o, interp_data, (pair,), comp_type, has_quadratic, has_linear)
 
-                if interpolation_indices == 'i<j':
-                    for pair1, pair2 in combinations(j_k_pairs_with_star, 2):
-                        process_pairs(cond, i, o, interp_data, [pair1, pair2], comp_type)
-                elif interpolation_indices == 'i!=j':
-                    for pair1, pair2 in product(j_k_pairs_with_star, repeat=2):
-                        if pair1 == pair2:
-                            continue
-                        process_pairs(cond, i, o, interp_data, [pair1, pair2], comp_type)
-                elif interpolation_indices == 'i':
-                    for pair in j_k_pairs_with_star:
-                        process_pairs(cond, i, o, interp_data, [pair], comp_type)
-                elif interpolation_indices == 'i!=star':
-                    j_k_pairs = [(j, k) for j in range(1, algo.m_bar_is[i - 1] + 1) 
-                                        for k in range(k_maxs[cond] + 1)]
-                    for pair in j_k_pairs:
-                        process_pairs(cond, i, o, interp_data, [pair, ('star', 'star')], comp_type)
+        def _handle_j1_ne_star(cond: str,
+                               i: int,
+                               o: int,
+                               interp_data: Union[Tuple[np.ndarray, str],
+                                                  Tuple[np.ndarray, np.ndarray, bool, str]],
+                               _pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
+                               pairs_no_star: List[Tuple[int, int]],
+                               comp_type: str,
+                               has_quadratic: bool,
+                               has_linear: bool) -> None:
+            for pair in pairs_no_star:
+                process_pairs(cond, i, o, interp_data, (pair, star_pair), comp_type, has_quadratic, has_linear)
+
+        handlers = {
+            'j1<j2': _handle_j1_lt_j2,
+            'j1!=j2': _handle_j1_ne_j2,
+            'j1': _handle_j1,
+            'j1!=star': _handle_j1_ne_star,
+        }
+
+        def _expected_pairs_len(interp_key: str) -> int:
+            if interp_key == 'j1':
+                return 1
+            if interp_key in ('j1<j2', 'j1!=j2', 'j1!=star'):
+                return 2
+            raise ValueError(f"Error: Invalid interpolation indices: {interp_key}.")
+
+        def process_interpolation(cond: str,
+                                i: int,
+                                o: int,
+                                interp_data: Union[Tuple[np.ndarray, str],
+                                                    Tuple[np.ndarray, np.ndarray, bool, str]],
+                                pairs_with_star: List[Union[Tuple[int, int], Tuple[str, str]]],
+                                pairs_no_star: List[Tuple[int, int]],
+                                comp_type: str,
+                                interpolation_indices: str,
+                                has_quadratic: bool,
+                                has_linear: bool,
+                                ) -> None:
+            r"""
+            Internal dispatcher for interpolation-index patterns.
+
+            Selects the handler matching `interpolation_indices` and applies it to the
+            provided pair lists.
+            """
+            interp_key = str(interpolation_indices)
+            handler = handlers.get(interp_key)
+            if handler is None:
+                raise ValueError(f"Error: Invalid interpolation indices: {interpolation_indices}.")
+            handler(cond, i, o, interp_data, pairs_with_star, pairs_no_star, comp_type, has_quadratic, has_linear)
+
+        # Cache interpolation data and validate expected pair dimensions once.
+        component_data: Dict[int, List[Tuple[Union[Tuple[np.ndarray, str],
+                                                  Tuple[np.ndarray, np.ndarray, bool, str]], str, bool, bool]]] = {}
+        for i in range(1, m + 1):
+            is_op = i in op_components
+            data = prob.get_component_data(i)
+            validated: List[Tuple[Union[Tuple[np.ndarray, str],
+                                        Tuple[np.ndarray, np.ndarray, bool, str]], str, bool, bool]] = []
+            for o, interp_data in enumerate(data):
+                interp_idx = interp_data[1] if is_op else interp_data[3]
+                interp_key = str(interp_idx)
+                expected_len = _expected_pairs_len(interp_key)
+                expected_dim = 2 * expected_len
+                if is_op:
+                    M, _ = interp_data
+                    if getattr(M, 'shape', None) != (expected_dim, expected_dim):
+                        raise ValueError(
+                            f"Interpolation matrix for component {i}, condition {o} must have "
+                            f"shape ({expected_dim}, {expected_dim}) for indices {interp_key}. "
+                            f"Got {getattr(M, 'shape', None)}."
+                        )
+                    has_quadratic = bool(np.any(M))
+                    validated.append((interp_data, interp_key, has_quadratic, False))
                 else:
-                    raise ValueError(f"Error: Invalid interpolation indices: {interpolation_indices}.")
+                    M, a, _eq, _ = interp_data
+                    if getattr(a, 'shape', None) != (expected_len,):
+                        raise ValueError(
+                            f"Interpolation vector for component {i}, condition {o} must have "
+                            f"length {expected_len} for indices {interp_key}. Got {getattr(a, 'shape', None)}."
+                        )
+                    if getattr(M, 'shape', None) != (expected_dim, expected_dim):
+                        raise ValueError(
+                            f"Interpolation matrix for component {i}, condition {o} must have "
+                            f"shape ({expected_dim}, {expected_dim}) for indices {interp_key}. "
+                            f"Got {getattr(M, 'shape', None)}."
+                        )
+                    has_quadratic = bool(np.any(M))
+                    has_linear = bool(np.any(a))
+                    validated.append((interp_data, interp_key, has_quadratic, has_linear))
+            component_data[i] = validated
 
-            # ---------------------------------------------------------------------
-            # Loop over all active conditions and components to process interpolation data.
-            # ---------------------------------------------------------------------
-            for cond in conds:
-                for i in range(1, m + 1):
-                    # Retrieve the interpolation data for component i.
-                    for o, interp_data in enumerate(prob.get_component_data(i)):
-                        process_interpolation(cond, i, o, interp_data)
+        # Precompute (j, k) pairs per (condition, component) to reduce inner-loop overhead.
+        pairs_cache: Dict[str, Dict[int, Tuple[List[Union[Tuple[int, int], Tuple[str, str]]], List[Tuple[int, int]]]]] = {}
+        for cond in conds:
+            pairs_cache[cond] = {}
+            k_max = k_maxs[cond]
+            k_range = range(k_max + 1)
+            for i in range(1, m + 1):
+                # Include star once; it represents the fixed-point reference.
+                m_bar_i = m_bar_is[i - 1]
+                pairs_no_star = [(j, k) for j in range(1, m_bar_i + 1) for k in k_range]
+                pairs_with_star = pairs_no_star + [star_pair]
+                pairs_cache[cond][i] = (pairs_with_star, pairs_no_star)
 
-            # ---------------------------------------------------------------------
-            # Add final constraints to the model.
-            # ---------------------------------------------------------------------
-            for cond in conds:
-                # Enforce that the PSD constraint sums belong to the PSD cone.
-                Mod.constraint(PSD_constraint_sums[cond], Domain.inPSDCone(n + (k_maxs[cond] + 1) * m_bar + m))
-                # For functional components, enforce the equality constraint.
-                if m_func > 0:
-                    Mod.constraint(eq_constraint_sums[cond] == 0)
-                
-            # ---------------------------------------------------------------------
-            # Attempt to solve the model.
-            # ---------------------------------------------------------------------
-            try:
-                Mod.solve()
-                Mod.primalObjValue()
-            except OptimizeError as e:
-                licence_markers = (
-                    "err_license_max",         # 1016 – all floating tokens in use
-                    "err_license_server",      # 1015 – server unreachable / down
-                    "err_missing_license_file" # 1008 – no licence file / server path
-                )
-                if any(mark in str(e) for mark in licence_markers):
-                    raise                    
-                return False                 
-            except Exception as e:
-                # Uncomment the following line for debugging if needed.
-                # print("Error during solve: {0}".format(e))
-                return False
-            return True
+        # ---------------------------------------------------------------------
+        # Loop over all active conditions and components to process interpolation data.
+        # ---------------------------------------------------------------------
+        for cond in conds:
+            for i in range(1, m + 1):
+                is_op = i in op_components
+                comp_type = 'op' if is_op else 'func'
+                pairs_with_star, pairs_no_star = pairs_cache[cond][i]
+                # Retrieve the interpolation data for component i.
+                for o, (interp_data, interp_key, has_quadratic, has_linear) in enumerate(component_data[i]):
+                    process_interpolation(
+                        cond,
+                        i,
+                        o,
+                        interp_data,
+                        pairs_with_star,
+                        pairs_no_star,
+                        comp_type,
+                        interp_key,
+                        has_quadratic,
+                        has_linear,
+                    )
+
+        # ---------------------------------------------------------------------
+        # Add final constraints to the model.
+        # ---------------------------------------------------------------------
+        for cond in conds:
+            # Enforce that the PSD constraint sums belong to the PSD cone.
+            Mod.constraint(PSD_constraint_sums[cond], Domain.inPSDCone(n + (k_maxs[cond] + 1) * m_bar + m))
+            # For functional components, enforce the equality constraint.
+            if m_func > 0:
+                Mod.constraint(eq_constraint_sums[cond] == 0)
+
+        return Mod
+
+    @staticmethod
+    def verify_iteration_independent_Lyapunov(
+            prob: Type[InclusionProblem],
+            algo: Type[Algorithm],
+            P: np.ndarray,
+            T: np.ndarray,
+            p: Optional[np.ndarray] = None,
+            t: Optional[np.ndarray] = None,
+            rho: float = 1.0,
+            h: int = 0,
+            alpha: int = 0,
+            Q_equals_P: bool = False,
+            S_equals_T: bool = False,
+            q_equals_p: bool = False,
+            s_equals_t: bool = False,
+            remove_C2: bool = False,
+            remove_C3: bool = False,
+            remove_C4: bool = True
+    ) -> bool:
+        r"""
+        Verify feasibility of an iteration-independent Lyapunov inequality via an SDP.
+
+        This method formulates and solves a semidefinite program (SDP) in MOSEK Fusion
+        for a given inclusion problem, algorithm, and user-specified targets
+        :math:`(P,p,T,t,\rho,h,\alpha)`.
+
+        Mathematical notation, star-variable definitions, Lyapunov ansatzes, and the roles
+        of :math:`h` and :math:`\alpha` follow the class-level reference in
+        :class:`~autolyap.iteration_independent.IterationIndependent`.
+
+        **Enforced inequalities**
+
+        The quadratic Lyapunov inequalities (C1)–(C4) are defined in the class-level
+        **Quadratic Lyapunov inequality** section.
+        This method enforces the enabled subset of those inequalities.
+        The flags `remove_C2`, `remove_C3`, and `remove_C4` disable (C2), (C3), and (C4),
+        respectively (`remove_C4 = True` by default).
+
+        **User-specified targets**
+
+        The tuple :math:`(P,p,T,t)` defines the target lower bounds through
+        :math:`\mathcal{V}(P,p,k)` and :math:`\mathcal{R}(T,t,k)`.
+        The user is responsible for ensuring these target functions are nonnegative
+        for the relevant iterates and problem class.
+
+        The SDP searches for a certificate :math:`(Q,q,S,s)` consistent with those targets.
+
+        **Parameters**
+
+        - `prob` (:class:`~typing.Type`\[:class:`~autolyap.problemclass.InclusionProblem`\]): An
+          :class:`~autolyap.problemclass.InclusionProblem`
+          instance containing interpolation conditions.
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An
+          :class:`~autolyap.algorithms.Algorithm` instance providing
+          dimensions and methods to compute matrices.
+        - `P` (:class:`numpy.ndarray`): Candidate symmetric matrix corresponding to
+          :math:`P \in \sym^{n + (h+1)\NumEval + m}`.
+        - `T` (:class:`numpy.ndarray`): Candidate symmetric matrix corresponding to
+          :math:`T \in \sym^{n + (h+\alpha+2)\NumEval + m}`.
+        - `p` (:class:`~typing.Optional`\[:class:`numpy.ndarray`\]): Candidate vector corresponding to
+          :math:`p \in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc}` for functional components
+          (required if :math:`\NumFunc > 0`).
+        - `t` (:class:`~typing.Optional`\[:class:`numpy.ndarray`\]): Candidate vector corresponding to
+          :math:`t \in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}` for functional components
+          (required if :math:`\NumFunc > 0`).
+        - `rho` (:class:`float`): A scalar contraction parameter corresponding to :math:`\rho` used in forming the Lyapunov inequality
+          (typically :math:`\rho \in [0,1]`).
+        - `h` (:class:`int`): Nonnegative integer corresponding to :math:`h` defining history.
+        - `alpha` (:class:`int`): Nonnegative integer corresponding to :math:`\alpha` defining overlap.
+        - `Q_equals_P` (:class:`bool`): If True, sets Q equal to P.
+        - `S_equals_T` (:class:`bool`): If True, sets S equal to T.
+        - `q_equals_p` (:class:`bool`): For functional components, if True, sets q equal to p.
+        - `s_equals_t` (:class:`bool`): For functional components, if True, sets s equal to t.
+        - `remove_C2` (:class:`bool`): Flag to remove constraint C2.
+        - `remove_C3` (:class:`bool`): Flag to remove constraint C3.
+        - `remove_C4` (:class:`bool`): Flag to remove constraint C4.
+
+        **Returns**
+
+        - (:class:`bool`): Returns `True` if the SDP is solved successfully. In that case, there exist
+          :math:`(Q,q,S,s)` such that the enabled constraints among (C1)–(C4) hold, with
+          (C2)–(C4) possibly removed. Returns `False` otherwise.
+
+        **Raises**
+
+        - `ValueError`: If input dimensions or other conditions are violated.
+
+        **Notes**
+
+        - Requires a working MOSEK installation and license.
+        - The inputs `(P, p, T, t)` are typically built with
+          :class:`~autolyap.iteration_independent.LinearConvergence` and
+          :class:`~autolyap.iteration_independent.SublinearConvergence` helper methods.
+        """
+        h, alpha, _, _, _, _, _, _, _ = IterationIndependent._validate_iteration_independent_inputs(
+            prob, algo, P, T, p, t, h, alpha
+        )
+        rho = ensure_real_number(rho, "rho", finite=True, minimum=0.0)
+
+        Mod = IterationIndependent._build_iteration_independent_model(
+            prob,
+            algo,
+            P,
+            T,
+            p,
+            t,
+            h,
+            alpha,
+            Q_equals_P,
+            S_equals_T,
+            q_equals_p,
+            s_equals_t,
+            remove_C2,
+            remove_C3,
+            remove_C4,
+            rho_term=rho,
+        )
+        try:
+            Mod.solve()
+            Mod.primalObjValue()
+        except OptimizeError as e:
+            licence_markers = (
+                "err_license_max",         # 1016 – all floating tokens in use
+                "err_license_server",      # 1015 – server unreachable / down
+                "err_missing_license_file" # 1008 – no licence file / server path
+            )
+            if any(mark in str(e) for mark in licence_markers):
+                raise
+            return False
+        except Exception as e:
+            # Uncomment the following line for debugging if needed.
+            # print("Error during solve: {0}".format(e))
+            return False
+        finally:
+            Mod.dispose()
+        return True
     
     @staticmethod
     def _compute_Thetas(algo: Type[Algorithm], h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:
         r"""
-        Compute the Theta matrices (capital :math:`\Theta`) using the X matrices.
+        Compute the Theta matrices (capital :math:`\Theta`) using the :math:`X` matrices.
 
         For **condition "C1"**:
         
-        - Set :math:`k_{\min} = 0` and :math:`k_{\max} = h+\alpha+1`.
-        - Retrieve :math:`X = X_{\alpha+1}` from ``algo.get_Xs(k_min, k_max)``.
-        - :math:`\Theta_0` is of size :math:`[n + (h+1)\bar{m} + m] \times [n + (h+\alpha+2)\bar{m} + m]`.
+        - Set :math:`k_{\textup{min}} = 0` and :math:`k_{\textup{max}} = h+\alpha+1`.
+        - Retrieve :math:`X = X_{\alpha+1}` from :meth:`~autolyap.algorithms.Algorithm.get_Xs`
+          with `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`\Theta_0` is of size :math:`[n + (h+1)\NumEval + m] \times [n + (h+\alpha+2)\NumEval + m]`.
         - :math:`\Theta_1` is formed by vertically stacking :math:`X` with a block row 
           consisting of a zero block and an identity matrix.
 
         For **condition "C4"**:
         
-        - Set :math:`k_{\min} = 0` and :math:`k_{\max} = h+\alpha+2`.
-        - Retrieve :math:`X = X_1` from ``algo.get_Xs(k_min, k_max)``.
-        - :math:`\Theta_0` is of size :math:`[n + (h+\alpha+2)\bar{m} + m] \times [n + (h+\alpha+3)\bar{m} + m]`.
+        - Set :math:`k_{\textup{min}} = 0` and :math:`k_{\textup{max}} = h+\alpha+2`.
+        - Retrieve :math:`X = X_1` from :meth:`~autolyap.algorithms.Algorithm.get_Xs`
+          with `k_min = 0` and `k_max = h+\alpha+2`.
+        - :math:`\Theta_0` is of size :math:`[n + (h+\alpha+2)\NumEval + m] \times [n + (h+\alpha+3)\NumEval + m]`.
         - :math:`\Theta_1` is formed similarly by stacking :math:`X` with an appropriate block row.
 
         **Parameters**
 
-        :param algo: An instance of Algorithm (providing n, m_bar, m).
-        :param h: A nonnegative integer.
-        :param alpha: A nonnegative integer.
-        :param condition: Either "C1" or "C4".
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm`
+          (providing `algo.n`, `algo.m_bar`, `algo.m`).
+        - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h`.
+        - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha`.
+        - `condition` (:class:`str`): Either "C1" or "C4".
         
         **Returns**
 
-        :return: A tuple :math:`(\Theta_0, \Theta_1)`.
+        - (:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\]): A tuple :math:`(\Theta_0, \Theta_1)`.
 
         **Raises**
 
-        :raises ValueError: If :math:`h` or :math:`\alpha` is negative or if condition is invalid.
+        - `ValueError`: If :math:`h` or :math:`\alpha` is negative or if condition is invalid.
         """
-        if h < 0:
-            raise ValueError("Parameter h must be >= 0.")
-        if alpha < 0:
-            raise ValueError("Parameter alpha must be >= 0.")
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
         if condition not in ('C1', 'C4'):
             raise ValueError("Condition must be either 'C1' or 'C4'.")
         
@@ -1270,36 +1930,35 @@ class IterationIndependent:
 
         For **condition "C1"**:
         
-        - :math:`\theta_0 \in \mathbb{R}^{((h+1)\bar{m}_{\text{func}}+m\_func) \times ((h+\alpha+2)\bar{m}_{\text{func}}+m\_func)}` 
+        - :math:`\theta_0 \in \mathbb{R}^{((h+1)\NumEvalFunc+\NumFunc) \times ((h+\alpha+2)\NumEvalFunc+\NumFunc)}` 
           is given by a block matrix with an identity in the upper left and lower right.
         - :math:`\theta_1` is formed as a horizontal block consisting of a zero block and an identity matrix.
 
         For **condition "C4"**:
         
-        - :math:`\theta_0 \in \mathbb{R}^{((h+\alpha+2)\bar{m}_{\text{func}}+m\_func) \times ((h+\alpha+3)\bar{m}_{\text{func}}+m\_func)}` 
+        - :math:`\theta_0 \in \mathbb{R}^{((h+\alpha+2)\NumEvalFunc+\NumFunc) \times ((h+\alpha+3)\NumEvalFunc+\NumFunc)}` 
           is defined similarly.
         - :math:`\theta_1` is a horizontal block with a zero block and an identity matrix.
 
         **Parameters**
 
-        :param algo: An instance of Algorithm (providing :math:`\bar{m}_{\text{func}}` and :math:`m\_func`).
-        :param h: A nonnegative integer.
-        :param alpha: A nonnegative integer.
-        :param condition: Either "C1" or "C4".
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm`
+          (providing `algo.m_bar_func` and `algo.m_func`).
+        - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h`.
+        - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha`.
+        - `condition` (:class:`str`): Either "C1" or "C4".
 
         **Returns**
 
-        :return: A tuple :math:`(\theta_0, \theta_1)`.
+        - (:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\]): A tuple :math:`(\theta_0, \theta_1)`.
 
         **Raises**
 
-        :raises ValueError: If :math:`h` or :math:`\alpha` is negative, if condition is invalid,
-                            or if there are no functional components (i.e. :math:`m\_func \le 0`).
+        - `ValueError`: If :math:`h` or :math:`\alpha` is negative, if `condition` is invalid,
+          or if there are no functional components (i.e., :math:`\NumFunc \leq 0`).
         """
-        if h < 0:
-            raise ValueError("Parameter h must be >= 0.")
-        if alpha < 0:
-            raise ValueError("Parameter alpha must be >= 0.")
+        h = ensure_integral(h, "h", minimum=0)
+        alpha = ensure_integral(alpha, "alpha", minimum=0)
         if condition not in ('C1', 'C4'):
             raise ValueError("Condition must be either 'C1' or 'C4'.")
         

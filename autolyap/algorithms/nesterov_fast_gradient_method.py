@@ -1,13 +1,107 @@
 import numpy as np
 from typing import Tuple
 from .algorithm import Algorithm
+from autolyap.utils.validation import ensure_real_number
 
 class NesterovFastGradientMethod(Algorithm):
+    r"""
+    Nesterov's fast gradient method.
+
+    Class-level reference
+    =====================
+
+    Mathematical notation and shared definitions used by methods are defined in this class docstring.
+
+    Notation-driven assumptions are declared by the user via
+    :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with
+    :math:`\nabla` use differentiable functions, terms written with
+    :math:`\prox_{\gamma f}` use proper, lower semicontinuous, convex functions,
+    and terms written with :math:`J_{\gamma G}` use maximally monotone operators.
+
+    Standard form
+    -------------
+
+
+    For initial points :math:`x^{-1},x^0 \in \calH`, step size :math:`\gamma \in \reals_{++}`,
+    and :math:`\lambda_0 = 1`,
+
+    .. math::
+        (\forall k \in \naturals)\quad
+        \left[
+        \begin{aligned}
+            y^k &= x^k + \delta_k (x^k - x^{k-1}), \\
+            x^{k+1} &= y^k - \gamma \nabla f(y^k), \\
+            \lambda_{k+1} &= \frac{1 + \sqrt{1 + 4\lambda_k^2}}{2}, \\
+            \delta_k &= \frac{\lambda_k - 1}{\lambda_{k+1}}.
+        \end{aligned}
+        \right.
+
+    This implementation also keeps an additional evaluation of :math:`\nabla f(x^k)`
+    for analysis templates that require it.
+
+    State-space representation
+    --------------------------
+
+    The update is represented with
+
+    .. math::
+        \bx^k = (x^k, x^{k-1}), \qquad
+        \bu^k = (\nabla f(y^k), \nabla f(x^k)), \qquad
+        \by^k = (y^k, x^k).
+
+    With :math:`\lambda_0 = 1`, :math:`\lambda_{k+1} = \frac{1+\sqrt{1+4\lambda_k^2}}{2}`,
+    and :math:`\alpha_k = \frac{\lambda_k - 1}{\lambda_{k+1}}`. In
+    :meth:`get_ABCD`, the matrices are
+
+    .. math::
+        \begin{aligned}
+            A_k &=
+            \begin{bmatrix}
+            1+\alpha_k & -\alpha_k \\
+            1 & 0
+            \end{bmatrix}, &
+            B_k &=
+            \begin{bmatrix}
+            -\gamma & 0 \\
+            0 & 0
+            \end{bmatrix}, \\
+            C_k &=
+            \begin{bmatrix}
+            1+\alpha_k & -\alpha_k \\
+            1 & 0
+            \end{bmatrix}, &
+            D_k &=
+            \begin{bmatrix}
+            0 & 0 \\
+            0 & 0
+            \end{bmatrix}.
+        \end{aligned}
+    """
     def __init__(self, gamma):
+        r"""
+        Initialize the fast gradient method.
+        """
         super().__init__(2, 1, [2], [1], [])
         self.gamma = gamma
     
-    def set_gamma(self, gamma):
+    def set_gamma(self, gamma: float) -> None:
+        r"""
+        Set the step-size parameter :math:`\gamma`.
+
+        Shared notation follows the class-level reference in
+        :class:`~autolyap.algorithms.NesterovFastGradientMethod`.
+
+        **Parameters**
+
+        - `gamma` (:class:`~typing.Union`\[:class:`int`, :class:`float`\]): The value corresponding to :math:`\gamma`.
+
+        **Raises**
+
+        - `ValueError`: If `gamma` is not a finite real number or if :math:`\gamma \le 0`.
+        """
+        gamma = ensure_real_number(gamma, "gamma", finite=True)
+        if gamma <= 0:
+            raise ValueError("gamma must be > 0.")
         self.gamma = gamma
     
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
