@@ -7,7 +7,7 @@ from tests.mosek_utils import require_mosek_license
 
 
 # Convergence-rate test for the optimized gradient method using MOSEK.
-def test_optimized_gradient_method_c_matches_theory_first_10_ks():
+def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
     require_mosek_license()
     L = 1.0
     problem = InclusionProblem([SmoothConvex(L)])
