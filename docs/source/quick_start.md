@@ -1,3 +1,3 @@
-# Quick start guide
+# Quick start
 
 _Coming soon._

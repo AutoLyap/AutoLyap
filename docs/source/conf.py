@@ -11,11 +11,13 @@ copyright = f"{date.today().year}, Manu Upadhyaya"
 
 root = Path(__file__).resolve().parents[2]
 release = (root / "VERSION").read_text(encoding="utf-8").strip()
+version = release
 
 sys.path.insert(0, os.path.abspath("../.."))
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
     "sphinx.ext.mathjax",
     "myst_parser",
 ]
@@ -26,12 +28,13 @@ autodoc_mock_imports = [
     "mosek.fusion.pythonic",
 ]
 
-templates_path = []
+templates_path = ["_templates"]
 exclude_patterns = []
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
+html_js_files = ["copybutton.js"]
 maximum_signature_line_length = 1
 toc_object_entries = True
 

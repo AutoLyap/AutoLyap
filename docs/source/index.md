@@ -25,7 +25,7 @@ tocdepth: 1
 
 Home <self>
 quick_start
-api_reference
 examples
+api_reference
 contributing
 ```
