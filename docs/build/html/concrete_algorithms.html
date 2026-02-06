@@ -1,0 +1,2165 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concrete algorithms &mdash; AutoLyap 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=45df9099" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Lyapunov analyses" href="lyapunov_analyses.html" />
+    <link rel="prev" title="Base algorithm" href="base_algorithms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AutoLyap
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api_reference.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="problem_class.html">Problem classes</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="algorithms.html">Algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="base_algorithms.html">Base algorithm</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Concrete algorithms</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.AcceleratedProximalPoint"><code class="docutils literal notranslate"><span class="pre">AcceleratedProximalPoint</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.ChambollePock"><code class="docutils literal notranslate"><span class="pre">ChambollePock</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.DavisYin"><code class="docutils literal notranslate"><span class="pre">DavisYin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.DouglasRachford"><code class="docutils literal notranslate"><span class="pre">DouglasRachford</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.Extragradient"><code class="docutils literal notranslate"><span class="pre">Extragradient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.GradientMethod"><code class="docutils literal notranslate"><span class="pre">GradientMethod</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.GradientNesterovMomentum"><code class="docutils literal notranslate"><span class="pre">GradientNesterovMomentum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.HeavyBallMethod"><code class="docutils literal notranslate"><span class="pre">HeavyBallMethod</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.ITEM"><code class="docutils literal notranslate"><span class="pre">ITEM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.NesterovConstant"><code class="docutils literal notranslate"><span class="pre">NesterovConstant</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.NesterovFastGradientMethod"><code class="docutils literal notranslate"><span class="pre">NesterovFastGradientMethod</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.OptimizedGradientMethod"><code class="docutils literal notranslate"><span class="pre">OptimizedGradientMethod</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.ProximalPoint"><code class="docutils literal notranslate"><span class="pre">ProximalPoint</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.TripleMomentum"><code class="docutils literal notranslate"><span class="pre">TripleMomentum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autolyap.algorithms.TsengFBF"><code class="docutils literal notranslate"><span class="pre">TsengFBF</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="lyapunov_analyses.html">Lyapunov analyses</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AutoLyap</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="api_reference.html">API reference</a></li>
+          <li class="breadcrumb-item"><a href="algorithms.html">Algorithms</a></li>
+      <li class="breadcrumb-item active">Concrete algorithms</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/concrete_algorithms.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="concrete-algorithms">
+<h1>Concrete algorithms<a class="headerlink" href="#concrete-algorithms" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="#autolyap.algorithms.AcceleratedProximalPoint" title="autolyap.algorithms.AcceleratedProximalPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcceleratedProximalPoint</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.ChambollePock" title="autolyap.algorithms.ChambollePock"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChambollePock</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.DavisYin" title="autolyap.algorithms.DavisYin"><code class="xref py py-class docutils literal notranslate"><span class="pre">DavisYin</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.DouglasRachford" title="autolyap.algorithms.DouglasRachford"><code class="xref py py-class docutils literal notranslate"><span class="pre">DouglasRachford</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.Extragradient" title="autolyap.algorithms.Extragradient"><code class="xref py py-class docutils literal notranslate"><span class="pre">Extragradient</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.GradientMethod" title="autolyap.algorithms.GradientMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GradientMethod</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.GradientNesterovMomentum" title="autolyap.algorithms.GradientNesterovMomentum"><code class="xref py py-class docutils literal notranslate"><span class="pre">GradientNesterovMomentum</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.HeavyBallMethod" title="autolyap.algorithms.HeavyBallMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeavyBallMethod</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.ITEM" title="autolyap.algorithms.ITEM"><code class="xref py py-class docutils literal notranslate"><span class="pre">ITEM</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.NesterovConstant" title="autolyap.algorithms.NesterovConstant"><code class="xref py py-class docutils literal notranslate"><span class="pre">NesterovConstant</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.NesterovFastGradientMethod" title="autolyap.algorithms.NesterovFastGradientMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">NesterovFastGradientMethod</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.OptimizedGradientMethod" title="autolyap.algorithms.OptimizedGradientMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptimizedGradientMethod</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.ProximalPoint" title="autolyap.algorithms.ProximalPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProximalPoint</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.TripleMomentum" title="autolyap.algorithms.TripleMomentum"><code class="xref py py-class docutils literal notranslate"><span class="pre">TripleMomentum</span></code></a></p></li>
+<li><p><a class="reference internal" href="#autolyap.algorithms.TsengFBF" title="autolyap.algorithms.TsengFBF"><code class="xref py py-class docutils literal notranslate"><span class="pre">TsengFBF</span></code></a></p></li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.AcceleratedProximalPoint">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">AcceleratedProximalPoint</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'operator'</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.AcceleratedProximalPoint" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Accelerated proximal point method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>Let <span class="math notranslate nohighlight">\(\lambda_k = k/(k+2)\)</span>. For initial points
+<span class="math notranslate nohighlight">\(x^0,y^0,y^{-1} \in \calH\)</span> and <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    x^{k+1} &amp;=
+    \begin{cases}
+        J_{\gamma G}(y^k), &amp; \text{if type = operator}, \\
+        \prox_{\gamma f}(y^k), &amp; \text{if type = function},
+    \end{cases} \\
+    y^{k+1} &amp;= x^{k+1} + \lambda_k(x^{k+1} - x^k) - \lambda_k(x^k - y^{k-1}).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = (x^k, y^k, y^{k-1})\)</span>, <span class="math notranslate nohighlight">\(\by^k = y^k\)</span>, and
+<span class="math notranslate nohighlight">\(\bu^k = (y^k - x^{k+1})/\gamma\)</span>.</p>
+<p>With <span class="math notranslate nohighlight">\(\lambda_k = k/(k+2)\)</span>, <a class="reference internal" href="#autolyap.algorithms.AcceleratedProximalPoint.get_ABCD" title="autolyap.algorithms.AcceleratedProximalPoint.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a> returns</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    0 &amp; 1 &amp; 0 \\
+    -2\lambda_k &amp; 1+\lambda_k &amp; \lambda_k \\
+    0 &amp; 1 &amp; 0
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\gamma \\
+    -\gamma(1+\lambda_k) \\
+    0
+    \end{bmatrix}, \\
+    C_k &amp;= \begin{bmatrix} 0 &amp; 1 &amp; 0 \end{bmatrix}, &amp;
+    D_k &amp;= \begin{bmatrix} -\gamma \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.AcceleratedProximalPoint.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.AcceleratedProximalPoint.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.AcceleratedProximalPoint.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.AcceleratedProximalPoint.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.AcceleratedProximalPoint" title="autolyap.algorithms.AcceleratedProximalPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcceleratedProximalPoint</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.ChambollePock">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">ChambollePock</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">tau</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.ChambollePock" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Chambolle–Pock primal-dual method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>In the identity-operator case, for initial points <span class="math notranslate nohighlight">\(x^0,y^0 \in \calH\)</span>,
+primal and dual step sizes <span class="math notranslate nohighlight">\(\tau,\sigma \in \reals_{++}\)</span>, and
+relaxation parameter <span class="math notranslate nohighlight">\(\theta \in \reals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    x^{k+1} &amp;= \prox_{\tau f_1}(x^k - \tau y^k), \\
+    y^{k+1} &amp;= \prox_{\sigma f_2^*}\!\left(y^k + \sigma \left(x^{k+1} + \theta (x^{k+1} - x^k)\right)\right).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>Using only variables and parameters from the standard form, set</p>
+<div class="math notranslate nohighlight">
+\[\bx^k = (x^k, y^k), \qquad
+\bu^k = \left(\frac{x^k-\tau y^k-x^{k+1}}{\tau},\; y^{k+1}\right),\]</div>
+<div class="math notranslate nohighlight">
+\[\by^k = \left(
+x^{k+1},\;
+\frac{y^k + \sigma\left(x^{k+1} + \theta(x^{k+1}-x^k)\right)-y^{k+1}}{\sigma}
+\right).\]</div>
+<p>In <a class="reference internal" href="#autolyap.algorithms.ChambollePock.get_ABCD" title="autolyap.algorithms.ChambollePock.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    1 &amp; -\tau \\
+    0 &amp; 0
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\tau &amp; 0 \\
+    0 &amp; 1
+    \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1 &amp; -\tau \\
+    1 &amp; \frac{1}{\sigma} - \tau(1+\theta)
+    \end{bmatrix}, &amp;
+    D_k &amp;=
+    \begin{bmatrix}
+    -\tau &amp; 0 \\
+    -\tau(1+\theta) &amp; -\frac{1}{\sigma}
+    \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ChambollePock.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.ChambollePock.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ChambollePock.set_sigma">
+<span class="sig-name descname"><span class="pre">set_sigma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.ChambollePock.set_sigma" title="Link to this definition"></a></dt>
+<dd><p>Set the dual step size <span class="math notranslate nohighlight">\(\sigma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.ChambollePock" title="autolyap.algorithms.ChambollePock"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChambollePock</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>sigma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\sigma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>sigma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\sigma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ChambollePock.set_tau">
+<span class="sig-name descname"><span class="pre">set_tau</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.ChambollePock.set_tau" title="Link to this definition"></a></dt>
+<dd><p>Set the primal step size <span class="math notranslate nohighlight">\(\tau\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.ChambollePock" title="autolyap.algorithms.ChambollePock"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChambollePock</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>tau</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\tau\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>tau</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\tau \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ChambollePock.set_theta">
+<span class="sig-name descname"><span class="pre">set_theta</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.ChambollePock.set_theta" title="Link to this definition"></a></dt>
+<dd><p>Set the relaxation parameter <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.ChambollePock" title="autolyap.algorithms.ChambollePock"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChambollePock</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>theta</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\theta\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>theta</cite> is not a finite real number.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.DavisYin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">DavisYin</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">lambda_value</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.DavisYin" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Davis–Yin three-operator splitting.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For an initial point <span class="math notranslate nohighlight">\(x^0 \in \calH\)</span>, step size
+<span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>, and relaxation parameter
+<span class="math notranslate nohighlight">\(\lambda \in \reals\)</span>, define,
+for all <span class="math notranslate nohighlight">\(k \in \naturals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\left[
+\begin{aligned}
+    v^k &amp;= \prox_{\gamma f_1}(x^k), \\
+    w^k &amp;= \prox_{\gamma f_3}\!\left(2v^k - x^k - \gamma \nabla f_2(v^k)\right), \\
+    x^{k+1} &amp;= x^k + \lambda (w^k - v^k).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = x^k\)</span>,
+<span class="math notranslate nohighlight">\(\bu^k = \left((x^k-v^k)/\gamma,\; \nabla f_2(v^k),\; (2v^k-x^k-\gamma\nabla f_2(v^k)-w^k)/\gamma\right)\)</span>,
+and <span class="math notranslate nohighlight">\(\by^k = (v^k, v^k, w^k)\)</span>.</p>
+<p>In <a class="reference internal" href="#autolyap.algorithms.DavisYin.get_ABCD" title="autolyap.algorithms.DavisYin.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp;
+    B_k &amp;= \begin{bmatrix} -\gamma\lambda &amp; -\gamma\lambda &amp; -\gamma\lambda \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1 \\
+    1 \\
+    1
+    \end{bmatrix}, &amp;
+    D_k &amp;=
+    \begin{bmatrix}
+    -\gamma &amp; 0 &amp; 0 \\
+    -\gamma &amp; 0 &amp; 0 \\
+    -2\gamma &amp; -\gamma &amp; -\gamma
+    \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.DavisYin.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.DavisYin.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.DavisYin.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.DavisYin.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.DavisYin" title="autolyap.algorithms.DavisYin"><code class="xref py py-class docutils literal notranslate"><span class="pre">DavisYin</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.DavisYin.set_lambda">
+<span class="sig-name descname"><span class="pre">set_lambda</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">lambda_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.DavisYin.set_lambda" title="Link to this definition"></a></dt>
+<dd><p>Set the relaxation parameter <span class="math notranslate nohighlight">\(\lambda\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.DavisYin" title="autolyap.algorithms.DavisYin"><code class="xref py py-class docutils literal notranslate"><span class="pre">DavisYin</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>lambda_value</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\lambda\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>lambda_value</cite> is not a finite real number.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.DouglasRachford">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">DouglasRachford</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">lambda_value</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'operator'</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.DouglasRachford" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Douglas–Rachford splitting.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For an initial point <span class="math notranslate nohighlight">\(x^0 \in \calH\)</span>, step size <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,
+and relaxation parameter <span class="math notranslate nohighlight">\(\lambda \in \reals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    v^k &amp;=
+    \begin{cases}
+        J_{\gamma G_1}(x^k), &amp; \text{if type = operator}, \\
+        \prox_{\gamma f_1}(x^k), &amp; \text{if type = function},
+    \end{cases} \\
+    w^k &amp;=
+    \begin{cases}
+        J_{\gamma G_2}(2v^k - x^k), &amp; \text{if type = operator}, \\
+        \prox_{\gamma f_2}(2v^k - x^k), &amp; \text{if type = function},
+    \end{cases} \\
+    x^{k+1} &amp;= x^k + \lambda (w^k - v^k).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = x^k\)</span>,
+<span class="math notranslate nohighlight">\(\bu^k = \left((x^k-v^k)/\gamma,\; (2v^k-x^k-w^k)/\gamma\right)\)</span>, and
+<span class="math notranslate nohighlight">\(\by^k = \left(x^k,\; 2v^k-x^k\right)\)</span>.</p>
+<p>In <a class="reference internal" href="#autolyap.algorithms.DouglasRachford.get_ABCD" title="autolyap.algorithms.DouglasRachford.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp;
+    B_k &amp;= \begin{bmatrix} -\gamma\lambda &amp; -\gamma\lambda \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1 \\
+    1
+    \end{bmatrix}, &amp;
+    D_k &amp;=
+    \begin{bmatrix}
+    -\gamma &amp; 0 \\
+    -2\gamma &amp; -\gamma
+    \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.DouglasRachford.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.DouglasRachford.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.DouglasRachford.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.DouglasRachford.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.DouglasRachford" title="autolyap.algorithms.DouglasRachford"><code class="xref py py-class docutils literal notranslate"><span class="pre">DouglasRachford</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.DouglasRachford.set_lambda">
+<span class="sig-name descname"><span class="pre">set_lambda</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">lambda_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.DouglasRachford.set_lambda" title="Link to this definition"></a></dt>
+<dd><p>Set the relaxation parameter <span class="math notranslate nohighlight">\(\lambda\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.DouglasRachford" title="autolyap.algorithms.DouglasRachford"><code class="xref py py-class docutils literal notranslate"><span class="pre">DouglasRachford</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>lambda_value</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\lambda\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>lambda_value</cite> is not a finite real number.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.Extragradient">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">Extragradient</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'unconstrained'</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.Extragradient" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Extragradient method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For an initial point <span class="math notranslate nohighlight">\(x^0 \in \calH\)</span>, step sizes
+<span class="math notranslate nohighlight">\(\gamma,\delta \in \reals_{++}\)</span>, and <span class="math notranslate nohighlight">\(k \in \naturals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\left[
+\begin{aligned}
+    &amp;\bar{x}^k = x^k - \gamma G_1(x^k), \\
+    &amp;x^{k+1} = x^k - \delta G_1(\bar{x}^k),
+\end{aligned}
+\right.
+\qquad \text{if type = unconstrained},\end{split}\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\left[
+\begin{aligned}
+    &amp;\bar{x}^k = \prox_{\gamma f}(x^k - \gamma G_1(x^k)), \\
+    &amp;x^{k+1} = \prox_{\delta f}(x^k - \delta G_1(\bar{x}^k)),
+\end{aligned}
+\right.
+\qquad \text{if type = constrained}.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = x^k\)</span>.</p>
+<p>If <cite>type = unconstrained</cite>, use</p>
+<div class="math notranslate nohighlight">
+\[\bu^k = (G_1(x^k), G_1(\bar{x}^k)), \qquad
+\by^k = (x^k, \bar{x}^k),\]</div>
+<p>with</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp;
+    B_k &amp;= \begin{bmatrix} 0 &amp; -\delta \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1 \\
+    1
+    \end{bmatrix}, &amp;
+    D_k &amp;=
+    \begin{bmatrix}
+    0 &amp; 0 \\
+    -\gamma &amp; 0
+    \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<p>If <cite>type = constrained</cite>, use</p>
+<div class="math notranslate nohighlight">
+\[\bu^k = \left(
+G_1(x^k),\;
+G_1(\bar{x}^k),\;
+\frac{x^k - \gamma G_1(x^k) - \bar{x}^k}{\gamma},\;
+\frac{x^k - \delta G_1(\bar{x}^k) - x^{k+1}}{\delta}
+\right),\]</div>
+<div class="math notranslate nohighlight">
+\[\by^k = (x^k, \bar{x}^k, \bar{x}^k, x^{k+1}),\]</div>
+<p>with</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp;
+    B_k &amp;= \begin{bmatrix} 0 &amp; -\delta &amp; 0 &amp; -\delta \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1 \\
+    1 \\
+    1 \\
+    1
+    \end{bmatrix}, &amp;
+    D_k &amp;=
+    \begin{bmatrix}
+    0 &amp; 0 &amp; 0 &amp; 0 \\
+    -\gamma &amp; 0 &amp; -\gamma &amp; 0 \\
+    -\gamma &amp; 0 &amp; -\gamma &amp; 0 \\
+    0 &amp; -\delta &amp; 0 &amp; -\delta
+    \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.Extragradient.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.Extragradient.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.Extragradient.set_delta">
+<span class="sig-name descname"><span class="pre">set_delta</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.Extragradient.set_delta" title="Link to this definition"></a></dt>
+<dd><p>Set the second step-size parameter <span class="math notranslate nohighlight">\(\delta\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.Extragradient" title="autolyap.algorithms.Extragradient"><code class="xref py py-class docutils literal notranslate"><span class="pre">Extragradient</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>delta</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\delta\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>delta</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\delta \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.Extragradient.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.Extragradient.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the first step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.Extragradient" title="autolyap.algorithms.Extragradient"><code class="xref py py-class docutils literal notranslate"><span class="pre">Extragradient</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.GradientMethod">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">GradientMethod</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.GradientMethod" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Gradient method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For an initial point <span class="math notranslate nohighlight">\(x^0 \in \calH\)</span> and step size <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[(\forall k \in \naturals)\quad x^{k+1} = x^k - \gamma \nabla f(x^k).\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = x^k\)</span>, <span class="math notranslate nohighlight">\(\bu^k = \nabla f(x^k)\)</span>, and <span class="math notranslate nohighlight">\(\by^k = x^k\)</span>.</p>
+<p>In <a class="reference internal" href="#autolyap.algorithms.GradientMethod.get_ABCD" title="autolyap.algorithms.GradientMethod.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp; B_k &amp;= \begin{bmatrix} -\gamma \end{bmatrix}, \\
+    C_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp; D_k &amp;= \begin{bmatrix} 0 \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.GradientMethod.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.GradientMethod.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.GradientMethod.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.GradientMethod.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.GradientMethod" title="autolyap.algorithms.GradientMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GradientMethod</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.GradientNesterovMomentum">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">GradientNesterovMomentum</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">delta</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.GradientNesterovMomentum" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Gradient method with Nesterov-like momentum.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For initial points <span class="math notranslate nohighlight">\(x^{-1},x^0 \in \calH\)</span>, step size <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,
+and momentum parameter <span class="math notranslate nohighlight">\(\delta \in \reals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    y^k &amp;= x^k + \delta (x^k - x^{k-1}), \\
+    x^{k+1} &amp;= y^k - \gamma \nabla f(y^k).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = (x^k, x^{k-1})\)</span>, <span class="math notranslate nohighlight">\(\bu^k = \nabla f(y^k)\)</span>, and
+<span class="math notranslate nohighlight">\(\by^k = y^k\)</span>.</p>
+<p>In <a class="reference internal" href="#autolyap.algorithms.GradientNesterovMomentum.get_ABCD" title="autolyap.algorithms.GradientNesterovMomentum.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    1+\delta &amp; -\delta \\
+    1 &amp; 0
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\gamma \\
+    0
+    \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1+\delta &amp; -\delta
+    \end{bmatrix}, &amp;
+    D_k &amp;= \begin{bmatrix} 0 \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.GradientNesterovMomentum.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.GradientNesterovMomentum.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.GradientNesterovMomentum.set_delta">
+<span class="sig-name descname"><span class="pre">set_delta</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.GradientNesterovMomentum.set_delta" title="Link to this definition"></a></dt>
+<dd><p>Set the momentum parameter <span class="math notranslate nohighlight">\(\delta\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.GradientNesterovMomentum" title="autolyap.algorithms.GradientNesterovMomentum"><code class="xref py py-class docutils literal notranslate"><span class="pre">GradientNesterovMomentum</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>delta</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\delta\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>delta</cite> is not a finite real number.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.GradientNesterovMomentum.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.GradientNesterovMomentum.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.GradientNesterovMomentum" title="autolyap.algorithms.GradientNesterovMomentum"><code class="xref py py-class docutils literal notranslate"><span class="pre">GradientNesterovMomentum</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.HeavyBallMethod">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">HeavyBallMethod</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">delta</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.HeavyBallMethod" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Heavy-ball method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For initial points <span class="math notranslate nohighlight">\(x^{-1},x^0 \in \calH\)</span>, step size <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,
+and momentum parameter <span class="math notranslate nohighlight">\(\delta \in \reals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[(\forall k \in \naturals)\quad
+x^{k+1} = x^k - \gamma \nabla f(x^k) + \delta (x^k - x^{k-1}).\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = (x^k, x^{k-1})\)</span>, <span class="math notranslate nohighlight">\(\bu^k = \nabla f(x^k)\)</span>, and
+<span class="math notranslate nohighlight">\(\by^k = x^k\)</span>.</p>
+<p>In <a class="reference internal" href="#autolyap.algorithms.HeavyBallMethod.get_ABCD" title="autolyap.algorithms.HeavyBallMethod.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    1+\delta &amp; -\delta \\
+    1 &amp; 0
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\gamma \\
+    0
+    \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1 &amp; 0
+    \end{bmatrix}, &amp;
+    D_k &amp;= \begin{bmatrix} 0 \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.HeavyBallMethod.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.HeavyBallMethod.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.HeavyBallMethod.set_delta">
+<span class="sig-name descname"><span class="pre">set_delta</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.HeavyBallMethod.set_delta" title="Link to this definition"></a></dt>
+<dd><p>Set the momentum parameter <span class="math notranslate nohighlight">\(\delta\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.HeavyBallMethod" title="autolyap.algorithms.HeavyBallMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeavyBallMethod</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>delta</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\delta\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>delta</cite> is not a finite real number.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.HeavyBallMethod.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.HeavyBallMethod.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.HeavyBallMethod" title="autolyap.algorithms.HeavyBallMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeavyBallMethod</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.ITEM">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">ITEM</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.ITEM" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Information-theoretic exact method (ITEM).</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>Let <span class="math notranslate nohighlight">\(q = \mu/L\)</span>, <span class="math notranslate nohighlight">\(A_0 = 0\)</span>, and for all <span class="math notranslate nohighlight">\(k \in \naturals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[A_{k+1}
+= \frac{(1+q)A_k + 2\left(1 + \sqrt{(1+A_k)(1+qA_k)}\right)}{(1-q)^2}.\]</div>
+<div class="math notranslate nohighlight">
+\[\beta_k = \frac{A_k}{(1-q)A_{k+1}}.\]</div>
+<div class="math notranslate nohighlight">
+\[\delta_k = \frac{(1-q)^2A_{k+1} - (1+q)A_k}{2(1+q+qA_k)}.\]</div>
+<p>For initial points <span class="math notranslate nohighlight">\(x^0,z^0 \in \calH\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    y^k &amp;= (1-\beta_k)z^k + \beta_k x^k, \\
+    x^{k+1} &amp;= y^k - \frac{1}{L}\nabla f(y^k), \\
+    z^{k+1} &amp;= (1-q\delta_k)z^k + q\delta_k y^k - \frac{\delta_k}{L}\nabla f(y^k).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = (x^k, z^k)\)</span>, <span class="math notranslate nohighlight">\(\bu^k = \nabla f(y^k)\)</span>, and
+<span class="math notranslate nohighlight">\(\by^k = y^k\)</span>.</p>
+<p>Let <span class="math notranslate nohighlight">\(q = \mu/L\)</span>, with <span class="math notranslate nohighlight">\(\beta_k\)</span> and <span class="math notranslate nohighlight">\(\delta_k\)</span> as in the
+standard form above. In <a class="reference internal" href="#autolyap.algorithms.ITEM.get_ABCD" title="autolyap.algorithms.ITEM.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    \beta_k &amp; 1-\beta_k \\
+    q\beta_k\delta_k &amp; 1-q\beta_k\delta_k
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\frac{1}{L} \\
+    -\frac{\delta_k}{L}
+    \end{bmatrix}, \\
+    C_k &amp;= \begin{bmatrix} \beta_k &amp; 1-\beta_k \end{bmatrix}, &amp;
+    D_k &amp;= \begin{bmatrix} 0 \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ITEM.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.ITEM.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ITEM.set_L">
+<span class="sig-name descname"><span class="pre">set_L</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.ITEM.set_L" title="Link to this definition"></a></dt>
+<dd><p>Set the smoothness parameter <span class="math notranslate nohighlight">\(L\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.ITEM" title="autolyap.algorithms.ITEM"><code class="xref py py-class docutils literal notranslate"><span class="pre">ITEM</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>L</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(L\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>L</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(L \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ITEM.set_mu">
+<span class="sig-name descname"><span class="pre">set_mu</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.ITEM.set_mu" title="Link to this definition"></a></dt>
+<dd><p>Set the strong-convexity parameter <span class="math notranslate nohighlight">\(\mu\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.ITEM" title="autolyap.algorithms.ITEM"><code class="xref py py-class docutils literal notranslate"><span class="pre">ITEM</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>mu</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\mu\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>mu</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\mu \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.NesterovConstant">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">NesterovConstant</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.NesterovConstant" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Nesterov’s constant-step scheme.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>Let <span class="math notranslate nohighlight">\(q = \mu/L\)</span> and
+<span class="math notranslate nohighlight">\(\eta = (1-\sqrt{q})/(1+\sqrt{q})\)</span>. For initial points
+<span class="math notranslate nohighlight">\(x^{-1},x^0 \in \calH\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    y^k &amp;= x^k + \eta (x^k - x^{k-1}), \\
+    x^{k+1} &amp;= y^k - \frac{1}{L}\nabla f(y^k).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = (x^k, x^{k-1})\)</span>, <span class="math notranslate nohighlight">\(\bu^k = \nabla f(y^k)\)</span>, and
+<span class="math notranslate nohighlight">\(\by^k = y^k\)</span>.</p>
+<p>Let <span class="math notranslate nohighlight">\(q = \mu/L\)</span>. In <a class="reference internal" href="#autolyap.algorithms.NesterovConstant.get_ABCD" title="autolyap.algorithms.NesterovConstant.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    \frac{2}{1+\sqrt{q}} &amp; -\frac{1-\sqrt{q}}{1+\sqrt{q}} \\
+    1 &amp; 0
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\frac{1}{L} \\
+    0
+    \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    \frac{2}{1+\sqrt{q}} &amp; -\frac{1-\sqrt{q}}{1+\sqrt{q}}
+    \end{bmatrix}, &amp;
+    D_k &amp;= \begin{bmatrix} 0 \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.NesterovConstant.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.NesterovConstant.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.NesterovConstant.set_L">
+<span class="sig-name descname"><span class="pre">set_L</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.NesterovConstant.set_L" title="Link to this definition"></a></dt>
+<dd><p>Set the smoothness parameter <span class="math notranslate nohighlight">\(L\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.NesterovConstant" title="autolyap.algorithms.NesterovConstant"><code class="xref py py-class docutils literal notranslate"><span class="pre">NesterovConstant</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>L</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(L\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>L</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(L \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.NesterovConstant.set_mu">
+<span class="sig-name descname"><span class="pre">set_mu</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.NesterovConstant.set_mu" title="Link to this definition"></a></dt>
+<dd><p>Set the strong-convexity parameter <span class="math notranslate nohighlight">\(\mu\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.NesterovConstant" title="autolyap.algorithms.NesterovConstant"><code class="xref py py-class docutils literal notranslate"><span class="pre">NesterovConstant</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>mu</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\mu\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>mu</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\mu \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.NesterovFastGradientMethod">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">NesterovFastGradientMethod</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.NesterovFastGradientMethod" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Nesterov’s fast gradient method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For initial points <span class="math notranslate nohighlight">\(x^{-1},x^0 \in \calH\)</span>, step size <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,
+and <span class="math notranslate nohighlight">\(\lambda_0 = 1\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    y^k &amp;= x^k + \delta_k (x^k - x^{k-1}), \\
+    x^{k+1} &amp;= y^k - \gamma \nabla f(y^k), \\
+    \lambda_{k+1} &amp;= \frac{1 + \sqrt{1 + 4\lambda_k^2}}{2}, \\
+    \delta_k &amp;= \frac{\lambda_k - 1}{\lambda_{k+1}}.
+\end{aligned}
+\right.\end{split}\]</div>
+<p>This implementation also keeps an additional evaluation of <span class="math notranslate nohighlight">\(\nabla f(x^k)\)</span>
+for analysis templates that require it.</p>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update is represented with</p>
+<div class="math notranslate nohighlight">
+\[\bx^k = (x^k, x^{k-1}), \qquad
+\bu^k = (\nabla f(y^k), \nabla f(x^k)), \qquad
+\by^k = (y^k, x^k).\]</div>
+<p>With <span class="math notranslate nohighlight">\(\lambda_0 = 1\)</span>, <span class="math notranslate nohighlight">\(\lambda_{k+1} = \frac{1+\sqrt{1+4\lambda_k^2}}{2}\)</span>,
+and <span class="math notranslate nohighlight">\(\alpha_k = \frac{\lambda_k - 1}{\lambda_{k+1}}\)</span>. In
+<a class="reference internal" href="#autolyap.algorithms.NesterovFastGradientMethod.get_ABCD" title="autolyap.algorithms.NesterovFastGradientMethod.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    1+\alpha_k &amp; -\alpha_k \\
+    1 &amp; 0
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\gamma &amp; 0 \\
+    0 &amp; 0
+    \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1+\alpha_k &amp; -\alpha_k \\
+    1 &amp; 0
+    \end{bmatrix}, &amp;
+    D_k &amp;=
+    \begin{bmatrix}
+    0 &amp; 0 \\
+    0 &amp; 0
+    \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.NesterovFastGradientMethod.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.NesterovFastGradientMethod.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.NesterovFastGradientMethod.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.NesterovFastGradientMethod.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.NesterovFastGradientMethod" title="autolyap.algorithms.NesterovFastGradientMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">NesterovFastGradientMethod</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.OptimizedGradientMethod">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">OptimizedGradientMethod</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">K</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.OptimizedGradientMethod" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Optimized gradient method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For initial points <span class="math notranslate nohighlight">\(x^0,y^0 \in \calH\)</span>, smoothness constant
+<span class="math notranslate nohighlight">\(L \in \reals_{++}\)</span>, and iteration budget <span class="math notranslate nohighlight">\(K \in \naturals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \llbracket 0, K-1 \rrbracket)\quad
+\left[
+\begin{aligned}
+    y^{k+1} &amp;= x^k - \frac{1}{L}\nabla f(x^k), \\
+    x^{k+1} &amp;= y^{k+1} + \frac{\theta_k - 1}{\theta_{k+1}}(y^{k+1} - y^k) + \frac{\theta_k}{\theta_{k+1}}(y^{k+1} - x^k).
+\end{aligned}
+\right.\end{split}\]</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}\theta_k =
+\begin{cases}
+    1, &amp; \text{if } k = 0, \\
+    \dfrac{1 + \sqrt{1 + 4\theta_{k-1}^2}}{2},
+    &amp; \text{if } k \in \llbracket 1, K-1 \rrbracket, \\
+    \dfrac{1 + \sqrt{1 + 8\theta_{k-1}^2}}{2},
+    &amp; \text{if } k = K.
+\end{cases}\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = (x^k, y^k)\)</span>, <span class="math notranslate nohighlight">\(\bu^k = \nabla f(x^k)\)</span>, and
+<span class="math notranslate nohighlight">\(\by^k = x^k\)</span>.</p>
+<p>For <span class="math notranslate nohighlight">\(k \in \llbracket 0, K-1 \rrbracket\)</span>, with <span class="math notranslate nohighlight">\(\theta_k\)</span> as in
+the standard form, <a class="reference internal" href="#autolyap.algorithms.OptimizedGradientMethod.get_ABCD" title="autolyap.algorithms.OptimizedGradientMethod.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a> returns</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    1+\frac{\theta_k-1}{\theta_{k+1}} &amp; \frac{1-\theta_k}{\theta_{k+1}} \\
+    1 &amp; 0
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\frac{1+(2\theta_k-1)/\theta_{k+1}}{L} \\
+    -\frac{1}{L}
+    \end{bmatrix}, \\
+    C_k &amp;= \begin{bmatrix} 1 &amp; 0 \end{bmatrix}, &amp;
+    D_k &amp;= \begin{bmatrix} 0 \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<p>For <span class="math notranslate nohighlight">\(k = K\)</span>, <a class="reference internal" href="#autolyap.algorithms.OptimizedGradientMethod.get_ABCD" title="autolyap.algorithms.OptimizedGradientMethod.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a> returns</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_K &amp;=
+    \begin{bmatrix}
+    0 &amp; 0 \\
+    0 &amp; 0
+    \end{bmatrix}, &amp;
+    B_K &amp;=
+    \begin{bmatrix}
+    0 \\
+    0
+    \end{bmatrix}, \\
+    C_K &amp;= \begin{bmatrix} 1 &amp; 0 \end{bmatrix}, &amp;
+    D_K &amp;= \begin{bmatrix} 0 \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.OptimizedGradientMethod.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.OptimizedGradientMethod.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.OptimizedGradientMethod.set_K">
+<span class="sig-name descname"><span class="pre">set_K</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">K</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.OptimizedGradientMethod.set_K" title="Link to this definition"></a></dt>
+<dd><p>Set the iteration budget <span class="math notranslate nohighlight">\(K\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.OptimizedGradientMethod" title="autolyap.algorithms.OptimizedGradientMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptimizedGradientMethod</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>K</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): The value corresponding to <span class="math notranslate nohighlight">\(K\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>K</cite> is not an integer or if <span class="math notranslate nohighlight">\(K &lt; 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.OptimizedGradientMethod.set_L">
+<span class="sig-name descname"><span class="pre">set_L</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.OptimizedGradientMethod.set_L" title="Link to this definition"></a></dt>
+<dd><p>Set the smoothness parameter <span class="math notranslate nohighlight">\(L\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.OptimizedGradientMethod" title="autolyap.algorithms.OptimizedGradientMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptimizedGradientMethod</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>L</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(L\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>L</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(L \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.ProximalPoint">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">ProximalPoint</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.ProximalPoint" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Proximal point method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For an initial point <span class="math notranslate nohighlight">\(x^0 \in \calH\)</span> and step size
+<span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[(\forall k \in \naturals)\quad
+x^{k+1} = \prox_{\gamma f}(x^k).\]</div>
+<p>Equivalently,</p>
+<div class="math notranslate nohighlight">
+\[(\forall k \in \naturals)\quad
+x^{k+1} = x^k - \gamma u^k, \qquad u^k \in \partial f(x^{k+1}).\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = x^k\)</span>, <span class="math notranslate nohighlight">\(\bu^k = u^k\)</span>, and <span class="math notranslate nohighlight">\(\by^k = x^{k+1}\)</span>
+(using <span class="math notranslate nohighlight">\(u^k \in \partial f(x^{k+1})\)</span> from the equivalent standard form).</p>
+<p>In <a class="reference internal" href="#autolyap.algorithms.ProximalPoint.get_ABCD" title="autolyap.algorithms.ProximalPoint.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp; B_k &amp;= \begin{bmatrix} -\gamma \end{bmatrix}, \\
+    C_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp; D_k &amp;= \begin{bmatrix} -\gamma \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ProximalPoint.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.ProximalPoint.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.ProximalPoint.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.ProximalPoint.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.ProximalPoint" title="autolyap.algorithms.ProximalPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProximalPoint</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.TripleMomentum">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">TripleMomentum</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.TripleMomentum" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Triple-momentum method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>Let <span class="math notranslate nohighlight">\(q = \mu/L\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\alpha = \frac{2-\sqrt{q}}{L}, \qquad
+\beta_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{1+\sqrt{q}}, \qquad
+\gamma_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{(2-\sqrt{q})(1+\sqrt{q})}.\]</div>
+<p>For initial points <span class="math notranslate nohighlight">\(x^{-1},x^0 \in \calH\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    y^k &amp;= x^k + \gamma_{\mathrm{tm}}(x^k - x^{k-1}), \\
+    x^{k+1} &amp;= x^k + \beta_{\mathrm{tm}}(x^k - x^{k-1}) - \alpha \nabla f(y^k).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = (x^k, x^{k-1})\)</span>, <span class="math notranslate nohighlight">\(\bu^k = \nabla f(y^k)\)</span>, and
+<span class="math notranslate nohighlight">\(\by^k = y^k\)</span>.</p>
+<p>Let <span class="math notranslate nohighlight">\(q = \mu/L\)</span>, and define</p>
+<div class="math notranslate nohighlight">
+\[\alpha = \frac{2-\sqrt{q}}{L}, \qquad
+\beta_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{1+\sqrt{q}}, \qquad
+\gamma_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{(2-\sqrt{q})(1+\sqrt{q})}.\]</div>
+<p>In <a class="reference internal" href="#autolyap.algorithms.TripleMomentum.get_ABCD" title="autolyap.algorithms.TripleMomentum.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;=
+    \begin{bmatrix}
+    1+\beta_{\mathrm{tm}} &amp; -\beta_{\mathrm{tm}} \\
+    1 &amp; 0
+    \end{bmatrix}, &amp;
+    B_k &amp;=
+    \begin{bmatrix}
+    -\alpha \\
+    0
+    \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1+\gamma_{\mathrm{tm}} &amp; -\gamma_{\mathrm{tm}}
+    \end{bmatrix}, &amp;
+    D_k &amp;= \begin{bmatrix} 0 \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.TripleMomentum.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.TripleMomentum.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.TripleMomentum.set_L">
+<span class="sig-name descname"><span class="pre">set_L</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.TripleMomentum.set_L" title="Link to this definition"></a></dt>
+<dd><p>Set the smoothness parameter <span class="math notranslate nohighlight">\(L\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.TripleMomentum" title="autolyap.algorithms.TripleMomentum"><code class="xref py py-class docutils literal notranslate"><span class="pre">TripleMomentum</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>L</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(L\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>L</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(L \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.TripleMomentum.set_mu">
+<span class="sig-name descname"><span class="pre">set_mu</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.TripleMomentum.set_mu" title="Link to this definition"></a></dt>
+<dd><p>Set the strong-convexity parameter <span class="math notranslate nohighlight">\(\mu\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.TripleMomentum" title="autolyap.algorithms.TripleMomentum"><code class="xref py py-class docutils literal notranslate"><span class="pre">TripleMomentum</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>mu</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\mu\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>mu</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\mu \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autolyap.algorithms.TsengFBF">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">TsengFBF</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.TsengFBF" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Tseng’s forward-backward-forward method.</p>
+<section id="class-level-reference">
+<h2>Class-level reference<a class="headerlink" href="#class-level-reference" title="Link to this heading"></a></h2>
+<p>Mathematical notation and shared definitions used by methods are defined in this class docstring.</p>
+<p>Notation-driven assumptions are declared by the user via
+<a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>: when present, terms written with
+<span class="math notranslate nohighlight">\(\nabla\)</span> use differentiable functions, terms written with
+<span class="math notranslate nohighlight">\(\prox_{\gamma f}\)</span> use proper, lower semicontinuous, convex functions,
+and terms written with <span class="math notranslate nohighlight">\(J_{\gamma G}\)</span> use maximally monotone operators.</p>
+<section id="standard-form">
+<h3>Standard form<a class="headerlink" href="#standard-form" title="Link to this heading"></a></h3>
+<p>For an initial point <span class="math notranslate nohighlight">\(x^0 \in \calH\)</span>, step size
+<span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>, and relaxation parameter
+<span class="math notranslate nohighlight">\(\theta \in \reals\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}(\forall k \in \naturals)\quad
+\left[
+\begin{aligned}
+    \bar{x}^k &amp;= J_{\gamma G_2}(x^k - \gamma G_1(x^k)), \\
+    x^{k+1} &amp;= x^k + \theta\Big(\bar{x}^k - \gamma G_1(\bar{x}^k) - (x^k - \gamma G_1(x^k))\Big).
+\end{aligned}
+\right.\end{split}\]</div>
+</section>
+<section id="state-space-representation">
+<h3>State-space representation<a class="headerlink" href="#state-space-representation" title="Link to this heading"></a></h3>
+<p>The update can be written in the algorithm representation with
+<span class="math notranslate nohighlight">\(\bx^k = x^k\)</span>,
+<span class="math notranslate nohighlight">\(\bu^k = \left(G_1(x^k),\; G_1(\bar{x}^k),\; (x^k-\gamma G_1(x^k)-\bar{x}^k)/\gamma\right)\)</span>,
+and <span class="math notranslate nohighlight">\(\by^k = (x^k, \bar{x}^k, \bar{x}^k)\)</span>.</p>
+<p>In <a class="reference internal" href="#autolyap.algorithms.TsengFBF.get_ABCD" title="autolyap.algorithms.TsengFBF.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a>, the matrices are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    A_k &amp;= \begin{bmatrix} 1 \end{bmatrix}, &amp;
+    B_k &amp;= \begin{bmatrix} 0 &amp; -\gamma\theta &amp; -\gamma\theta \end{bmatrix}, \\
+    C_k &amp;=
+    \begin{bmatrix}
+    1 \\
+    1 \\
+    1
+    \end{bmatrix}, &amp;
+    D_k &amp;=
+    \begin{bmatrix}
+    0 &amp; 0 &amp; 0 \\
+    -\gamma &amp; 0 &amp; -\gamma \\
+    -\gamma &amp; 0 &amp; -\gamma
+    \end{bmatrix}.
+\end{aligned}\end{split}\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.TsengFBF.get_ABCD">
+<span class="sig-name descname"><span class="pre">get_ABCD</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.TsengFBF.get_ABCD" title="Link to this definition"></a></dt>
+<dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="base_algorithms.html#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
+<p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>k</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>): iteration index <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A tuple
+<span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> of numpy arrays with</p>
+<div class="math notranslate nohighlight">
+\[A_k \in \mathbb{R}^{n \times n}, \quad
+B_k \in \mathbb{R}^{n \times \bar{m}}, \quad
+C_k \in \mathbb{R}^{\bar{m} \times n}, \quad
+D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.TsengFBF.set_gamma">
+<span class="sig-name descname"><span class="pre">set_gamma</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.TsengFBF.set_gamma" title="Link to this definition"></a></dt>
+<dd><p>Set the step-size parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.TsengFBF" title="autolyap.algorithms.TsengFBF"><code class="xref py py-class docutils literal notranslate"><span class="pre">TsengFBF</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>gamma</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>gamma</cite> is not a finite real number or if <span class="math notranslate nohighlight">\(\gamma \le 0\)</span>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autolyap.algorithms.TsengFBF.set_theta">
+<span class="sig-name descname"><span class="pre">set_theta</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.algorithms.TsengFBF.set_theta" title="Link to this definition"></a></dt>
+<dd><p>Set the relaxation parameter <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+<p>Shared notation follows the class-level reference in
+<a class="reference internal" href="#autolyap.algorithms.TsengFBF" title="autolyap.algorithms.TsengFBF"><code class="xref py py-class docutils literal notranslate"><span class="pre">TsengFBF</span></code></a>.</p>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><cite>theta</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The value corresponding to <span class="math notranslate nohighlight">\(\theta\)</span>.</p></li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li><p><cite>ValueError</cite>: If <cite>theta</cite> is not a finite real number.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="base_algorithms.html" class="btn btn-neutral float-left" title="Base algorithm" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lyapunov_analyses.html" class="btn btn-neutral float-right" title="Lyapunov analyses" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Manu Upadhyaya.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+/* Reduce padding/margins on cross-reference code to keep generic types compact. */
+code.xref.py,
+a code.xref.py {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+
+code.xref.py .pre {
+  padding: 0;
+  margin: 0;
+}

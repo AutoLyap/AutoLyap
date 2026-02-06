@@ -34,6 +34,7 @@ Thumbs.db
 htmlcov/
 .tox/
 .nox/
+.pytest_cache/
 .coverage
 .coverage.*
 .cache
@@ -51,3 +52,5 @@ pip-delete-this-directory.txt
 
 # Environment variables
 .env 
+AGENT.md
+Paper/
