@@ -1,6 +1,17 @@
-import numpy as np
+"""Validation helpers shared across algorithms and problem classes."""
+
 from numbers import Integral, Real
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Sequence
+
+import numpy as np
+
+_INDEX_LIST_TYPES = (list, tuple, np.ndarray)
+
+
+def _ensure_index_container(values: object, name: str, error_message: str) -> Sequence[object]:
+    if values is None or not isinstance(values, _INDEX_LIST_TYPES):
+        raise ValueError(error_message)
+    return values
 
 
 def ensure_integral(value: object, name: str, minimum: Optional[int] = None,
@@ -45,8 +56,7 @@ def ensure_finite_array(array: np.ndarray, name: str) -> None:
 
 
 def ensure_index_list(values: Iterable[object], name: str, m: int) -> List[int]:
-    if values is None or not isinstance(values, (list, tuple, np.ndarray)):
-        raise ValueError(f"{name} must be a list of integers.")
+    values = _ensure_index_container(values, name, f"{name} must be a list of integers.")
     items: List[int] = []
     for v in values:
         if isinstance(v, bool) or not isinstance(v, Integral):
@@ -63,8 +73,7 @@ def ensure_index_list(values: Iterable[object], name: str, m: int) -> List[int]:
 
 
 def ensure_m_bar_list(values: Iterable[object], m: int) -> List[int]:
-    if values is None or not isinstance(values, (list, tuple, np.ndarray)):
-        raise ValueError("m_bar_is must be a list of positive integers.")
+    values = _ensure_index_container(values, "m_bar_is", "m_bar_is must be a list of positive integers.")
     if len(values) != m:
         raise ValueError("m must equal the length of m_bar_is")
     out: List[int] = []
