@@ -44,18 +44,15 @@ class InterpolationIndices:
             raise ValueError(f"Invalid interpolation index: {value}. Allowed values: {self.ALLOWED_VALUES}")
         self._value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._value
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, InterpolationIndices):
             return self._value == other._value
-        elif isinstance(other, str):
+        if isinstance(other, str):
             return self._value == other
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"InterpolationIndices({self._value})"
-
-# ---------------------------------------------------------------------------
-# Abstract Base Classes for Interpolation Conditions
