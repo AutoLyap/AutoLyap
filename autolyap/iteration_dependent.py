@@ -3,7 +3,7 @@ from typing import Type, Optional, Tuple, Union, List, Dict, Iterator
 from itertools import combinations
 from mosek.fusion import Model, Domain, ObjectiveSense, OptimizeError
 import mosek.fusion.pythonic
-from autolyap.utils.helper_functions import create_symmetric_matrix_expression
+from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
 from autolyap.utils.validation import (
     ensure_finite_array,
     ensure_integral,
@@ -313,18 +313,21 @@ class IterationDependent:
             m_func: int,
             m_op: int,
             model: Optional[Model] = None,
-        ) -> Tuple[Model, object]:
+        ) -> Tuple[Model, Dict[str, object]]:
         Mod = model if model is not None else Model()
         c = Mod.variable(1, Domain.greaterThan(0.0))
         
         Qs = {}
         Qs[0] = Q_0
         Qs[K] = Q_K
+        Qij_vars: Dict[int, object] = {}
         for k in range(1, K):
             Qij = Mod.variable(f"Q_{k}", dim_Q * (dim_Q + 1) // 2, Domain.unbounded())
             Q_k = create_symmetric_matrix_expression(Qij, dim_Q)
             Qs[k] = Q_k
+            Qij_vars[k] = Qij
         
+        q_vars: Dict[int, object] = {}
         if m_func > 0:
             qs = {}
             qs[0] = q_0
@@ -332,6 +335,7 @@ class IterationDependent:
             for k in range(1, K):
                 q_k = Mod.variable(f"q_{k}", dim_q, Domain.unbounded())
                 qs[k] = q_k
+                q_vars[k] = q_k
         
         # ---------------------------------------------------------------------
         # Build the main PSD (positive semidefinite) and equality constraint sums.
@@ -366,11 +370,9 @@ class IterationDependent:
                 eq_constraint_sums[k] = -ws[k]
 
         # Dictionaries to hold multipliers for interpolation conditions.
-        if m_op > 0:
-            lambdas_op = {}
-        if m_func > 0:
-            lambdas_func = {}
-            nus_func = {}
+        lambdas_op: Dict[Tuple[int, int, PairTuple, int], object] = {}
+        lambdas_func: Dict[Tuple[int, int, PairTuple, int], object] = {}
+        nus_func: Dict[Tuple[int, int, PairTuple, int], object] = {}
 
         # ---------------------------------------------------------------------
         # Define inner helper functions for processing interpolation data.
@@ -510,7 +512,98 @@ class IterationDependent:
         # ---------------------------------------------------------------------
         Mod.objective("obj", ObjectiveSense.Minimize, c)
 
-        return Mod, c
+        solution_handles: Dict[str, object] = {
+            "K": K,
+            "dim_Q": dim_Q,
+            "dim_q": dim_q,
+            "m_func": m_func,
+            "Q_0": Q_0,
+            "Q_K": Q_K,
+            "q_0": q_0,
+            "q_K": q_K,
+            "Qij_vars": Qij_vars,
+            "q_vars": q_vars,
+            "lambdas_op": lambdas_op,
+            "lambdas_func": lambdas_func,
+            "nus_func": nus_func,
+            "c_var": c,
+        }
+        return Mod, solution_handles
+
+    @staticmethod
+    def _pairs_to_readable(pairs: PairTuple) -> List[Dict[str, Union[int, str]]]:
+        r"""Convert interpolation-pair tuples into readable dictionaries."""
+        return [{"j": pair[0], "k": pair[1]} for pair in pairs]
+
+    @staticmethod
+    def _serialize_iteration_dependent_multipliers(
+            multiplier_vars: Dict[Tuple[int, int, PairTuple, int], object]
+    ) -> List[Dict[str, object]]:
+        r"""Convert scalar MOSEK multiplier variables into readable records."""
+        records: List[Dict[str, object]] = []
+        for key, var in sorted(
+                multiplier_vars.items(),
+                key=lambda item: (item[0][0], item[0][1], item[0][3], str(item[0][2]))):
+            iteration, component, pairs, interpolation_index = key
+            value_arr = np.asarray(var.level(), dtype=float).reshape(-1)
+            value = float(value_arr[0]) if value_arr.size > 0 else 0.0
+            records.append({
+                "iteration": iteration,
+                "component": component,
+                "interpolation_index": interpolation_index,
+                "pairs": IterationDependent._pairs_to_readable(pairs),
+                "value": value,
+            })
+        return records
+
+    @staticmethod
+    def _extract_iteration_dependent_certificate(solution_handles: Dict[str, object]) -> Dict[str, object]:
+        r"""Extract a solved iteration-dependent certificate into NumPy/Python values."""
+        K = int(solution_handles["K"])
+        dim_Q = int(solution_handles["dim_Q"])
+        m_func = int(solution_handles["m_func"])
+        Q_0 = solution_handles["Q_0"]
+        Q_K = solution_handles["Q_K"]
+        q_0 = solution_handles["q_0"]
+        q_K = solution_handles["q_K"]
+        Qij_vars = solution_handles["Qij_vars"]
+        q_vars = solution_handles["q_vars"]
+
+        Q_sequence: List[np.ndarray] = []
+        for k in range(0, K + 1):
+            if k == 0:
+                Q_k = np.array(Q_0, dtype=float, copy=True)
+            elif k == K:
+                Q_k = np.array(Q_K, dtype=float, copy=True)
+            else:
+                Qij_levels = np.asarray(Qij_vars[k].level(), dtype=float).reshape(-1)
+                Q_k = create_symmetric_matrix(Qij_levels, dim_Q)
+            Q_sequence.append(Q_k)
+
+        q_sequence: Optional[List[np.ndarray]] = None
+        if m_func > 0:
+            q_sequence = []
+            for k in range(0, K + 1):
+                if k == 0:
+                    q_k = np.array(q_0, dtype=float, copy=True).reshape(-1)
+                elif k == K:
+                    q_k = np.array(q_K, dtype=float, copy=True).reshape(-1)
+                else:
+                    q_k = np.asarray(q_vars[k].level(), dtype=float).reshape(-1)
+                q_sequence.append(q_k)
+
+        lambdas_op = solution_handles["lambdas_op"]
+        lambdas_func = solution_handles["lambdas_func"]
+        nus_func = solution_handles["nus_func"]
+        return {
+            "Q_sequence": Q_sequence,
+            "q_sequence": q_sequence,
+            "multipliers": {
+                "operator_lambda": IterationDependent._serialize_iteration_dependent_multipliers(lambdas_op),
+                "function_lambda": IterationDependent._serialize_iteration_dependent_multipliers(lambdas_func),
+                "function_nu": IterationDependent._serialize_iteration_dependent_multipliers(nus_func),
+            },
+        }
 
     @staticmethod
     def verify_iteration_dependent_Lyapunov(
@@ -521,7 +614,7 @@ class IterationDependent:
             Q_K: np.ndarray,
             q_0: Optional[np.ndarray] = None,
             q_K: Optional[np.ndarray] = None
-    ) -> Tuple[bool, Optional[float]]:
+    ) -> Dict[str, object]:
         r"""
         Verify feasibility of iteration-dependent Lyapunov inequalities via an SDP.
 
@@ -597,9 +690,67 @@ class IterationDependent:
 
         **Returns**
 
-        - (:class:`~typing.Tuple`\[:class:`bool`, :class:`~typing.Optional`\[:class:`float`\]\]): Returns
-          :math:`(True, c)` if the SDP is solved successfully, where :math:`c` is the optimal objective value.
-          Returns :math:`(False, None)` otherwise.
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`object`\]): Result dictionary
+          with keys `success`, `c`, and `certificate`.
+
+          - `success` (:class:`bool`): `True` iff the SDP is feasible.
+          - `c` (:class:`~typing.Optional`\[:class:`float`\]): Optimal objective value when
+            `success` is `True`; otherwise `None`.
+          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`object`\]\]):
+            `None` when `success` is `False`; otherwise a feasible certificate.
+
+          When `success` is `True`, `certificate` has:
+
+          .. code-block:: text
+
+              {
+                "Q_sequence": List[np.ndarray],   # length K+1, Q_sequence[k] = Q_k
+                "q_sequence": List[np.ndarray] | None,  # None when m_func == 0
+                "multipliers": {
+                  "operator_lambda": List[record],
+                  "function_lambda": List[record],
+                  "function_nu": List[record]
+                }
+              }
+
+          Each multiplier list entry is a `record` with:
+
+          .. code-block:: text
+
+              record = {
+                "iteration": int,
+                "component": int,
+                "interpolation_index": int,
+                "pairs": List[{"j": int | "star", "k": int | "star"}],
+                "value": float
+              }
+
+          Field meanings and ranges:
+
+          - `iteration` corresponds to :math:`k` and satisfies
+            :math:`k \in \llbracket 0, K-1 \rrbracket`.
+          - `component` corresponds to :math:`i` and satisfies
+            :math:`i \in \llbracket 1, m \rrbracket`.
+          - `interpolation_index` corresponds to :math:`o`, where
+            :math:`o` is the zero-based index from
+            :math:`\text{enumerate}(\text{prob.get_component_data}(i))`, so
+            :math:`o \in \llbracket 0, \text{len}(\text{prob.get_component_data}(i)) - 1 \rrbracket`.
+          - `pairs` is the concrete interpolation-pair list used by that multiplier.
+            Its length is 1 (pattern `"j1"`) or 2 (patterns `"j1<j2"`,
+            `"j1!=j2"`, `"j1!=star"`). Typical examples are
+            `[{"j": 2, "k": 5}]` and
+            `[{"j": 1, "k": 5}, {"j": "star", "k": "star"}]`.
+
+            Pair entries satisfy
+
+            .. math::
+                \begin{aligned}
+                j &\in \llbracket 1, \bar m_i \rrbracket \cup \{\star\}, \\
+                k_{\text{pair}} &\in \{k, k+1\} \cup \{\star\},
+                \end{aligned}
+
+            with :math:`j=\star \Leftrightarrow k_{\text{pair}}=\star`.
+          - `value` is the scalar MOSEK multiplier for that record.
 
         **Raises**
 
@@ -609,12 +760,12 @@ class IterationDependent:
 
         - Requires a working MOSEK installation and license.
         """
-        K, n, m_bar, m, m_bar_func, m_func, m_op, m_bar_op, dim_Q, dim_q = IterationDependent._validate_iteration_dependent_inputs(
+        K, _, _, _, _, m_func, m_op, _, dim_Q, dim_q = IterationDependent._validate_iteration_dependent_inputs(
             prob, algo, K, Q_0, Q_K, q_0, q_K
         )
 
         Mod = Model()
-        Mod, c = IterationDependent._build_iteration_dependent_model(
+        Mod, solution_handles = IterationDependent._build_iteration_dependent_model(
             prob,
             algo,
             K,
@@ -628,12 +779,15 @@ class IterationDependent:
             m_op,
             model=Mod,
         )
+        c_var = solution_handles["c_var"]
 
-        c_val: Optional[float] = None
         try:
             Mod.solve()
             Mod.primalObjValue()
-            c_val = c.level()[0]
+            c_level = np.asarray(c_var.level(), dtype=float).reshape(-1)
+            c_val = float(c_level[0]) if c_level.size > 0 else 0.0
+            certificate = IterationDependent._extract_iteration_dependent_certificate(solution_handles)
+            return {"success": True, "c": c_val, "certificate": certificate}
         except OptimizeError as e:
             licence_markers = (
                 "err_license_max",         # 1016 – all floating tokens in use
@@ -643,14 +797,13 @@ class IterationDependent:
             if any(mark in str(e) for mark in licence_markers):
                 raise
             # For other optimizer errors, return infeasible without raising.
-            return (False, None)
-        except Exception as e:
+            return {"success": False, "c": None, "certificate": None}
+        except Exception:
             # Uncomment the following line for debugging if needed.
             # print("Error during solve: {0}".format(e))
-            return (False, None)
+            return {"success": False, "c": None, "certificate": None}
         finally:
             Mod.dispose()
-        return (True, c_val)
 
     @staticmethod
     def _compute_Thetas(algo: Type[Algorithm], k: int) -> Tuple[np.ndarray, np.ndarray]:

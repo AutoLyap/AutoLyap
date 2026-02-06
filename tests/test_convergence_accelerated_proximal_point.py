@@ -29,7 +29,7 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
         diff = Xs[k + 1][0, :] - Xs[k][1, :]
         Q_k_operator = np.outer(diff, diff)
 
-        ok, c = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.verify_iteration_dependent_Lyapunov(
             problem_operator,
             algorithm_operator,
             k,
@@ -37,12 +37,18 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
             Q_k_operator,
         )
 
-        assert ok is True
-        assert c is not None
+        assert result["success"] is True
+        assert result["c"] is not None
+        assert result["certificate"] is not None
+        certificate = result["certificate"]
+        assert len(certificate["Q_sequence"]) == k + 1
+        assert np.allclose(certificate["Q_sequence"][0], Q_0_operator)
+        assert np.allclose(certificate["Q_sequence"][-1], Q_k_operator)
+        assert certificate["q_sequence"] is None
 
         kim_bound = 1.0 / (k + 1) ** 2
         # The SDP certificate should match Kim's bound up to solver tolerances.
-        assert c == pytest.approx(kim_bound, abs=5e-6)
+        assert result["c"] == pytest.approx(kim_bound, abs=5e-6)
 
 
 def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_rate():
@@ -65,7 +71,7 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
         Q_k_function = np.outer(diff, diff)
         q_k_function = np.zeros(algorithm_function.m_bar_func + algorithm_function.m_func)
 
-        ok, c = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.verify_iteration_dependent_Lyapunov(
             problem_function,
             algorithm_function,
             k,
@@ -75,9 +81,18 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
             q_K=q_k_function,
         )
 
-        assert ok is True
-        assert c is not None
+        assert result["success"] is True
+        assert result["c"] is not None
+        assert result["certificate"] is not None
+        certificate = result["certificate"]
+        assert len(certificate["Q_sequence"]) == k + 1
+        assert np.allclose(certificate["Q_sequence"][0], Q_0_function)
+        assert np.allclose(certificate["Q_sequence"][-1], Q_k_function)
+        assert certificate["q_sequence"] is not None
+        assert len(certificate["q_sequence"]) == k + 1
+        assert np.allclose(certificate["q_sequence"][0], q_0_function)
+        assert np.allclose(certificate["q_sequence"][-1], q_k_function)
 
         kim_bound = 1.0 / (k + 1) ** 2
         # The SDP certificate should match Kim's bound up to solver tolerances.
-        assert c == pytest.approx(kim_bound, abs=5e-6)
+        assert result["c"] == pytest.approx(kim_bound, abs=5e-6)
