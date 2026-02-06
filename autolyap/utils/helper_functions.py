@@ -1,6 +1,11 @@
 import numpy as np
 from mosek.fusion import Expr
 
+
+def _upper_triangle_size(n: int) -> int:
+    return n * (n + 1) // 2
+
+
 def create_symmetric_matrix_expression(Xij, n):
     r"""
     Convert a list of upper triangle variables to a symmetric matrix expression.
@@ -49,7 +54,7 @@ def create_symmetric_matrix(upper_triangle_values, n):
     - `ValueError`: If the length of `upper_triangle_values` is not :math:`n(n+1)/2`.
     """
     # Guard against mismatched upper-triangle length to avoid silent shape errors.
-    if len(upper_triangle_values) != n * (n + 1) // 2:
+    if len(upper_triangle_values) != _upper_triangle_size(n):
         raise ValueError("The length of upper_triangle_values must be n(n+1)/2")
 
     symmetric_matrix = np.zeros((n, n))
