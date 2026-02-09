@@ -236,6 +236,31 @@ code.xref.py .pre {
   margin: 0;
 }
 
+/* Align bibliography text to one common start column (theme-compatible override). */
+html.writer-html5 .rst-content div.citation-list > div.citation {
+  display: grid;
+  grid-template-columns: 8ch minmax(0, 1fr);
+  column-gap: 0.75rem;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+html.writer-html5 .rst-content div.citation-list > div.citation > span.label {
+  grid-column: 1;
+  justify-self: start;
+  text-align: left;
+  white-space: nowrap;
+}
+
+html.writer-html5 .rst-content div.citation-list > div.citation > span.backrefs {
+  display: none;
+}
+
+html.writer-html5 .rst-content div.citation-list > div.citation > p {
+  grid-column: 2;
+  margin: 0;
+}
+
 .wy-side-nav-search .sidebar-version {
   margin-top: 0.35rem;
   margin-bottom: 0.75rem;
