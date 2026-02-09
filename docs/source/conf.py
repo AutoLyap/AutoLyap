@@ -20,6 +20,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.mathjax",
     "myst_parser",
+    "sphinxcontrib.bibtex",
 ]
 
 autodoc_mock_imports = [
@@ -133,3 +134,6 @@ source_suffix = {
     ".rst": "restructuredtext",
     ".md": "markdown",
 }
+
+bibtex_bibfiles = ["references.bib"]
+bibtex_default_style = "alpha"
