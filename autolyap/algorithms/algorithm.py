@@ -96,17 +96,17 @@ class Algorithm(ABC):
         C_k \in \mathbb{R}^{\NumEval \times n}, \quad
         D_k \in \mathbb{R}^{\NumEval \times \NumEval}.
 
-    For any :math:`M \in \mathbb{R}^{q \times p}`, the tensor operator
+    For any :math:`M \in \mathbb{R}^{d \times b}`, the tensor operator
 
     .. math::
-        M \kron \Id : \calH^{p} \to \calH^{q}
+        M \kron \Id : \calH^{b} \to \calH^{d}
 
-    acts componentwise, i.e., for :math:`z=(z_1,\ldots,z_p) \in \calH^p`,
+    acts componentwise, i.e., for :math:`z=(z_1,\ldots,z_b) \in \calH^b`,
 
     .. math::
         (M \kron \Id)z
         =
-        \Big(\sum_{j=1}^{p}[M]_{1,j} z_j,\ldots,\sum_{j=1}^{p}[M]_{q,j} z_j\Big).
+        \Big(\sum_{\ell=1}^{b}[M]_{1,\ell} z_\ell,\ldots,\sum_{\ell=1}^{b}[M]_{d,\ell} z_\ell\Big).
 
     The system matrices :math:`(A_k,B_k,C_k,D_k)` are returned by
     :meth:`get_ABCD` and collected over iteration ranges by :meth:`get_AsBsCsDs`.
@@ -1304,8 +1304,8 @@ class Algorithm(ABC):
            \end{bmatrix} a_{(i,o)}^{\textup{type}}.
 
         Each F row is obtained from the F matrices (via :meth:`get_Fs`), transposed, and
-        horizontally stacked. The resulting matrix has shape :math:`(\text{total_dim}, p)`, where
-        :math:`p` is the number of pairs, and is then multiplied by the weight vector :math:`a`
+        horizontally stacked. The resulting matrix has shape :math:`(\text{total_dim}, b)`, where
+        :math:`b` is the number of pairs, and is then multiplied by the weight vector :math:`a`
         to yield a column vector of shape :math:`(\text{total_dim}, 1)`.
 
         Here :math:`o` indexes the chosen functional interpolation constraint and

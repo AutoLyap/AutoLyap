@@ -10,7 +10,7 @@ def test_interpolation_indices_rejects_invalid_value():
 
 
 def test_interpolation_indices_equality_and_str():
-    idx = InterpolationIndices("p1<p2")
-    assert str(idx) == "p1<p2"
-    assert idx == "p1<p2"
-    assert idx == InterpolationIndices("p1<p2")
+    idx = InterpolationIndices("r1<r2")
+    assert str(idx) == "r1<r2"
+    assert idx == "r1<r2"
+    assert idx == InterpolationIndices("r1<r2")

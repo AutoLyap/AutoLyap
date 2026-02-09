@@ -1332,9 +1332,9 @@ class IterationIndependent:
     @staticmethod
     def _expected_pairs_len(interp_key: str) -> int:
         r"""Return the expected interpolation-pair arity for a pattern key."""
-        if interp_key == 'p1':
+        if interp_key == 'r1':
             return 1
-        if interp_key in ('p1<p2', 'p1!=p2', 'p1!=star'):
+        if interp_key in ('r1<r2', 'r1!=r2', 'r1!=star'):
             return 2
         raise ValueError(f"Error: Invalid interpolation indices: {interp_key}.")
 
@@ -1346,16 +1346,16 @@ class IterationIndependent:
             star_pair: Pair,
     ) -> Iterator[PairTuple]:
         r"""Yield concrete pair tuples matching one interpolation-index pattern."""
-        if interp_key == 'p1':
+        if interp_key == 'r1':
             for pair in pairs_with_star:
                 yield (pair,)
             return
 
-        if interp_key == 'p1<p2':
+        if interp_key == 'r1<r2':
             yield from combinations(pairs_with_star, 2)
             return
 
-        if interp_key == 'p1!=p2':
+        if interp_key == 'r1!=r2':
             n_pairs = len(pairs_with_star)
             for idx1 in range(n_pairs):
                 pair1 = pairs_with_star[idx1]
@@ -1365,7 +1365,7 @@ class IterationIndependent:
                     yield (pair1, pairs_with_star[idx2])
             return
 
-        if interp_key == 'p1!=star':
+        if interp_key == 'r1!=star':
             for pair in pairs_no_star:
                 yield (pair, star_pair)
             return
@@ -1974,8 +1974,8 @@ class IterationIndependent:
             :math:`\text{enumerate}(\text{prob.get_component_data}(i))`, so
             :math:`o \in \llbracket 0, \text{len}(\text{prob.get_component_data}(i)) - 1 \rrbracket`.
           - `pairs` is the concrete interpolation-pair list used by that multiplier.
-            Its length is 1 (pattern `"p1"`) or 2 (patterns `"p1<p2"`,
-            `"p1!=p2"`, `"p1!=star"`). Typical examples are
+            Its length is 1 (pattern `"r1"`) or 2 (patterns `"r1<r2"`,
+            `"r1!=r2"`, `"r1!=star"`). Typical examples are
             `[{"j": 2, "k": 0}]` and
             `[{"j": 1, "k": 0}, {"j": "star", "k": "star"}]`.
 

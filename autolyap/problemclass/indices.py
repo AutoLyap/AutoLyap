@@ -12,10 +12,10 @@ class InterpolationIndices:
 
     **Allowed values**
 
-    - ``p1<p2``: unordered pairs of distinct interpolation points :math:`p_1` and :math:`p_2`.
-    - ``p1!=p2``: ordered pairs of distinct interpolation points :math:`p_1` and :math:`p_2`.
-    - ``p1``: single-point interpolation constraints (index :math:`p_1`).
-    - ``p1!=star``: pairs between any interpolation point :math:`p_1` and the distinguished star point.
+    - ``r1<r2``: unordered pairs of distinct interpolation entries :math:`r_1` and :math:`r_2`.
+    - ``r1!=r2``: ordered pairs of distinct interpolation entries :math:`r_1` and :math:`r_2`.
+    - ``r1``: single-entry interpolation constraints (index :math:`r_1`).
+    - ``r1!=star``: pairs between any interpolation entry :math:`r_1` and the distinguished star entry.
 
     **Parameters**
 
@@ -26,7 +26,10 @@ class InterpolationIndices:
     - `ValueError`: If `value` is not in the allowed set.
     """
     # Frozen set prevents accidental runtime mutation of allowed values.
-    ALLOWED_VALUES = frozenset({"p1<p2", "p1!=p2", "p1", "p1!=star"})
+
+
+
+    ALLOWED_VALUES = frozenset({"r1<r2", "r1!=r2", "r1", "r1!=star"})
     __slots__ = ("_value",)
 
     def __init__(self, value: str):

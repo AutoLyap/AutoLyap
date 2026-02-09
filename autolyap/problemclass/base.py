@@ -67,21 +67,21 @@ class OperatorInterpolationCondition(InterpolationCondition):
 
     where :math:`z` stacks the relevant :math:`y_{i,j}^{k}` and :math:`u_{i,j}^{k}` entries selected
     by the interpolation indices. Concretely, if the indices select pairs
-    :math:`(p_1,k_1),\ldots,(p_p,k_p)`, then
+    :math:`(j_1,k_1),\ldots,(j_b,k_b)`, then
 
     .. math::
-        z = (y_{i,p_1}^{k_1},\ldots,y_{i,p_p}^{k_p},u_{i,p_1}^{k_1},\ldots,u_{i,p_p}^{k_p}).
+        z = (y_{i,j_1}^{k_1},\ldots,y_{i,j_b}^{k_b},u_{i,j_1}^{k_1},\ldots,u_{i,j_b}^{k_b}).
 
     For operator components, :math:`u_{i,j}^{k} \in G_i(y_{i,j}^{k})`.
     No linear term appears for operator conditions.
 
-    For any matrix :math:`M \in \mathbb{R}^{q \times p}`, the tensor product
-    :math:`M \kron \Id` denotes the linear map :math:`\calH^{p} \to \calH^{q}` defined by
+    For any matrix :math:`M \in \mathbb{R}^{d \times b}`, the tensor product
+    :math:`M \kron \Id` denotes the linear map :math:`\calH^{b} \to \calH^{d}` defined by
 
     .. math::
-        (M \kron \Id)z = \Big(\sum_{j=1}^{p}[M]_{1,j} z_j,\ldots,\sum_{j=1}^{p}[M]_{q,j} z_j\Big),
+        (M \kron \Id)z = \Big(\sum_{\ell=1}^{b}[M]_{1,\ell} z_\ell,\ldots,\sum_{\ell=1}^{b}[M]_{d,\ell} z_\ell\Big),
 
-    for :math:`z = (z_1,\ldots,z_p) \in \calH^{p}`.
+    for :math:`z = (z_1,\ldots,z_b) \in \calH^{b}`.
 
     """
     @abstractmethod
@@ -120,7 +120,7 @@ class FunctionInterpolationCondition(InterpolationCondition):
     - **vector** is a 1D numpy array.
     - **eq** is a boolean flag (True for equality, False for inequality).
     - **interpolation_indices** is an instance of :class:`InterpolationIndices`.
-    - **matrix** has shape :math:`(2p, 2p)` where :math:`p` is the length of **vector**.
+    - **matrix** has shape :math:`(2b, 2b)` where :math:`b` is the length of **vector**.
 
     The returned **vector** corresponds to the linear term
     :math:`a_{(i,o)}^{\textup{func-ineq}}` or :math:`a_{(i,o)}^{\textup{func-eq}}`, where
@@ -131,9 +131,9 @@ class FunctionInterpolationCondition(InterpolationCondition):
 
     .. math::
         \big(a_{(i,o)}^{\textup{func-ineq}}\big)^{\top}\begin{bmatrix}
-            F_{i,p_1}^{k_1} \\
+            F_{i,j_1}^{k_1} \\
             \vdots \\
-            F_{i,p_p}^{k_p}
+            F_{i,j_b}^{k_b}
         \end{bmatrix}
         + \langle z, (M_{(i,o)}^{\textup{func-ineq}} \kron \Id) z \rangle \le 0,
 
@@ -141,28 +141,28 @@ class FunctionInterpolationCondition(InterpolationCondition):
 
     .. math::
         \big(a_{(i,o)}^{\textup{func-eq}}\big)^{\top}\begin{bmatrix}
-            F_{i,p_1}^{k_1} \\
+            F_{i,j_1}^{k_1} \\
             \vdots \\
-            F_{i,p_p}^{k_p}
+            F_{i,j_b}^{k_b}
         \end{bmatrix}
         + \langle z, (M_{(i,o)}^{\textup{func-eq}} \kron \Id) z \rangle = 0.
 
-    Here :math:`z` stacks the corresponding :math:`y_{i,p_\ell}^{k_\ell}` and :math:`u_{i,p_\ell}^{k_\ell}`
-    terms. Concretely, if the indices select pairs :math:`(p_1,k_1),\ldots,(p_p,k_p)`, then
+    Here :math:`z` stacks the corresponding :math:`y_{i,j_\ell}^{k_\ell}` and :math:`u_{i,j_\ell}^{k_\ell}`
+    terms. Concretely, if the indices select pairs :math:`(j_1,k_1),\ldots,(j_b,k_b)`, then
 
     .. math::
-        z = (y_{i,p_1}^{k_1},\ldots,y_{i,p_p}^{k_p},u_{i,p_1}^{k_1},\ldots,u_{i,p_p}^{k_p}).
+        z = (y_{i,j_1}^{k_1},\ldots,y_{i,j_b}^{k_b},u_{i,j_1}^{k_1},\ldots,u_{i,j_b}^{k_b}).
 
     For functional components, :math:`u_{i,j}^{k} \in \partial f_i(y_{i,j}^{k})`, and
     :math:`F_{i,j}^{k} = f_i(y_{i,j}^{k})`. The flag **eq** selects equality vs. inequality.
 
-    For any matrix :math:`M \in \mathbb{R}^{q \times p}`, the tensor product
-    :math:`M \kron \Id` denotes the linear map :math:`\calH^{p} \to \calH^{q}` defined by
+    For any matrix :math:`M \in \mathbb{R}^{d \times b}`, the tensor product
+    :math:`M \kron \Id` denotes the linear map :math:`\calH^{b} \to \calH^{d}` defined by
 
     .. math::
-        (M \kron \Id)z = \Big(\sum_{j=1}^{p}[M]_{1,j} z_j,\ldots,\sum_{j=1}^{p}[M]_{q,j} z_j\Big),
+        (M \kron \Id)z = \Big(\sum_{\ell=1}^{b}[M]_{1,\ell} z_\ell,\ldots,\sum_{\ell=1}^{b}[M]_{d,\ell} z_\ell\Big),
 
-    for :math:`z = (z_1,\ldots,z_p) \in \calH^{p}`.
+    for :math:`z = (z_1,\ldots,z_b) \in \calH^{b}`.
 
     """
     @abstractmethod
