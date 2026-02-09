@@ -37,7 +37,7 @@ The complete mathematical development and examples to get started are available 
 
 ## Source code
 
-➡️  [https://github.com/AutoLyap/AutoLyap](https://github.com/AutoLyap/AutoLyap)
+GitHub repository: [AutoLyap/AutoLyap](https://github.com/AutoLyap/AutoLyap)
 
 ## Development install & tests
 
@@ -52,6 +52,17 @@ python -m pytest
 
 MOSEK-backed tests will skip automatically if MOSEK or a valid license is not available.
 Pytest is configured to show skip reasons, so you'll see a message when this happens.
+
+## Build docs
+
+To build the Sphinx documentation locally:
+
+```bash
+make -C docs deps
+make -C docs html
+```
+
+The generated site is written to `docs/build/html/` (open `docs/build/html/index.html`).
 
 ## Other computer-assisted methodologies
 

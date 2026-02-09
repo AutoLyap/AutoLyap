@@ -67,10 +67,10 @@ class OperatorInterpolationCondition(InterpolationCondition):
 
     where :math:`z` stacks the relevant :math:`y_{i,j}^{k}` and :math:`u_{i,j}^{k}` entries selected
     by the interpolation indices. Concretely, if the indices select pairs
-    :math:`(j_1,k_1),\ldots,(j_p,k_p)`, then
+    :math:`(p_1,k_1),\ldots,(p_p,k_p)`, then
 
     .. math::
-        z = (y_{i,j_1}^{k_1},\ldots,y_{i,j_p}^{k_p},u_{i,j_1}^{k_1},\ldots,u_{i,j_p}^{k_p}).
+        z = (y_{i,p_1}^{k_1},\ldots,y_{i,p_p}^{k_p},u_{i,p_1}^{k_1},\ldots,u_{i,p_p}^{k_p}).
 
     For operator components, :math:`u_{i,j}^{k} \in G_i(y_{i,j}^{k})`.
     No linear term appears for operator conditions.
@@ -131,9 +131,9 @@ class FunctionInterpolationCondition(InterpolationCondition):
 
     .. math::
         \big(a_{(i,o)}^{\textup{func-ineq}}\big)^{\top}\begin{bmatrix}
-            F_{i,j_1}^{k_1} \\
+            F_{i,p_1}^{k_1} \\
             \vdots \\
-            F_{i,j_p}^{k_p}
+            F_{i,p_p}^{k_p}
         \end{bmatrix}
         + \langle z, (M_{(i,o)}^{\textup{func-ineq}} \kron \Id) z \rangle \le 0,
 
@@ -141,17 +141,17 @@ class FunctionInterpolationCondition(InterpolationCondition):
 
     .. math::
         \big(a_{(i,o)}^{\textup{func-eq}}\big)^{\top}\begin{bmatrix}
-            F_{i,j_1}^{k_1} \\
+            F_{i,p_1}^{k_1} \\
             \vdots \\
-            F_{i,j_p}^{k_p}
+            F_{i,p_p}^{k_p}
         \end{bmatrix}
         + \langle z, (M_{(i,o)}^{\textup{func-eq}} \kron \Id) z \rangle = 0.
 
-    Here :math:`z` stacks the corresponding :math:`y_{i,j_\ell}^{k_\ell}` and :math:`u_{i,j_\ell}^{k_\ell}`
-    terms. Concretely, if the indices select pairs :math:`(j_1,k_1),\ldots,(j_p,k_p)`, then
+    Here :math:`z` stacks the corresponding :math:`y_{i,p_\ell}^{k_\ell}` and :math:`u_{i,p_\ell}^{k_\ell}`
+    terms. Concretely, if the indices select pairs :math:`(p_1,k_1),\ldots,(p_p,k_p)`, then
 
     .. math::
-        z = (y_{i,j_1}^{k_1},\ldots,y_{i,j_p}^{k_p},u_{i,j_1}^{k_1},\ldots,u_{i,j_p}^{k_p}).
+        z = (y_{i,p_1}^{k_1},\ldots,y_{i,p_p}^{k_p},u_{i,p_1}^{k_1},\ldots,u_{i,p_p}^{k_p}).
 
     For functional components, :math:`u_{i,j}^{k} \in \partial f_i(y_{i,j}^{k})`, and
     :math:`F_{i,j}^{k} = f_i(y_{i,j}^{k})`. The flag **eq** selects equality vs. inequality.

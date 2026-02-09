@@ -22,11 +22,11 @@ def _assert_operator_data(cond: OperatorInterpolationCondition, expected_index: 
 
 
 def test_operator_conditions_shapes_and_indices():
-    _assert_operator_data(MaximallyMonotone(), "j1<j2")
-    _assert_operator_data(StronglyMonotone(0.5), "j1<j2")
-    _assert_operator_data(LipschitzOperator(2.0), "j1<j2")
-    _assert_operator_data(Cocoercive(1.0), "j1<j2")
-    _assert_operator_data(WeakMintyVariationalInequality(0.0), "j1!=star")
+    _assert_operator_data(MaximallyMonotone(), "p1<p2")
+    _assert_operator_data(StronglyMonotone(0.5), "p1<p2")
+    _assert_operator_data(LipschitzOperator(2.0), "p1<p2")
+    _assert_operator_data(Cocoercive(1.0), "p1<p2")
+    _assert_operator_data(WeakMintyVariationalInequality(0.0), "p1!=star")
 
 
 @pytest.mark.parametrize("bad_mu", [0, -1, float("inf"), "x"])

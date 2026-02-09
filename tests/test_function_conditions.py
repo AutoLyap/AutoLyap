@@ -45,7 +45,7 @@ def test_parametrized_function_condition_basic_shape():
     cond = ParametrizedFunctionInterpolationCondition(mu=0.0, L=float("inf"))
     data = cond.get_data()
     assert len(data) == 1
-    _assert_function_data_item(data[0], "j1!=j2", False, (4, 4), 2)
+    _assert_function_data_item(data[0], "p1!=p2", False, (4, 4), 2)
 
 
 @pytest.mark.parametrize(
@@ -72,7 +72,7 @@ def test_parametrized_function_condition_basic_shape():
 def test_function_conditions_shapes_and_indices(factory):
     data = factory().get_data()
     assert len(data) == 1
-    _assert_function_data_item(data[0], "j1!=j2", False, (4, 4), 2)
+    _assert_function_data_item(data[0], "p1!=p2", False, (4, 4), 2)
 
 
 def test_smooth_strongly_convex_rejects_mu_ge_L():
@@ -98,22 +98,22 @@ def test_smooth_weakly_convex_rejects_invalid_mu_tilde(bad_mu_tilde):
         (
             lambda: IndicatorFunctionOfClosedConvexSet(),
             [
-                ("j1!=j2", False, (4, 4), 2),
-                ("j1", True, (2, 2), 1),
+                ("p1!=p2", False, (4, 4), 2),
+                ("p1", True, (2, 2), 1),
             ],
         ),
         (
             lambda: SupportFunctionOfClosedConvexSet(),
             [
-                ("j1!=j2", False, (4, 4), 2),
-                ("j1", True, (2, 2), 1),
+                ("p1!=p2", False, (4, 4), 2),
+                ("p1", True, (2, 2), 1),
             ],
         ),
         (
             lambda: GradientDominated(1.0),
             [
-                ("j1!=star", False, (4, 4), 2),
-                ("j1!=star", False, (4, 4), 2),
+                ("p1!=star", False, (4, 4), 2),
+                ("p1!=star", False, (4, 4), 2),
             ],
         ),
     ],
