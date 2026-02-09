@@ -5,7 +5,7 @@ This example is a step-by-step guide to define your own concrete algorithm with
 
 ## Step 1: Problem statement
 
-Let {math}`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space with norm canonical 
+Let {math}`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space with canonical norm 
 {math}`\|\cdot\|`.
 
 Use the inclusion form
@@ -79,7 +79,7 @@ with
 \bx^k &= x^k,\\
 \bu^k &= \left(\nabla f(x^k),\, \frac{x^k - x^{k+1}}{\gamma} - \nabla f(x^k)\right),\\
 \by^k &= (x^k, x^{k+1}),\\
-\boldsymbol{\partial}\bfcn_1 &: \calH \rightrightarrows \calH : y \mapsto  \partial f (x) = \{\nabla f(y)\},\\
+\boldsymbol{\partial}\bfcn_1 &: \calH \rightrightarrows \calH : y \mapsto  \partial f(y) = \{\nabla f(y)\},\\
 \boldsymbol{\partial}\bfcn_2 &: \calH \rightrightarrows \calH : y \mapsto  \partial g(y).
 \end{aligned}
 ```
@@ -187,6 +187,19 @@ rho_taylor = max(abs(1.0 - L * gamma), abs(1.0 - mu * gamma)) ** 2
 
 print(f"rho (AutoLyap):  {rho_autolyap:.8f}")
 print(f"rho (theory):    {rho_taylor:.8f}")
+```
+
+Hence, for the distance-to-solution target, the method satisfies
+
+```{math}
+\|x^k - x^\star\|^2 = O(\rho^k), \qquad
+\rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2.
+```
+
+Equivalently,
+
+```{math}
+\|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).
 ```
 
 ## Notes

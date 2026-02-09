@@ -1,7 +1,5 @@
 # Iteration-independent analysis
 
-- {py:class}`IterationIndependent <autolyap.IterationIndependent>`
-
 ```{eval-rst}
 .. autoclass:: autolyap.IterationIndependent
    :members:

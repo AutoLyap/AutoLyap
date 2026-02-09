@@ -6,6 +6,7 @@ from tests.mosek_utils import require_mosek_license
 
 
 # Convergence-rate test for the proximal point method using MOSEK.
+# Theoretical rate reference: Rockafellar1976PPA.
 def test_convergence_proximal_point_rho_matches_theory():
     require_mosek_license()
     mu = 1.0
