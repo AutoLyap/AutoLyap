@@ -10,6 +10,22 @@ tocdepth: 1
 
 ```{include} ../../README.md
 :start-after: "## Installation"
+:end-before: "## Companion paper"
+```
+
+## Companion paper
+
+For full mathematical context, see the companion paper {cite}`index-upadhyaya2025autolyap`.
+
+```{bibliography}
+:filter: docname in docnames
+:keyprefix: index-
+```
+
+## Source code
+
+```{include} ../../README.md
+:start-after: "## Source code"
 :end-before: "## Development install & tests"
 ```
 

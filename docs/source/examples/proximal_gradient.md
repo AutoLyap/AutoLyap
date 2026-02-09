@@ -49,11 +49,15 @@ For an initial point {math}`x^0 \in \calH` and step size
 x^{k+1} = \prox_{\gamma g}\!\left(x^k - \gamma \nabla f(x^k)\right).
 ```
 
-Using the proximal optimality condition, this is equivalent to
+Using the optimality condition of the proximal operator, this is equivalent to
 
 ```{math}
-(\forall k \in \naturals)\quad
-\frac{x^k - x^{k+1}}{\gamma} - \nabla f(x^k) \in \partial g(x^{k+1}).
+\frac{x^k - x^{k+1}}{\gamma} - \nabla f(x^k) \in \partial g(x^{k+1})
+```
+
+or 
+```{math}
+x^{k+1} \in x^k - \gamma \nabla f(x^k) - \gamma \partial g(x^{k+1}).
 ```
 
 ## Step 3: State-space representation
@@ -74,13 +78,13 @@ with
 \begin{aligned}
 \bx^k &= x^k,\\
 \bu^k &= \left(\nabla f(x^k),\, \frac{x^k - x^{k+1}}{\gamma} - \nabla f(x^k)\right),\\
-\by^k &= (y_1^k, y_2^k) = (x^k, x^{k+1}),\\
+\by^k &= (x^k, x^{k+1}),\\
 \boldsymbol{\partial}\bfcn_1 &: \calH \rightrightarrows \calH : y \mapsto  \partial f (x) = \{\nabla f(y)\},\\
 \boldsymbol{\partial}\bfcn_2 &: \calH \rightrightarrows \calH : y \mapsto  \partial g(y).
 \end{aligned}
 ```
 
-and the matrices in {py:meth}`autolyap.algorithms.Algorithm.get_ABCD` are
+and the matrices
 
 ```{math}
 \begin{aligned}
@@ -132,9 +136,24 @@ class ProximalGradientMethod(Algorithm):
 from autolyap import IterationIndependent
 from autolyap.problemclass import Convex, InclusionProblem, SmoothStronglyConvex
 
+
+def validate_parameters(mu: float, L: float, gamma: float) -> None:
+    if not (0.0 < mu < L):
+        raise ValueError(
+            f"Invalid parameters: require 0 < mu < L. Got mu={mu}, L={L}."
+        )
+
+    gamma_max = 2.0 / L
+    if not (0.0 < gamma <= gamma_max):
+        raise ValueError(
+            f"Invalid parameters: require 0 < gamma <= 2/L. Got gamma={gamma}, 2/L={gamma_max}."
+        )
+
+
 mu = 1.0
 L = 4.0
 gamma = 2.0 / (L + mu)
+validate_parameters(mu=mu, L=L, gamma=gamma)
 
 problem = InclusionProblem([
     SmoothStronglyConvex(mu, L),    # component i=1: f
@@ -164,14 +183,20 @@ if not result["success"]:
     raise RuntimeError("No feasible Lyapunov certificate in the requested rho interval.")
 
 rho_autolyap = result["rho"]
-rho_theory = max(abs(1.0 - L * gamma), abs(1.0 - mu * gamma)) ** 2
+rho_taylor = max(abs(1.0 - L * gamma), abs(1.0 - mu * gamma)) ** 2
 
-print(f"rho (AutoLyap): {rho_autolyap:.8f}")
-print(f"rho (theory):   {rho_theory:.8f}")
+print(f"rho (AutoLyap):  {rho_autolyap:.8f}")
+print(f"rho (theory):    {rho_taylor:.8f}")
 ```
 
 ## Notes
 
-- The theoretical benchmark above follows the exact worst-case rate in
-  Theorem 2.1 of Taylor, Hendrickx, and Glineur
-  ([Journal of Optimization Theory and Applications, 2018](https://link.springer.com/article/10.1007/s10957-018-1298-1)).
+- The runtime checks in Step 5 enforce `0 < mu < L` and `0 < gamma <= 2/L`.
+- The comparison value `rho (theory)` uses the closed-form expression from
+  Theorem 2.1 in {cite}`taylor2018proximal`.
+
+## References
+
+```{bibliography}
+:filter: docname in docnames
+```
