@@ -9,7 +9,7 @@
   <title>Operator classes &mdash; AutoLyap 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=45df9099" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=18baee69" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -19,6 +19,7 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/copybutton.js?v=36830154"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -31,12 +32,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            AutoLyap
-          </a>
+<a href="index.html" class="icon icon-home">
+  AutoLyap
+</a>
+<div class="sidebar-version">v0.1.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,10 +43,12 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="api_reference.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="problem_class.html">Problem classes</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem"><code class="docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a></li>
@@ -69,9 +70,9 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lyapunov_analyses.html">Lyapunov analyses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solver_backends.html">Solver backends</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 
@@ -112,7 +113,7 @@
 </ul>
 <dl class="py class">
 <dt class="sig sig-object py" id="autolyap.problemclass.MaximallyMonotone">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">MaximallyMonotone</span></span><a class="headerlink" href="#autolyap.problemclass.MaximallyMonotone" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.problemclass.</span></span><span class="sig-name descname"><span class="pre">MaximallyMonotone</span></span><a class="reference internal" href="_modules/autolyap/problemclass/operators.html#MaximallyMonotone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.problemclass.MaximallyMonotone" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.OperatorInterpolationCondition" title="autolyap.problemclass.base.OperatorInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">OperatorInterpolationCondition</span></code></a></p>
 <p>Operator interpolation condition for maximally monotone operators.</p>
 <p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space and
@@ -131,11 +132,11 @@ It is monotone and there is no monotone operator
 <span class="math notranslate nohighlight">\(\widetilde{G}: \calH \rightrightarrows \calH\)</span> whose graph
 strictly contains <span class="math notranslate nohighlight">\(\operatorname{gra} G\)</span>.</p></li>
 <li><p>Interpolation inequality:</p>
-<p>For any <span class="math notranslate nohighlight">\((x_{j_1},u_{j_1}),(x_{j_2},u_{j_2}) \in \operatorname{gra} G\)</span>,</p>
+<p>For any <span class="math notranslate nohighlight">\((x_{r_1},u_{r_1}),(x_{r_2},u_{r_2}) \in \operatorname{gra} G\)</span>,</p>
 </li>
 </ul>
 <div class="math notranslate nohighlight">
-\[\langle u_{j_1} - u_{j_2}, x_{j_1} - x_{j_2} \rangle \ge 0.\]</div>
+\[\langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge 0.\]</div>
 <p>This condition has no parameters.</p>
 </dd></dl>
 
@@ -147,7 +148,7 @@ strictly contains <span class="math notranslate nohighlight">\(\operatorname{gra
 <dd><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.StronglyMonotone" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span><a class="reference internal" href="_modules/autolyap/problemclass/operators.html#StronglyMonotone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.problemclass.StronglyMonotone" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.OperatorInterpolationCondition" title="autolyap.problemclass.base.OperatorInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">OperatorInterpolationCondition</span></code></a></p>
 <p>Operator interpolation condition for strongly and maximally monotone operators.</p>
 <p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space,
@@ -163,9 +164,9 @@ strictly contains <span class="math notranslate nohighlight">\(\operatorname{gra
 \quad \text{for each } (x,u),(y,v) \in \operatorname{gra} G.\]</div>
 </li>
 <li><p>Interpolation inequality:</p>
-<p>For any <span class="math notranslate nohighlight">\((x_{j_1},u_{j_1}),(x_{j_2},u_{j_2}) \in \operatorname{gra} G\)</span>,</p>
+<p>For any <span class="math notranslate nohighlight">\((x_{r_1},u_{r_1}),(x_{r_2},u_{r_2}) \in \operatorname{gra} G\)</span>,</p>
 <div class="math notranslate nohighlight">
-\[\langle u_{j_1} - u_{j_2}, x_{j_1} - x_{j_2} \rangle \ge \mu \|x_{j_1} - x_{j_2}\|^2.\]</div>
+\[\langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge \mu \|x_{r_1} - x_{r_2}\|^2.\]</div>
 </li>
 </ul>
 <p><strong>Parameters</strong></p>
@@ -187,7 +188,7 @@ to <span class="math notranslate nohighlight">\(\mu\)</span> (must be <span clas
 <dd><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.LipschitzOperator" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span><a class="reference internal" href="_modules/autolyap/problemclass/operators.html#LipschitzOperator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.problemclass.LipschitzOperator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.OperatorInterpolationCondition" title="autolyap.problemclass.base.OperatorInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">OperatorInterpolationCondition</span></code></a></p>
 <p>Operator interpolation condition for Lipschitz operators.</p>
 <p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space,
@@ -199,10 +200,10 @@ to <span class="math notranslate nohighlight">\(\mu\)</span> (must be <span clas
 \quad \text{for each } x,y \in \calH.\]</div>
 </li>
 <li><p>Interpolation inequality:</p>
-<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
-<span class="math notranslate nohighlight">\(u_{j_1} = G(x_{j_1})\)</span> and <span class="math notranslate nohighlight">\(u_{j_2} = G(x_{j_2})\)</span>,</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{r_1}, x_{r_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(u_{r_1} = G(x_{r_1})\)</span> and <span class="math notranslate nohighlight">\(u_{r_2} = G(x_{r_2})\)</span>,</p>
 <div class="math notranslate nohighlight">
-\[\|u_{j_1} - u_{j_2}\|^2 \le L^2 \|x_{j_1} - x_{j_2}\|^2.\]</div>
+\[\|u_{r_1} - u_{r_2}\|^2 \le L^2 \|x_{r_1} - x_{r_2}\|^2.\]</div>
 </li>
 </ul>
 <p><strong>Parameters</strong></p>
@@ -224,7 +225,7 @@ to <span class="math notranslate nohighlight">\(\mu\)</span> (must be <span clas
 <dd><em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.Cocoercive" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span><a class="reference internal" href="_modules/autolyap/problemclass/operators.html#Cocoercive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.problemclass.Cocoercive" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.OperatorInterpolationCondition" title="autolyap.problemclass.base.OperatorInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">OperatorInterpolationCondition</span></code></a></p>
 <p>Operator interpolation condition for cocoercive operators.</p>
 <p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space,
@@ -236,10 +237,10 @@ to <span class="math notranslate nohighlight">\(\mu\)</span> (must be <span clas
 \quad \text{for each } x,y \in \calH.\]</div>
 </li>
 <li><p>Interpolation inequality:</p>
-<p>For any <span class="math notranslate nohighlight">\(x_{j_1}, x_{j_2} \in \calH\)</span> with
-<span class="math notranslate nohighlight">\(u_{j_1} = G(x_{j_1})\)</span> and <span class="math notranslate nohighlight">\(u_{j_2} = G(x_{j_2})\)</span>,</p>
+<p>For any <span class="math notranslate nohighlight">\(x_{r_1}, x_{r_2} \in \calH\)</span> with
+<span class="math notranslate nohighlight">\(u_{r_1} = G(x_{r_1})\)</span> and <span class="math notranslate nohighlight">\(u_{r_2} = G(x_{r_2})\)</span>,</p>
 <div class="math notranslate nohighlight">
-\[\langle u_{j_1} - u_{j_2}, x_{j_1} - x_{j_2} \rangle \ge \beta \|u_{j_1} - u_{j_2}\|^2.\]</div>
+\[\langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge \beta \|u_{r_1} - u_{r_2}\|^2.\]</div>
 </li>
 </ul>
 <p><strong>Parameters</strong></p>
@@ -261,7 +262,7 @@ to <span class="math notranslate nohighlight">\(\beta\)</span> (must be <span cl
 <dd><em class="sig-param"><span class="n"><span class="pre">rho_minty</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.problemclass.WeakMintyVariationalInequality" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span><a class="reference internal" href="_modules/autolyap/problemclass/operators.html#WeakMintyVariationalInequality"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.problemclass.WeakMintyVariationalInequality" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="problem_class.html#autolyap.problemclass.OperatorInterpolationCondition" title="autolyap.problemclass.base.OperatorInterpolationCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">OperatorInterpolationCondition</span></code></a></p>
 <p>Operator interpolation condition for operators that fulfill the weak Minty variational inequality.</p>
 <p>Let <span class="math notranslate nohighlight">\((\calH,\langle\cdot,\cdot\rangle)\)</span> be a real Hilbert space,
@@ -276,9 +277,9 @@ for each <span class="math notranslate nohighlight">\((x,u) \in \operatorname{gr
 </li>
 <li><p>Interpolation inequality:</p>
 <p>There exists <span class="math notranslate nohighlight">\(x_\star \in \calH\)</span> with <span class="math notranslate nohighlight">\(0 \in G(x_\star)\)</span> such that for any
-<span class="math notranslate nohighlight">\((x_{j_1},u_{j_1}) \in \operatorname{gra} G\)</span>,</p>
+<span class="math notranslate nohighlight">\((x_{r_1},u_{r_1}) \in \operatorname{gra} G\)</span>,</p>
 <div class="math notranslate nohighlight">
-\[\langle u_{j_1}, x_{j_1} - x_\star \rangle \ge \rho_{\textup{minty}} \|u_{j_1}\|^2.\]</div>
+\[\langle u_{r_1}, x_{r_1} - x_\star \rangle \ge \rho_{\textup{minty}} \|u_{r_1}\|^2.\]</div>
 </li>
 </ul>
 <p>Note: When used inside <a class="reference internal" href="problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">InclusionProblem</span></code></a>, AutoLyap enforces that the total number
@@ -307,7 +308,10 @@ of components is exactly one (i.e., <span class="math notranslate nohighlight">\
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2026, Manu Upadhyaya.</p>
+  <p>
+    &#169; Copyright 2026,
+    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.</p>
+
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

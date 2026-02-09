@@ -1,2 +1,3 @@
 mosek
 numpy
+cvxpy>=1.6

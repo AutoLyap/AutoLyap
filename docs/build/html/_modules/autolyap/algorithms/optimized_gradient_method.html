@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>autolyap.algorithms.optimized_gradient_method &mdash; AutoLyap 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=18baee69" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/copybutton.js?v=36830154"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+<a href="../../../index.html" class="icon icon-home">
+  AutoLyap
+</a>
+<div class="sidebar-version">v0.1.0</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">AutoLyap</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">autolyap.algorithms.optimized_gradient_method</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for autolyap.algorithms.optimized_gradient_method</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.algorithm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Algorithm</span>
+
+<div class="viewcode-block" id="OptimizedGradientMethod">
+<a class="viewcode-back" href="../../../concrete_algorithms.html#autolyap.algorithms.OptimizedGradientMethod">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptimizedGradientMethod</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimized gradient method.</span>
+
+<span class="sd">    Class-level reference</span>
+<span class="sd">    =====================</span>
+
+<span class="sd">    Mathematical notation and shared definitions used by methods are defined in this class docstring.</span>
+
+<span class="sd">    Notation-driven assumptions are declared by the user via</span>
+<span class="sd">    :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with</span>
+<span class="sd">    :math:`\nabla` use differentiable functions, terms written with</span>
+<span class="sd">    :math:`\prox_{\gamma f}` use proper, lower semicontinuous, convex functions,</span>
+<span class="sd">    and terms written with :math:`J_{\gamma G}` use maximally monotone operators.</span>
+
+<span class="sd">    Standard form</span>
+<span class="sd">    -------------</span>
+
+
+<span class="sd">    For initial points :math:`x^0,y^0 \in \calH`, smoothness constant</span>
+<span class="sd">    :math:`L \in \reals_{++}`, and iteration budget :math:`K \in \naturals`,</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        (\forall k \in \llbracket 0, K-1 \rrbracket)\quad</span>
+<span class="sd">        \left[</span>
+<span class="sd">        \begin{aligned}</span>
+<span class="sd">            y^{k+1} &amp;= x^k - \frac{1}{L}\nabla f(x^k), \\</span>
+<span class="sd">            x^{k+1} &amp;= y^{k+1} + \frac{\theta_k - 1}{\theta_{k+1}}(y^{k+1} - y^k) + \frac{\theta_k}{\theta_{k+1}}(y^{k+1} - x^k).</span>
+<span class="sd">        \end{aligned}</span>
+<span class="sd">        \right.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \theta_k =</span>
+<span class="sd">        \begin{cases}</span>
+<span class="sd">            1, &amp; \text{if } k = 0, \\</span>
+<span class="sd">            \dfrac{1 + \sqrt{1 + 4\theta_{k-1}^2}}{2},</span>
+<span class="sd">            &amp; \text{if } k \in \llbracket 1, K-1 \rrbracket, \\</span>
+<span class="sd">            \dfrac{1 + \sqrt{1 + 8\theta_{k-1}^2}}{2},</span>
+<span class="sd">            &amp; \text{if } k = K.</span>
+<span class="sd">        \end{cases}</span>
+
+<span class="sd">    State-space representation</span>
+<span class="sd">    --------------------------</span>
+
+<span class="sd">    The update can be written in the algorithm representation with</span>
+<span class="sd">    :math:`\bx^k = (x^k, y^k)`, :math:`\bu^k = \nabla f(x^k)`, and</span>
+<span class="sd">    :math:`\by^k = x^k`.</span>
+
+<span class="sd">    For :math:`k \in \llbracket 0, K-1 \rrbracket`, with :math:`\theta_k` as in</span>
+<span class="sd">    the standard form, :meth:`get_ABCD` returns</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \begin{aligned}</span>
+<span class="sd">            A_k &amp;=</span>
+<span class="sd">            \begin{bmatrix}</span>
+<span class="sd">            1+\frac{\theta_k-1}{\theta_{k+1}} &amp; \frac{1-\theta_k}{\theta_{k+1}} \\</span>
+<span class="sd">            1 &amp; 0</span>
+<span class="sd">            \end{bmatrix}, &amp;</span>
+<span class="sd">            B_k &amp;=</span>
+<span class="sd">            \begin{bmatrix}</span>
+<span class="sd">            -\frac{1+(2\theta_k-1)/\theta_{k+1}}{L} \\</span>
+<span class="sd">            -\frac{1}{L}</span>
+<span class="sd">            \end{bmatrix}, \\</span>
+<span class="sd">            C_k &amp;= \begin{bmatrix} 1 &amp; 0 \end{bmatrix}, &amp;</span>
+<span class="sd">            D_k &amp;= \begin{bmatrix} 0 \end{bmatrix}.</span>
+<span class="sd">        \end{aligned}</span>
+
+<span class="sd">    For :math:`k = K`, :meth:`get_ABCD` returns</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \begin{aligned}</span>
+<span class="sd">            A_K &amp;=</span>
+<span class="sd">            \begin{bmatrix}</span>
+<span class="sd">            0 &amp; 0 \\</span>
+<span class="sd">            0 &amp; 0</span>
+<span class="sd">            \end{bmatrix}, &amp;</span>
+<span class="sd">            B_K &amp;=</span>
+<span class="sd">            \begin{bmatrix}</span>
+<span class="sd">            0 \\</span>
+<span class="sd">            0</span>
+<span class="sd">            \end{bmatrix}, \\</span>
+<span class="sd">            C_K &amp;= \begin{bmatrix} 1 &amp; 0 \end{bmatrix}, &amp;</span>
+<span class="sd">            D_K &amp;= \begin{bmatrix} 0 \end{bmatrix}.</span>
+<span class="sd">        \end{aligned}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the optimized gradient method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">=</span> <span class="n">L</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="n">K</span>
+    
+<div class="viewcode-block" id="OptimizedGradientMethod.set_L">
+<a class="viewcode-back" href="../../../concrete_algorithms.html#autolyap.algorithms.OptimizedGradientMethod.set_L">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_L</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">L</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the smoothness parameter :math:`L`.</span>
+
+<span class="sd">        Shared notation follows the class-level reference in</span>
+<span class="sd">        :class:`~autolyap.algorithms.OptimizedGradientMethod`.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">        - `L` (:class:`~typing.Union`\[:class:`int`, :class:`float`\]): The value corresponding to :math:`L`.</span>
+
+<span class="sd">        **Raises**</span>
+
+<span class="sd">        - `ValueError`: If `L` is not a finite real number or if :math:`L \le 0`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_positive_finite_real</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="s2">&quot;L&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_dynamic_parameter</span><span class="p">(</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="OptimizedGradientMethod.set_K">
+<a class="viewcode-back" href="../../../concrete_algorithms.html#autolyap.algorithms.OptimizedGradientMethod.set_K">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_K</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the iteration budget :math:`K`.</span>
+
+<span class="sd">        Shared notation follows the class-level reference in</span>
+<span class="sd">        :class:`~autolyap.algorithms.OptimizedGradientMethod`.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">        - `K` (:class:`int`): The value corresponding to :math:`K`.</span>
+
+<span class="sd">        **Raises**</span>
+
+<span class="sd">        - `ValueError`: If `K` is not an integer or if :math:`K &lt; 0`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_nonnegative_integral</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_dynamic_parameter</span><span class="p">(</span><span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="n">K</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;k must be a non-negative integer and less than or equal to K.&quot;</span><span class="p">)</span>
+        
+        <span class="n">theta</span> <span class="o">=</span> <span class="mf">1.0</span> 
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">K</span><span class="p">:</span>
+                <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">theta</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">theta</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">theta</span>
+    
+<div class="viewcode-block" id="OptimizedGradientMethod.get_ABCD">
+<a class="viewcode-back" href="../../../concrete_algorithms.html#autolyap.algorithms.OptimizedGradientMethod.get_ABCD">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ABCD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+
+        <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">:</span>
+            <span class="n">theta_k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_theta</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">)</span>
+            <span class="n">theta_kp1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_theta</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">)</span>
+            
+            <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="o">+</span><span class="p">(</span><span class="n">theta_k</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">theta_kp1</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">theta_k</span><span class="p">)</span><span class="o">/</span><span class="n">theta_kp1</span><span class="p">],</span>
+                          <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+            
+            <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">theta_k</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">theta_kp1</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="p">],</span>
+                          <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="p">]])</span>
+            
+            <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+            
+            <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">]])</span>
+        
+        <span class="k">elif</span> <span class="n">k</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">:</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                          <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+            
+            <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span>
+                          <span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+            
+            <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+            
+            <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">]])</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;k must be less than or equal to K.&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+  <p>
+    &#169; Copyright 2026,
+    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.</p>
+
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

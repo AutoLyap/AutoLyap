@@ -47,7 +47,8 @@ python -m pytest tests/test_convergence_proximal_point.py -q
 ```
 
 MOSEK-backed tests will skip automatically when MOSEK or a valid license is
-not available.
+not available. CVXPY backend smoke tests will skip when CVXPY or a supported
+CVXPY SDP solver is unavailable.
 
 ## Build documentation
 
@@ -105,7 +106,7 @@ git switch -c <feature-branch>
 - [ ] Docs are updated when APIs/behavior changed.
 - [ ] Docs build locally (`make -C docs html`) if docs were changed.
 - [ ] No generated files from `docs/build/` are included in the commit.
-- [ ] PR description states what changed and why.
+- [ ] PR description states what changed, why, and which test and docs build commands were run.
 
 ## Reporting issues
 
