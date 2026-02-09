@@ -46,21 +46,21 @@ class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition)
 
     - Interpolation inequality:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} \in \partial f(x_{j_1})`, :math:`g_{j_2} \in \partial f(x_{j_2})`,
-      and :math:`F_{j_1} = f(x_{j_1})`, :math:`F_{j_2} = f(x_{j_2})`, the condition enforced is
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} \in \partial f(x_{p_1})`, :math:`g_{p_2} \in \partial f(x_{p_2})`,
+      and :math:`F_{p_1} = f(x_{p_1})`, :math:`F_{p_2} = f(x_{p_2})`, the condition enforced is
 
       .. math::
-          F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle + \frac{\mu}{2}\|x_{j_1} - x_{j_2}\|^2
-          + \frac{1}{2(L-\mu)}\|g_{j_1} - g_{j_2} - \mu(x_{j_1} - x_{j_2})\|^2,
+          F_{p_1} \ge F_{p_2} + \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle + \frac{\mu}{2}\|x_{p_1} - x_{p_2}\|^2
+          + \frac{1}{2(L-\mu)}\|g_{p_1} - g_{p_2} - \mu(x_{p_1} - x_{p_2})\|^2,
 
       where :math:`\frac{1}{2(L-\mu)}` is interpreted as :math:`0` when :math:`L = +\infty`.
 
     - Interpolation data:
 
-      The returned data uses interpolation indices ``j1!=j2`` and an inequality constraint with
-      :math:`a = (-1,1)` applied to the function values :math:`(F_{j_1},F_{j_2})`. The quadratic term uses
-      :math:`z = (x_{j_1},x_{j_2},g_{j_1},g_{j_2})` and a matrix :math:`M` given by
+      The returned data uses interpolation indices ``p1!=p2`` and an inequality constraint with
+      :math:`a = (-1,1)` applied to the function values :math:`(F_{p_1},F_{p_2})`. The quadratic term uses
+      :math:`z = (x_{p_1},x_{p_2},g_{p_1},g_{p_2})` and a matrix :math:`M` given by
 
       .. math::
           M =
@@ -157,7 +157,7 @@ class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition)
             ])
         vector = np.array([-1, 1])
         eq = False
-        interp_idx = InterpolationIndices("j1!=j2")
+        interp_idx = InterpolationIndices("p1!=p2")
         return matrix, vector, eq, interp_idx
 
     def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]]:
@@ -202,12 +202,12 @@ class Convex(ParametrizedFunctionInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} \in \partial f(x_{j_1})`, :math:`g_{j_2} \in \partial f(x_{j_2})`,
-      and :math:`F_{j_1} = f(x_{j_1})`, :math:`F_{j_2} = f(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} \in \partial f(x_{p_1})`, :math:`g_{p_2} \in \partial f(x_{p_2})`,
+      and :math:`F_{p_1} = f(x_{p_1})`, :math:`F_{p_2} = f(x_{p_2})`,
 
       .. math::
-          F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle.
+          F_{p_1} \ge F_{p_2} + \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle.
 
     """
     def __init__(self):
@@ -239,12 +239,12 @@ class StronglyConvex(ParametrizedFunctionInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} \in \partial f(x_{j_1})`, :math:`g_{j_2} \in \partial f(x_{j_2})`,
-      and :math:`F_{j_1} = f(x_{j_1})`, :math:`F_{j_2} = f(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} \in \partial f(x_{p_1})`, :math:`g_{p_2} \in \partial f(x_{p_2})`,
+      and :math:`F_{p_1} = f(x_{p_1})`, :math:`F_{p_2} = f(x_{p_2})`,
 
       .. math::
-          F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle + \frac{\mu}{2}\|x_{j_1} - x_{j_2}\|^2.
+          F_{p_1} \ge F_{p_2} + \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle + \frac{\mu}{2}\|x_{p_1} - x_{p_2}\|^2.
 
     **Parameters**
 
@@ -285,12 +285,12 @@ class WeaklyConvex(ParametrizedFunctionInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} \in \partial f(x_{j_1})`, :math:`g_{j_2} \in \partial f(x_{j_2})`,
-      and :math:`F_{j_1} = f(x_{j_1})`, :math:`F_{j_2} = f(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} \in \partial f(x_{p_1})`, :math:`g_{p_2} \in \partial f(x_{p_2})`,
+      and :math:`F_{p_1} = f(x_{p_1})`, :math:`F_{p_2} = f(x_{p_2})`,
 
       .. math::
-          F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle - \frac{\tilde{\mu}}{2}\|x_{j_1} - x_{j_2}\|^2.
+          F_{p_1} \ge F_{p_2} + \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle - \frac{\tilde{\mu}}{2}\|x_{p_1} - x_{p_2}\|^2.
 
     **Parameters**
 
@@ -323,14 +323,14 @@ class Smooth(ParametrizedFunctionInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} = \nabla f(x_{j_1})`, :math:`g_{j_2} = \nabla f(x_{j_2})`,
-      and :math:`F_{j_1} = f(x_{j_1})`, :math:`F_{j_2} = f(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} = \nabla f(x_{p_1})`, :math:`g_{p_2} = \nabla f(x_{p_2})`,
+      and :math:`F_{p_1} = f(x_{p_1})`, :math:`F_{p_2} = f(x_{p_2})`,
 
       .. math::
-          F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle
-          + \frac{1}{4L}\|g_{j_1} - g_{j_2} + L(x_{j_1} - x_{j_2})\|^2
-          - \frac{L}{2}\|x_{j_1} - x_{j_2}\|^2.
+          F_{p_1} \ge F_{p_2} + \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle
+          + \frac{1}{4L}\|g_{p_1} - g_{p_2} + L(x_{p_1} - x_{p_2})\|^2
+          - \frac{L}{2}\|x_{p_1} - x_{p_2}\|^2.
 
     **Parameters**
 
@@ -368,13 +368,13 @@ class SmoothConvex(ParametrizedFunctionInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} = \nabla f(x_{j_1})`, :math:`g_{j_2} = \nabla f(x_{j_2})`,
-      and :math:`F_{j_1} = f(x_{j_1})`, :math:`F_{j_2} = f(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} = \nabla f(x_{p_1})`, :math:`g_{p_2} = \nabla f(x_{p_2})`,
+      and :math:`F_{p_1} = f(x_{p_1})`, :math:`F_{p_2} = f(x_{p_2})`,
 
       .. math::
-          F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle
-          + \frac{1}{2L}\|g_{j_1} - g_{j_2}\|^2.
+          F_{p_1} \ge F_{p_2} + \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle
+          + \frac{1}{2L}\|g_{p_1} - g_{p_2}\|^2.
 
     **Parameters**
 
@@ -412,13 +412,13 @@ class SmoothStronglyConvex(ParametrizedFunctionInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} = \nabla f(x_{j_1})`, :math:`g_{j_2} = \nabla f(x_{j_2})`,
-      and :math:`F_{j_1} = f(x_{j_1})`, :math:`F_{j_2} = f(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} = \nabla f(x_{p_1})`, :math:`g_{p_2} = \nabla f(x_{p_2})`,
+      and :math:`F_{p_1} = f(x_{p_1})`, :math:`F_{p_2} = f(x_{p_2})`,
 
       .. math::
-          F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle + \frac{\mu}{2}\|x_{j_1} - x_{j_2}\|^2
-          + \frac{1}{2(L-\mu)}\|g_{j_1} - g_{j_2} - \mu(x_{j_1} - x_{j_2})\|^2.
+          F_{p_1} \ge F_{p_2} + \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle + \frac{\mu}{2}\|x_{p_1} - x_{p_2}\|^2
+          + \frac{1}{2(L-\mu)}\|g_{p_1} - g_{p_2} - \mu(x_{p_1} - x_{p_2})\|^2.
 
     **Parameters**
 
@@ -468,13 +468,13 @@ class SmoothWeaklyConvex(ParametrizedFunctionInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} = \nabla f(x_{j_1})`, :math:`g_{j_2} = \nabla f(x_{j_2})`,
-      and :math:`F_{j_1} = f(x_{j_1})`, :math:`F_{j_2} = f(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} = \nabla f(x_{p_1})`, :math:`g_{p_2} = \nabla f(x_{p_2})`,
+      and :math:`F_{p_1} = f(x_{p_1})`, :math:`F_{p_2} = f(x_{p_2})`,
 
       .. math::
-          F_{j_1} \ge F_{j_2} + \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle - \frac{\tilde{\mu}}{2}\|x_{j_1} - x_{j_2}\|^2
-          + \frac{1}{2(L+\tilde{\mu})}\|g_{j_1} - g_{j_2} + \tilde{\mu}(x_{j_1} - x_{j_2})\|^2.
+          F_{p_1} \ge F_{p_2} + \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle - \frac{\tilde{\mu}}{2}\|x_{p_1} - x_{p_2}\|^2
+          + \frac{1}{2(L+\tilde{\mu})}\|g_{p_1} - g_{p_2} + \tilde{\mu}(x_{p_1} - x_{p_2})\|^2.
 
     **Parameters**
 
@@ -528,17 +528,17 @@ class IndicatorFunctionOfClosedConvexSet(FunctionInterpolationCondition):
 
     - Interpolation inequalities used:
 
-      For any :math:`x_{j_1}, x_{j_2} \in C` with
-      :math:`g_{j_1} \in N_C(x_{j_1})`, :math:`g_{j_2} \in N_C(x_{j_2})`,
-      and :math:`F_{j_1} = \delta_C(x_{j_1})`, :math:`F_{j_2} = \delta_C(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in C` with
+      :math:`g_{p_1} \in N_C(x_{p_1})`, :math:`g_{p_2} \in N_C(x_{p_2})`,
+      and :math:`F_{p_1} = \delta_C(x_{p_1})`, :math:`F_{p_2} = \delta_C(x_{p_2})`,
 
       .. math::
-          \langle g_{j_2}, x_{j_1} - x_{j_2} \rangle \le 0 \quad \text{for } j_1 \ne j_2,
+          \langle g_{p_2}, x_{p_1} - x_{p_2} \rangle \le 0 \quad \text{for } p_1 \ne p_2,
 
     and
 
       .. math::
-          F_{j_1} = 0 \quad \text{for each interpolation point } x_{j_1} \in C.
+          F_{p_1} = 0 \quad \text{for each interpolation point } x_{p_1} \in C.
 
     This condition has no parameters.
 
@@ -556,7 +556,7 @@ class IndicatorFunctionOfClosedConvexSet(FunctionInterpolationCondition):
           tuples with the interpolation data.
 
         """
-        interp_idx_ineq = InterpolationIndices("j1!=j2")
+        interp_idx_ineq = InterpolationIndices("p1!=p2")
         matrix_ineq = 0.5 * np.array([
             [0, 0, 0, 1],
             [0, 0, 0, -1],
@@ -564,7 +564,7 @@ class IndicatorFunctionOfClosedConvexSet(FunctionInterpolationCondition):
             [1, -1, 0, 0]
         ])
         vector_ineq = np.array([0, 0])
-        interp_idx_eq = InterpolationIndices("j1")
+        interp_idx_eq = InterpolationIndices("p1")
         matrix_eq = np.array([[0, 0], [0, 0]])
         vector_eq = np.array([1])
         return [
@@ -588,17 +588,17 @@ class SupportFunctionOfClosedConvexSet(FunctionInterpolationCondition):
 
     - Interpolation inequalities used:
 
-      For any :math:`x_{j_1}, x_{j_2} \in \calH` with
-      :math:`g_{j_1} \in \partial \sigma_C(x_{j_1})`, :math:`g_{j_2} \in \partial \sigma_C(x_{j_2})`,
-      and :math:`F_{j_1} = \sigma_C(x_{j_1})`, :math:`F_{j_2} = \sigma_C(x_{j_2})`,
+      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
+      :math:`g_{p_1} \in \partial \sigma_C(x_{p_1})`, :math:`g_{p_2} \in \partial \sigma_C(x_{p_2})`,
+      and :math:`F_{p_1} = \sigma_C(x_{p_1})`, :math:`F_{p_2} = \sigma_C(x_{p_2})`,
 
       .. math::
-          F_{j_1} = \langle x_{j_1}, g_{j_1} \rangle,
+          F_{p_1} = \langle x_{p_1}, g_{p_1} \rangle,
 
     and
 
       .. math::
-          \langle x_{j_2}, g_{j_1} - g_{j_2} \rangle \le 0 \quad \text{for } j_1 \ne j_2
+          \langle x_{p_2}, g_{p_1} - g_{p_2} \rangle \le 0 \quad \text{for } p_1 \ne p_2
 
     This condition has no parameters.
 
@@ -616,7 +616,7 @@ class SupportFunctionOfClosedConvexSet(FunctionInterpolationCondition):
           tuples with the interpolation data.
 
         """
-        interp_idx_ineq = InterpolationIndices("j1!=j2")
+        interp_idx_ineq = InterpolationIndices("p1!=p2")
         matrix_ineq = 0.5 * np.array([
             [0, 0, 0, 0],
             [0, 0, 1, -1],
@@ -624,7 +624,7 @@ class SupportFunctionOfClosedConvexSet(FunctionInterpolationCondition):
             [0, -1, 0, 0]
         ])
         vector_ineq = np.array([0, 0])
-        interp_idx_eq = InterpolationIndices("j1")
+        interp_idx_eq = InterpolationIndices("p1")
         matrix_eq = 0.5 * np.array([[0, 1], [1, 0]])
         vector_eq = np.array([-1])
         return [
@@ -649,13 +649,13 @@ class GradientDominated(FunctionInterpolationCondition):
     - Interpolation inequalities used:
 
       Let :math:`x_\star` be a minimizer with :math:`F_\star = f(x_\star)`.
-      For any :math:`x_{j_1} \in \calH` with :math:`g_{j_1} = \nabla f(x_{j_1})` and
-      :math:`F_{j_1} = f(x_{j_1})`,
+      For any :math:`x_{p_1} \in \calH` with :math:`g_{p_1} = \nabla f(x_{p_1})` and
+      :math:`F_{p_1} = f(x_{p_1})`,
 
       .. math::
-          F_{j_1} - F_\star \le \frac{1}{2\mu_{\textup{gd}}}\|g_{j_1}\|^2
+          F_{p_1} - F_\star \le \frac{1}{2\mu_{\textup{gd}}}\|g_{p_1}\|^2
           \quad \text{and} \quad
-          F_{j_1} \ge F_\star.
+          F_{p_1} \ge F_\star.
 
     Note: This gradient-dominated condition is only sufficient for the analysis in AutoLyap,
     and there is no guarantee of tightness of the resulting analysis.
@@ -700,7 +700,7 @@ class GradientDominated(FunctionInterpolationCondition):
         M2 = np.zeros((4, 4))
         M2[2, 2] = -1 / (2 * self.mu_gd)
         
-        interp_idx = InterpolationIndices("j1!=star")
+        interp_idx = InterpolationIndices("p1!=star")
         eq_flag = False
         return [
             (M1, a1, eq_flag, interp_idx),
