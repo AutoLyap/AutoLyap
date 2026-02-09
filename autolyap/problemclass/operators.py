@@ -46,10 +46,10 @@ class MaximallyMonotone(OperatorInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`(x_{p_1},u_{p_1}),(x_{p_2},u_{p_2}) \in \operatorname{gra} G`,
+      For any :math:`(x_{r_1},u_{r_1}),(x_{r_2},u_{r_2}) \in \operatorname{gra} G`,
 
     .. math::
-        \langle u_{p_1} - u_{p_2}, x_{p_1} - x_{p_2} \rangle \ge 0.
+        \langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge 0.
 
     This condition has no parameters.
 
@@ -73,7 +73,7 @@ class MaximallyMonotone(OperatorInterpolationCondition):
             [-1, 1,  0, 0],
             [1, -1,  0, 0]
         ])
-        interp_idx = InterpolationIndices("p1<p2")
+        interp_idx = InterpolationIndices("r1<r2")
         return [(matrix, interp_idx)]
 
 class StronglyMonotone(OperatorInterpolationCondition):
@@ -96,10 +96,10 @@ class StronglyMonotone(OperatorInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`(x_{p_1},u_{p_1}),(x_{p_2},u_{p_2}) \in \operatorname{gra} G`,
+      For any :math:`(x_{r_1},u_{r_1}),(x_{r_2},u_{r_2}) \in \operatorname{gra} G`,
 
       .. math::
-          \langle u_{p_1} - u_{p_2}, x_{p_1} - x_{p_2} \rangle \ge \mu \|x_{p_1} - x_{p_2}\|^2.
+          \langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge \mu \|x_{r_1} - x_{r_2}\|^2.
 
     **Parameters**
 
@@ -137,7 +137,7 @@ class StronglyMonotone(OperatorInterpolationCondition):
             [-1, 1, 0, 0],
             [1, -1, 0, 0]
         ])
-        interp_idx = InterpolationIndices("p1<p2")
+        interp_idx = InterpolationIndices("r1<r2")
         return [(matrix, interp_idx)]
 
 class LipschitzOperator(OperatorInterpolationCondition):
@@ -155,11 +155,11 @@ class LipschitzOperator(OperatorInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
-      :math:`u_{p_1} = G(x_{p_1})` and :math:`u_{p_2} = G(x_{p_2})`,
+      For any :math:`x_{r_1}, x_{r_2} \in \calH` with
+      :math:`u_{r_1} = G(x_{r_1})` and :math:`u_{r_2} = G(x_{r_2})`,
 
       .. math::
-          \|u_{p_1} - u_{p_2}\|^2 \le L^2 \|x_{p_1} - x_{p_2}\|^2.
+          \|u_{r_1} - u_{r_2}\|^2 \le L^2 \|x_{r_1} - x_{r_2}\|^2.
 
     **Parameters**
 
@@ -197,7 +197,7 @@ class LipschitzOperator(OperatorInterpolationCondition):
             [0, 0, 1, -1],
             [0, 0, -1, 1]
         ])
-        interp_idx = InterpolationIndices("p1<p2")
+        interp_idx = InterpolationIndices("r1<r2")
         return [(matrix, interp_idx)]
 
 class Cocoercive(OperatorInterpolationCondition):
@@ -215,11 +215,11 @@ class Cocoercive(OperatorInterpolationCondition):
 
     - Interpolation inequality:
 
-      For any :math:`x_{p_1}, x_{p_2} \in \calH` with
-      :math:`u_{p_1} = G(x_{p_1})` and :math:`u_{p_2} = G(x_{p_2})`,
+      For any :math:`x_{r_1}, x_{r_2} \in \calH` with
+      :math:`u_{r_1} = G(x_{r_1})` and :math:`u_{r_2} = G(x_{r_2})`,
 
       .. math::
-          \langle u_{p_1} - u_{p_2}, x_{p_1} - x_{p_2} \rangle \ge \beta \|u_{p_1} - u_{p_2}\|^2.
+          \langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge \beta \|u_{r_1} - u_{r_2}\|^2.
 
     **Parameters**
 
@@ -257,7 +257,7 @@ class Cocoercive(OperatorInterpolationCondition):
             [-1, 1, 2 * self.beta, -2 * self.beta],
             [1, -1, -2 * self.beta, 2 * self.beta]
         ])
-        interp_idx = InterpolationIndices("p1<p2")
+        interp_idx = InterpolationIndices("r1<r2")
         return [(matrix, interp_idx)]
 
 class WeakMintyVariationalInequality(OperatorInterpolationCondition):
@@ -278,10 +278,10 @@ class WeakMintyVariationalInequality(OperatorInterpolationCondition):
     - Interpolation inequality:
 
       There exists :math:`x_\star \in \calH` with :math:`0 \in G(x_\star)` such that for any
-      :math:`(x_{p_1},u_{p_1}) \in \operatorname{gra} G`,
+      :math:`(x_{r_1},u_{r_1}) \in \operatorname{gra} G`,
 
       .. math::
-          \langle u_{p_1}, x_{p_1} - x_\star \rangle \ge \rho_{\textup{minty}} \|u_{p_1}\|^2.
+          \langle u_{r_1}, x_{r_1} - x_\star \rangle \ge \rho_{\textup{minty}} \|u_{r_1}\|^2.
 
     Note: When used inside :class:`~autolyap.problemclass.InclusionProblem`, AutoLyap enforces that the total number
     of components is exactly one (i.e., :math:`m = 1`) if any component uses this condition.
@@ -322,5 +322,5 @@ class WeakMintyVariationalInequality(OperatorInterpolationCondition):
             [-1, 1, 2 * self.rho_minty, 0],
             [0, 0, 0, 0]
         ])
-        interp_idx = InterpolationIndices("p1!=star")
+        interp_idx = InterpolationIndices("r1!=star")
         return [(matrix, interp_idx)]

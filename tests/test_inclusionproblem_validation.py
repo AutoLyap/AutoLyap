@@ -18,20 +18,20 @@ from autolyap.problemclass.problemclass import (
 class _BadOperatorCondition(OperatorInterpolationCondition):
     def get_data(self):
         matrix = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-        return [(matrix, InterpolationIndices("p1<p2"))]
+        return [(matrix, InterpolationIndices("r1<r2"))]
 
 
 class _BadOperatorNonsymmetric(OperatorInterpolationCondition):
     def get_data(self):
         matrix = np.array([[1.0, 2.0], [0.0, 1.0]])
-        return [(matrix, InterpolationIndices("p1<p2"))]
+        return [(matrix, InterpolationIndices("r1<r2"))]
 
 
 class _BadFunctionCondition(FunctionInterpolationCondition):
     def get_data(self):
         matrix = np.eye(4)
         vector = np.array([1.0, 2.0, 3.0])
-        return [(matrix, vector, False, InterpolationIndices("p1!=p2"))]
+        return [(matrix, vector, False, InterpolationIndices("r1!=r2"))]
 
 
 def test_inclusionproblem_rejects_empty_components():
