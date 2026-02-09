@@ -55,4 +55,4 @@ Pytest is configured to show skip reasons, so you'll see a message when this hap
 
 ## Other computer-assisted methodologies
 
-[PEPit](https://pepit.readthedocs.io) is a computer-assisted PEP framework that targets worst-case analysis of first-order methods through performance estimation. AutoLyap is complementary: it focuses on Lyapunov analyses and automates the corresponding SDP formulations. In practice, PEPit is a strong choice for tight bounds, while AutoLyap is tailored to Lyapunov-based proofs and scalable analysis patterns.
+[PEPit](https://pepit.readthedocs.io) is a computer-assisted PEP framework that targets worst-case analyses of first-order methods through SDP formulations. AutoLyap is complementary: it focuses on Lyapunov analyses and automates the corresponding SDP formulations. In practice, PEPit is a strong choice for tight bounds, while AutoLyap is tailored to Lyapunov-based proofs and scalable analysis patterns.
