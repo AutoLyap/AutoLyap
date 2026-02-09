@@ -9,7 +9,7 @@
   <title>Iteration-independent analysis &mdash; AutoLyap 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=45df9099" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=18baee69" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -19,6 +19,7 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/copybutton.js?v=36830154"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -31,12 +32,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            AutoLyap
-          </a>
+<a href="index.html" class="icon icon-home">
+  AutoLyap
+</a>
+<div class="sidebar-version">v0.1.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,10 +43,12 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="api_reference.html">API reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="problem_class.html">Problem classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
@@ -59,9 +60,9 @@
 <li class="toctree-l3"><a class="reference internal" href="iteration_dependent_analysis.html">Iteration-dependent analysis</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="solver_backends.html">Solver backends</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 
@@ -93,12 +94,9 @@
              
   <section id="iteration-independent-analysis">
 <h1>Iteration-independent analysis<a class="headerlink" href="#iteration-independent-analysis" title="Link to this heading"></a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="#autolyap.IterationIndependent" title="autolyap.IterationIndependent"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterationIndependent</span></code></a></p></li>
-</ul>
 <dl class="py class">
 <dt class="sig sig-object py" id="autolyap.IterationIndependent">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.</span></span><span class="sig-name descname"><span class="pre">IterationIndependent</span></span><a class="headerlink" href="#autolyap.IterationIndependent" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.</span></span><span class="sig-name descname"><span class="pre">IterationIndependent</span></span><a class="reference internal" href="_modules/autolyap/iteration_independent.html#IterationIndependent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.IterationIndependent" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Iteration-independent Lyapunov analysis utilities.</p>
 <section id="class-level-reference">
@@ -263,9 +261,10 @@ the following conclusions hold.</p>
 <dd><em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-12</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="solver_backends.html#autolyap.SolverOptions" title="autolyap.solver_options.SolverOptions"><span class="pre">SolverOptions</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#autolyap.IterationIndependent.LinearConvergence.bisection_search_rho" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.IterationIndependent.LinearConvergence.bisection_search_rho" title="Link to this definition"></a></dt>
 <dd><p>Perform a bisection search to find the minimum contraction parameter <span class="math notranslate nohighlight">\(\rho\)</span>.</p>
 <p>Mathematical notation and shared definitions follow the class-level
 reference in <a class="reference internal" href="#autolyap.IterationIndependent" title="autolyap.iteration_independent.IterationIndependent"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterationIndependent</span></code></a>.</p>
@@ -300,17 +299,32 @@ dimensions and methods.</p></li>
 <li><p><cite>lower_bound</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>): Lower bound for <span class="math notranslate nohighlight">\(\rho\)</span>.</p></li>
 <li><p><cite>upper_bound</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>): Upper bound for <span class="math notranslate nohighlight">\(\rho\)</span>.</p></li>
 <li><p><cite>tol</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>): Tolerance for the bisection search stopping criterion.</p></li>
+<li><p><cite>solver_options</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="solver_backends.html#autolyap.SolverOptions" title="autolyap.solver_options.SolverOptions"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverOptions</span></code></a>]):
+Optional backend and parameter settings. Defaults to
+<cite>SolverOptions(backend=”mosek_fusion”)</cite>.</p></li>
 </ul>
 <p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]): Result dictionary
+with keys <cite>success</cite>, <cite>rho</cite>, and <cite>certificate</cite>.</p>
 <ul class="simple">
-<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): The minimal <span class="math notranslate nohighlight">\(\rho\)</span> in
-<span class="math notranslate nohighlight">\([{\text{lower_bound}}, {\text{upper_bound}}]\)</span> that verifies the Lyapunov inequality within
-tolerance <span class="math notranslate nohighlight">\({\text{tol}}\)</span>, or <cite>None</cite> if the inequality does not hold at the upper bound.</p></li>
+<li><p><cite>success</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>): <cite>True</cite> iff the bisection finds a feasible
+contraction factor.</p></li>
+<li><p><cite>rho</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Best feasible
+bisection value when <cite>success</cite> is <cite>True</cite>; otherwise <cite>None</cite>.</p></li>
+<li><p><cite>certificate</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]]):
+Feasibility certificate at the returned <cite>rho</cite> when <cite>success</cite> is
+<cite>True</cite>; otherwise <cite>None</cite>.</p></li>
+</ul>
+<p>The <cite>certificate</cite> schema is exactly the same as in
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">verify_iteration_independent_Lyapunov()</span></code>.</p>
+</li>
 </ul>
 <p><strong>Raises</strong></p>
 <ul class="simple">
 <li><p><cite>ValueError</cite>: If any input is out of range or the bounds are inconsistent.</p></li>
-<li><p><cite>mosek.fusion.OptimizeError</cite>: If MOSEK raises a license-related error during optimization.</p></li>
+<li><p><cite>mosek.fusion.OptimizeError</cite>: If the MOSEK backend is selected and raises
+a license-related error during optimization.</p></li>
 </ul>
 </dd></dl>
 
@@ -719,11 +733,12 @@ t &amp;\in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
 <dd><em class="sig-param"><span class="n"><span class="pre">remove_C2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">remove_C3</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">remove_C4</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="solver_backends.html#autolyap.SolverOptions" title="autolyap.solver_options.SolverOptions"><span class="pre">SolverOptions</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autolyap.IterationIndependent.verify_iteration_independent_Lyapunov" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/iteration_independent.html#IterationIndependent.verify_iteration_independent_Lyapunov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.IterationIndependent.verify_iteration_independent_Lyapunov" title="Link to this definition"></a></dt>
 <dd><p>Verify feasibility of an iteration-independent Lyapunov inequality via an SDP.</p>
-<p>This method formulates and solves a semidefinite program (SDP) in MOSEK Fusion
+<p>This method formulates and solves a semidefinite program (SDP)
 for a given inclusion problem, algorithm, and user-specified targets
 <span class="math notranslate nohighlight">\((P,p,T,t,\rho,h,\alpha)\)</span>.</p>
 <p>Mathematical notation, star-variable definitions, Lyapunov ansatzes, and the roles
@@ -770,12 +785,77 @@ dimensions and methods to compute matrices.</p></li>
 <li><p><cite>remove_C2</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>): Flag to remove constraint C2.</p></li>
 <li><p><cite>remove_C3</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>): Flag to remove constraint C3.</p></li>
 <li><p><cite>remove_C4</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>): Flag to remove constraint C4.</p></li>
+<li><p><cite>solver_options</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="solver_backends.html#autolyap.SolverOptions" title="autolyap.solver_options.SolverOptions"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverOptions</span></code></a>]):
+Optional backend and parameter settings. Defaults to
+<cite>SolverOptions(backend=”mosek_fusion”)</cite>.</p></li>
 </ul>
 <p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]): Result dictionary
+with keys <cite>success</cite>, <cite>rho</cite>, and <cite>certificate</cite>.</p>
 <ul class="simple">
-<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>): Returns <cite>True</cite> if the SDP is solved successfully. In that case, there exist
-<span class="math notranslate nohighlight">\((Q,q,S,s)\)</span> such that the enabled constraints among (C1)–(C4) hold, with
-(C2)–(C4) possibly removed. Returns <cite>False</cite> otherwise.</p></li>
+<li><p><cite>success</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>): <cite>True</cite> iff the SDP is feasible.</p></li>
+<li><p><cite>rho</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>): The input contraction factor.</p></li>
+<li><p><cite>certificate</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]]):
+<cite>None</cite> when <cite>success</cite> is <cite>False</cite>; otherwise a feasible certificate.</p></li>
+</ul>
+<p>When <cite>success</cite> is <cite>True</cite>, <cite>certificate</cite> has:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+  &quot;Q&quot;: np.ndarray,   # full symmetric matrix
+  &quot;S&quot;: np.ndarray,   # full symmetric matrix
+  &quot;q&quot;: np.ndarray | None,  # None when m_func == 0
+  &quot;s&quot;: np.ndarray | None,  # None when m_func == 0
+  &quot;multipliers&quot;: {
+    &quot;operator_lambda&quot;: List[record],
+    &quot;function_lambda&quot;: List[record],
+    &quot;function_nu&quot;: List[record]
+  }
+}
+</pre></div>
+</div>
+<p>Each multiplier list entry is a <cite>record</cite> with:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>record = {
+  &quot;condition&quot;: str,
+  &quot;component&quot;: int,
+  &quot;interpolation_index&quot;: int,
+  &quot;pairs&quot;: List[{&quot;j&quot;: int | &quot;star&quot;, &quot;k&quot;: int | &quot;star&quot;}],
+  &quot;value&quot;: float
+}
+</pre></div>
+</div>
+<p>Field meanings and ranges:</p>
+<ul>
+<li><p><cite>condition</cite> is in the active subset of <cite>{“C1”, “C2”, “C3”, “C4”}</cite>
+(always including <cite>“C1”</cite>).</p></li>
+<li><p><cite>component</cite> corresponds to <span class="math notranslate nohighlight">\(i\)</span> and satisfies
+<span class="math notranslate nohighlight">\(i \in \llbracket 1, m \rrbracket\)</span>.</p></li>
+<li><p><cite>interpolation_index</cite> corresponds to <span class="math notranslate nohighlight">\(o\)</span>, where
+<span class="math notranslate nohighlight">\(o\)</span> is the zero-based index from
+<span class="math notranslate nohighlight">\(\text{enumerate}(\text{prob.get_component_data}(i))\)</span>, so
+<span class="math notranslate nohighlight">\(o \in \llbracket 0, \text{len}(\text{prob.get_component_data}(i)) - 1 \rrbracket\)</span>.</p></li>
+<li><p><cite>pairs</cite> is the concrete interpolation-pair list used by that multiplier.
+Its length is 1 (pattern <cite>“r1”</cite>) or 2 (patterns <cite>“r1&lt;r2”</cite>,
+<cite>“r1!=r2”</cite>, <cite>“r1!=star”</cite>). Typical examples are
+<cite>[{“j”: 2, “k”: 0}]</cite> and
+<cite>[{“j”: 1, “k”: 0}, {“j”: “star”, “k”: “star”}]</cite>.</p>
+<p>Pair entries satisfy</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+j &amp;\in \llbracket 1, \bar m_i \rrbracket \cup \{\star\}, \\
+k &amp;\in \llbracket 0, k_{\textup{max}}(\text{condition}) \rrbracket \cup \{\star\},
+\end{aligned}\end{split}\]</div>
+<p>with <span class="math notranslate nohighlight">\(j=\star \Leftrightarrow k=\star\)</span>, where</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+k_{\textup{max}}(\text{&quot;C1&quot;}) &amp;= h+\alpha+1, \\
+k_{\textup{max}}(\text{&quot;C2&quot;}) &amp;= h, \\
+k_{\textup{max}}(\text{&quot;C3&quot;}) &amp;= h+\alpha+1, \\
+k_{\textup{max}}(\text{&quot;C4&quot;}) &amp;= h+\alpha+2.
+\end{aligned}\end{split}\]</div>
+</li>
+<li><p><cite>value</cite> is the scalar multiplier for that record.</p></li>
+</ul>
+</li>
 </ul>
 <p><strong>Raises</strong></p>
 <ul class="simple">
@@ -783,7 +863,8 @@ dimensions and methods to compute matrices.</p></li>
 </ul>
 <p><strong>Notes</strong></p>
 <ul class="simple">
-<li><p>Requires a working MOSEK installation and license.</p></li>
+<li><p>Default backend is MOSEK Fusion. You may also select CVXPY via
+<cite>SolverOptions(backend=”cvxpy”)</cite>.</p></li>
 <li><p>The inputs <cite>(P, p, T, t)</cite> are typically built with
 <a class="reference internal" href="#autolyap.IterationIndependent.LinearConvergence" title="autolyap.iteration_independent.LinearConvergence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearConvergence</span></code></a> and
 <a class="reference internal" href="#autolyap.IterationIndependent.SublinearConvergence" title="autolyap.iteration_independent.SublinearConvergence"><code class="xref py py-class docutils literal notranslate"><span class="pre">SublinearConvergence</span></code></a> helper methods.</p></li>
@@ -806,7 +887,10 @@ dimensions and methods to compute matrices.</p></li>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2026, Manu Upadhyaya.</p>
+  <p>
+    &#169; Copyright 2026,
+    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.</p>
+
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

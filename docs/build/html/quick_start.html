@@ -6,10 +6,10 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick start guide &mdash; AutoLyap 0.1.0 documentation</title>
+  <title>Quick start &mdash; AutoLyap 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=45df9099" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=e69cd857" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -17,10 +17,11 @@
       <script src="_static/documentation_options.js?v=01f34227"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/copybutton.js?v=36830154"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API reference" href="api_reference.html" />
+    <link rel="next" title="Examples" href="examples.html" />
     <link rel="prev" title="AutoLyap" href="index.html" /> 
 </head>
 
@@ -29,12 +30,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            AutoLyap
-          </a>
+<a href="index.html" class="icon icon-home">
+  AutoLyap
+</a>
+<div class="sidebar-version">v0.1.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -42,12 +41,22 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick start guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#iteration-independent-example">Iteration-independent example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#iteration-dependent-example">Iteration-dependent example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-to-inspect">What to inspect</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next">Next</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 
@@ -65,7 +74,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Quick start guide</li>
+      <li class="breadcrumb-item active">Quick start</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/quick_start.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -75,9 +84,167 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="quick-start-guide">
-<h1>Quick start guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading"></a></h1>
-<p><em>Coming soon.</em></p>
+  <section id="quick-start">
+<h1>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h1>
+<p>This page gives two end-to-end workflows:</p>
+<ol class="arabic simple">
+<li><p>Iteration-independent analysis with a bisection search on <code class="docutils literal notranslate"><span class="pre">rho</span></code>.</p></li>
+<li><p>Iteration-dependent analysis with chained Lyapunov inequalities.</p></li>
+</ol>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<p>Install AutoLyap.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>autolyap
+</pre></div>
+</div>
+</section>
+<section id="workflow">
+<h2>Workflow<a class="headerlink" href="#workflow" title="Link to this heading"></a></h2>
+<p>Typical usage has four steps:</p>
+<ol class="arabic simple">
+<li><p>Build an <code class="docutils literal notranslate"><span class="pre">InclusionProblem</span></code> from function and operator classes.</p></li>
+<li><p>Pick an algorithm or your own subclass of <code class="docutils literal notranslate"><span class="pre">Algorithm</span></code>.</p></li>
+<li><p>Select Lyapunov targets with helper constructors (<code class="docutils literal notranslate"><span class="pre">get_parameters_*</span></code>).</p></li>
+<li><p>Solve the SDP and inspect <code class="docutils literal notranslate"><span class="pre">result[&quot;success&quot;]</span></code>, the scalar (<code class="docutils literal notranslate"><span class="pre">rho</span></code> or <code class="docutils literal notranslate"><span class="pre">c</span></code>), and <code class="docutils literal notranslate"><span class="pre">result[&quot;certificate&quot;]</span></code>.</p></li>
+</ol>
+</section>
+<section id="iteration-independent-example">
+<h2>Iteration-independent example<a class="headerlink" href="#iteration-independent-example" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">autolyap.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">GradientMethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autolyap</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolverOptions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autolyap.problemclass</span><span class="w"> </span><span class="kn">import</span> <span class="n">InclusionProblem</span><span class="p">,</span> <span class="n">SmoothStronglyConvex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autolyap.iteration_independent</span><span class="w"> </span><span class="kn">import</span> <span class="n">IterationIndependent</span>
+
+<span class="n">mu</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">L</span> <span class="o">=</span> <span class="mf">4.0</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+<span class="n">problem</span> <span class="o">=</span> <span class="n">InclusionProblem</span><span class="p">([</span><span class="n">SmoothStronglyConvex</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">L</span><span class="p">)])</span>
+<span class="n">algorithm</span> <span class="o">=</span> <span class="n">GradientMethod</span><span class="p">(</span><span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">)</span>
+<span class="n">solver_options</span> <span class="o">=</span> <span class="n">SolverOptions</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;mosek_fusion&quot;</span><span class="p">)</span>
+
+<span class="c1"># License-free options</span>
+<span class="c1">#solver_options = SolverOptions(backend=&quot;cvxpy&quot;, cvxpy_solver=&quot;CLARABEL&quot;)</span>
+<span class="c1">#solver_options = SolverOptions(backend=&quot;cvxpy&quot;, cvxpy_solver=&quot;SCS&quot;)</span>
+
+<span class="n">P</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">IterationIndependent</span><span class="o">.</span><span class="n">LinearConvergence</span><span class="o">.</span><span class="n">get_parameters_distance_to_solution</span><span class="p">(</span>
+    <span class="n">algorithm</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">IterationIndependent</span><span class="o">.</span><span class="n">LinearConvergence</span><span class="o">.</span><span class="n">bisection_search_rho</span><span class="p">(</span>
+    <span class="n">problem</span><span class="p">,</span>
+    <span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">P</span><span class="p">,</span>
+    <span class="n">T</span><span class="p">,</span>
+    <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+    <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+    <span class="n">S_equals_T</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">s_equals_t</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">remove_C3</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">solver_options</span><span class="o">=</span><span class="n">solver_options</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No feasible Lyapunov certificate in the requested rho interval.&quot;</span><span class="p">)</span>
+
+<span class="n">rho</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;rho&quot;</span><span class="p">]</span>
+<span class="n">certificate</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;certificate&quot;</span><span class="p">]</span>
+
+<span class="n">rho_theory</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">L</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">mu</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rho (AutoLyap): </span><span class="si">{</span><span class="n">rho</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rho (theory):   </span><span class="si">{</span><span class="n">rho_theory</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="iteration-dependent-example">
+<h2>Iteration-dependent example<a class="headerlink" href="#iteration-dependent-example" title="Link to this heading"></a></h2>
+<p>For background on <code class="docutils literal notranslate"><span class="pre">OptimizedGradientMethod</span></code>, see <span id="id1">[<a class="reference internal" href="#id7" title="Donghwan Kim and Jeffrey A. Fessler. Generalizing the optimized gradient method for smooth convex minimization. SIAM Journal on Optimization, 28(2):1920–1950, 2018. doi:10.1137/17M112124X.">KF18</a>]</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">autolyap.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizedGradientMethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autolyap</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolverOptions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autolyap.problemclass</span><span class="w"> </span><span class="kn">import</span> <span class="n">InclusionProblem</span><span class="p">,</span> <span class="n">SmoothConvex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autolyap.iteration_dependent</span><span class="w"> </span><span class="kn">import</span> <span class="n">IterationDependent</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">problem</span> <span class="o">=</span> <span class="n">InclusionProblem</span><span class="p">([</span><span class="n">SmoothConvex</span><span class="p">(</span><span class="n">L</span><span class="p">)])</span>
+<span class="n">algorithm</span> <span class="o">=</span> <span class="n">OptimizedGradientMethod</span><span class="p">(</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">)</span>
+<span class="n">solver_options</span> <span class="o">=</span> <span class="n">SolverOptions</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;mosek_fusion&quot;</span><span class="p">)</span>
+
+<span class="c1"># License-free options</span>
+<span class="c1">#solver_options = SolverOptions(backend=&quot;cvxpy&quot;, cvxpy_solver=&quot;CLARABEL&quot;)</span>
+<span class="c1">#solver_options = SolverOptions(backend=&quot;cvxpy&quot;, cvxpy_solver=&quot;SCS&quot;)</span>
+
+<span class="n">Q_0</span><span class="p">,</span> <span class="n">q_0</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">get_parameters_distance_to_solution</span><span class="p">(</span>
+    <span class="n">algorithm</span><span class="p">,</span>
+    <span class="mi">0</span><span class="p">,</span>
+    <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">j</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">Q_K</span><span class="p">,</span> <span class="n">q_K</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">get_parameters_function_value_suboptimality</span><span class="p">(</span>
+    <span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">K</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">verify_iteration_dependent_Lyapunov</span><span class="p">(</span>
+    <span class="n">problem</span><span class="p">,</span>
+    <span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">K</span><span class="p">,</span>
+    <span class="n">Q_0</span><span class="p">,</span>
+    <span class="n">Q_K</span><span class="p">,</span>
+    <span class="n">q_0</span><span class="o">=</span><span class="n">q_0</span><span class="p">,</span>
+    <span class="n">q_K</span><span class="o">=</span><span class="n">q_K</span><span class="p">,</span>
+    <span class="n">solver_options</span><span class="o">=</span><span class="n">solver_options</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No feasible chained Lyapunov certificate for this setup.&quot;</span><span class="p">)</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span>
+<span class="n">certificate</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;certificate&quot;</span><span class="p">]</span>
+
+<span class="n">Q_sequence</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;Q_sequence&quot;</span><span class="p">]</span>  <span class="c1"># [Q_0, Q_1, ..., Q_K]</span>
+<span class="n">q_sequence</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;q_sequence&quot;</span><span class="p">]</span>  <span class="c1"># [q_0, q_1, ..., q_K] or None</span>
+
+<span class="n">theta_K</span> <span class="o">=</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">_compute_theta</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+<span class="n">c_theory</span> <span class="o">=</span> <span class="n">L</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">theta_K</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;c (AutoLyap): </span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;c (theory):   </span><span class="si">{</span><span class="n">c_theory</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="what-to-inspect">
+<h2>What to inspect<a class="headerlink" href="#what-to-inspect" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">success</span></code>: whether the selected backend found a feasible certificate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rho</span></code> (iteration-independent) or <code class="docutils literal notranslate"><span class="pre">c</span></code> (iteration-dependent): the main scalar output.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">certificate</span></code>: Matrices and vectors that parameterize the Lyapunov certificate.</p></li>
+</ul>
+</section>
+<section id="next">
+<h2>Next<a class="headerlink" href="#next" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>For more worked walkthroughs, see <a class="reference internal" href="examples.html"><span class="doc">Examples</span></a>.</p></li>
+<li><p>For the full API, see <a class="reference internal" href="api_reference.html"><span class="doc">API reference</span></a>.</p></li>
+<li><p>For full mathematical context, see the companion paper <span id="id2">[<a class="reference internal" href="#id4" title="Manu Upadhyaya, Adrien B. Taylor, Sebastian Banert, and Pontus Giselsson. AutoLyap: A python package for computer-assisted lyapunov analyses for first-order methods. 2025. arXiv:2506.24076.">UTBG25</a>]</span>.</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div class="docutils container" id="id3">
+<div role="list" class="citation-list">
+<div class="citation" id="id7" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">KF18</a><span class="fn-bracket">]</span></span>
+<p>Donghwan Kim and Jeffrey A. Fessler. Generalizing the optimized gradient method for smooth convex minimization. <em>SIAM Journal on Optimization</em>, 28(2):1920–1950, 2018. <a class="reference external" href="https://doi.org/10.1137/17M112124X">doi:10.1137/17M112124X</a>.</p>
+</div>
+<div class="citation" id="id4" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">UTBG25</a><span class="fn-bracket">]</span></span>
+<p>Manu Upadhyaya, Adrien B. Taylor, Sebastian Banert, and Pontus Giselsson. AutoLyap: A python package for computer-assisted lyapunov analyses for first-order methods. 2025. <a class="reference external" href="https://arxiv.org/abs/2506.24076">arXiv:2506.24076</a>.</p>
+</div>
+</div>
+</div>
+</section>
 </section>
 
 
@@ -85,13 +252,16 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="AutoLyap" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="api_reference.html" class="btn btn-neutral float-right" title="API reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2026, Manu Upadhyaya.</p>
+  <p>
+    &#169; Copyright 2026,
+    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.</p>
+
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

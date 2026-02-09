@@ -9,7 +9,7 @@
   <title>Base algorithm &mdash; AutoLyap 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=45df9099" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=18baee69" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -19,6 +19,7 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/copybutton.js?v=36830154"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -31,12 +32,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            AutoLyap
-          </a>
+<a href="index.html" class="icon icon-home">
+  AutoLyap
+</a>
+<div class="sidebar-version">v0.1.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,10 +43,12 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="api_reference.html">API reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="problem_class.html">Problem classes</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="algorithms.html">Algorithms</a><ul class="current">
@@ -59,9 +60,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="lyapunov_analyses.html">Lyapunov analyses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solver_backends.html">Solver backends</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 
@@ -93,9 +94,6 @@
              
   <section id="base-algorithm">
 <h1>Base algorithm<a class="headerlink" href="#base-algorithm" title="Link to this heading"></a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="#autolyap.algorithms.Algorithm" title="autolyap.algorithms.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p></li>
-</ul>
 <dl class="py class">
 <dt class="sig sig-object py" id="autolyap.algorithms.Algorithm">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.algorithms.</span></span><span class="sig-name descname"><span class="pre">Algorithm</span></span><span class="sig-paren">(</span>
@@ -108,7 +106,7 @@
 <dd><em class="sig-param"><span class="n"><span class="pre">I_op</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.Algorithm" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>Base class for algorithms expressed in the state-space representation used by AutoLyap.</p>
 <section id="class-level-reference">
@@ -165,14 +163,14 @@ Method-level docstrings focus on API details: inputs, outputs, and validation.</
 B_k \in \mathbb{R}^{n \times \NumEval}, \quad
 C_k \in \mathbb{R}^{\NumEval \times n}, \quad
 D_k \in \mathbb{R}^{\NumEval \times \NumEval}.\]</div>
-<p>For any <span class="math notranslate nohighlight">\(M \in \mathbb{R}^{q \times p}\)</span>, the tensor operator</p>
+<p>For any <span class="math notranslate nohighlight">\(M \in \mathbb{R}^{d \times b}\)</span>, the tensor operator</p>
 <div class="math notranslate nohighlight">
-\[M \kron \Id : \calH^{p} \to \calH^{q}\]</div>
-<p>acts componentwise, i.e., for <span class="math notranslate nohighlight">\(z=(z_1,\ldots,z_p) \in \calH^p\)</span>,</p>
+\[M \kron \Id : \calH^{b} \to \calH^{d}\]</div>
+<p>acts componentwise, i.e., for <span class="math notranslate nohighlight">\(z=(z_1,\ldots,z_b) \in \calH^b\)</span>,</p>
 <div class="math notranslate nohighlight">
 \[(M \kron \Id)z
 =
-\Big(\sum_{j=1}^{p}[M]_{1,j} z_j,\ldots,\sum_{j=1}^{p}[M]_{q,j} z_j\Big).\]</div>
+\Big(\sum_{\ell=1}^{b}[M]_{1,\ell} z_\ell,\ldots,\sum_{\ell=1}^{b}[M]_{d,\ell} z_\ell\Big).\]</div>
 <p>The system matrices <span class="math notranslate nohighlight">\((A_k,B_k,C_k,D_k)\)</span> are returned by
 <a class="reference internal" href="#autolyap.algorithms.Algorithm.get_ABCD" title="autolyap.algorithms.Algorithm.get_ABCD"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_ABCD()</span></code></a> and collected over iteration ranges by <a class="reference internal" href="#autolyap.algorithms.Algorithm.get_AsBsCsDs" title="autolyap.algorithms.Algorithm.get_AsBsCsDs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_AsBsCsDs()</span></code></a>.</p>
 <p>Note: For a given method, the state-space representation is not unique.</p>
@@ -190,7 +188,7 @@ by this base class.</p>
 <dd><em class="sig-param"><span class="n"><span class="pre">I_op</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span><a class="headerlink" href="#autolyap.algorithms.Algorithm.__init__" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initialize an Algorithm with the structural parameters of the representation.
 <strong>Parameters</strong></p>
 <ul class="simple">
@@ -222,7 +220,7 @@ if any <span class="math notranslate nohighlight">\(\bar{m}_i \le 0\)</span>,
 <dd><em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.compute_E" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.compute_E"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.compute_E" title="Link to this definition"></a></dt>
 <dd><p>Compute the E matrix for component <span class="math notranslate nohighlight">\(i\)</span> from a list of <span class="math notranslate nohighlight">\((j, k)\)</span> pairs.
 This stacks the blocks <span class="math notranslate nohighlight">\(P_{(i,j_\ell)}Y_{k_\ell}^{k_{\textup{min}},k_{\textup{max}}}\)</span> and
 <span class="math notranslate nohighlight">\(P_{(i,j_\ell)}U_{k_\ell}^{k_{\textup{min}},k_{\textup{max}}}\)</span>
@@ -279,7 +277,7 @@ For the star case, use <cite>(‘star’, ‘star’)</cite>.</p></li>
 <dd><em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.compute_F_aggregated" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.compute_F_aggregated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.compute_F_aggregated" title="Link to this definition"></a></dt>
 <dd><p>Compute the aggregated F vector for component <span class="math notranslate nohighlight">\(i\)</span>.
 This stacks the selected rows and weights them by <span class="math notranslate nohighlight">\(a\)</span>:</p>
 <div class="math notranslate nohighlight">
@@ -290,8 +288,8 @@ This stacks the selected rows and weights them by <span class="math notranslate 
 \left(F_{(i,j_n,k_n)}^{k_{\textup{min}},k_{\textup{max}}}\right)^{\top}
 \end{bmatrix} a_{(i,o)}^{\textup{type}}.\]</div>
 <p>Each F row is obtained from the F matrices (via <a class="reference internal" href="#autolyap.algorithms.Algorithm.get_Fs" title="autolyap.algorithms.Algorithm.get_Fs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_Fs()</span></code></a>), transposed, and
-horizontally stacked. The resulting matrix has shape <span class="math notranslate nohighlight">\((\text{total_dim}, p)\)</span>, where
-<span class="math notranslate nohighlight">\(p\)</span> is the number of pairs, and is then multiplied by the weight vector <span class="math notranslate nohighlight">\(a\)</span>
+horizontally stacked. The resulting matrix has shape <span class="math notranslate nohighlight">\((\text{total_dim}, b)\)</span>, where
+<span class="math notranslate nohighlight">\(b\)</span> is the number of pairs, and is then multiplied by the weight vector <span class="math notranslate nohighlight">\(a\)</span>
 to yield a column vector of shape <span class="math notranslate nohighlight">\((\text{total_dim}, 1)\)</span>.</p>
 <p>Here <span class="math notranslate nohighlight">\(o\)</span> indexes the chosen functional interpolation constraint and
 <span class="math notranslate nohighlight">\(\textup{type} \in \{\textup{func-ineq}, \textup{func-eq}\}\)</span>.</p>
@@ -337,7 +335,7 @@ for the chosen constraint. See
 <dd><em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.compute_W" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.compute_W"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.compute_W" title="Link to this definition"></a></dt>
 <dd><p>Compute the W matrix for component <span class="math notranslate nohighlight">\(i\)</span>.
 It is given by</p>
 <div class="math notranslate nohighlight">
@@ -384,7 +382,7 @@ This comes from the interpolation data of the function/operator class
 <dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_ABCD" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.get_ABCD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_ABCD" title="Link to this definition"></a></dt>
 <dd><p>Mathematical notation and shared definitions follow the class-level reference in <a class="reference internal" href="#autolyap.algorithms.Algorithm" title="autolyap.algorithms.algorithm.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a>.</p>
 <p>Return the system matrices <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
 <p><strong>Parameters</strong></p>
@@ -413,7 +411,7 @@ D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
 <dd><em class="sig-param"><span class="n"><span class="pre">k_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_AsBsCsDs" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.get_AsBsCsDs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_AsBsCsDs" title="Link to this definition"></a></dt>
 <dd><p>Return a dictionary mapping each iteration index <span class="math notranslate nohighlight">\(k\)</span> to
 <span class="math notranslate nohighlight">\((A_k, B_k, C_k, D_k)\)</span> for <span class="math notranslate nohighlight">\(k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket\)</span>.
 In compact form:</p>
@@ -453,7 +451,7 @@ D_k \in \mathbb{R}^{\bar{m} \times \bar{m}}.\]</div>
 <dd><em class="sig-param"><span class="n"><span class="pre">k_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Fs" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.get_Fs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Fs" title="Link to this definition"></a></dt>
 <dd><p>Return a dictionary of F matrices for all functional components.
 In compact form:</p>
 <div class="math notranslate nohighlight">
@@ -509,7 +507,7 @@ d = (k_{\textup{max}} - k_{\textup{min}} + 1)\bar{m}_{\text{func}} + m_{\text{fu
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autolyap.algorithms.Algorithm.get_Ps">
-<span class="sig-name descname"><span class="pre">get_Ps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Ps" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_Ps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.get_Ps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Ps" title="Link to this definition"></a></dt>
 <dd><p>Return a dictionary of projection matrices <span class="math notranslate nohighlight">\(P\)</span>.
 In compact form:</p>
 <div class="math notranslate nohighlight">
@@ -558,7 +556,7 @@ P_{(i,\star)} \in \mathbb{R}^{1 \times m}.\]</div>
 <dd><em class="sig-param"><span class="n"><span class="pre">k_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Us" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.get_Us"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Us" title="Link to this definition"></a></dt>
 <dd><p>Return a dictionary of U matrices for iterations <span class="math notranslate nohighlight">\(k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket\)</span>,
 including the star matrix.
 In compact form:</p>
@@ -616,7 +614,7 @@ U_{\star}^{k_{\textup{min}},k_{\textup{max}}}
 <dd><em class="sig-param"><span class="n"><span class="pre">k_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Xs" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.get_Xs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Xs" title="Link to this definition"></a></dt>
 <dd><p>Return a dictionary mapping each iteration index <span class="math notranslate nohighlight">\(k\)</span>
 (for <span class="math notranslate nohighlight">\(k \in \llbracket k_{\textup{min}}, k_{\textup{max}} + 1\rrbracket\)</span>) to the corresponding
 <span class="math notranslate nohighlight">\(X_k\)</span> matrix.
@@ -688,7 +686,7 @@ and <code class="xref py py-meth docutils literal notranslate"><span class="pre"
 <dd><em class="sig-param"><span class="n"><span class="pre">k_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Ys" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/algorithms/algorithm.html#Algorithm.get_Ys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.algorithms.Algorithm.get_Ys" title="Link to this definition"></a></dt>
 <dd><p>Return a dictionary of Y matrices for iterations <span class="math notranslate nohighlight">\(k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket\)</span>,
 including <span class="math notranslate nohighlight">\(Y_{\star}\)</span>.
 In compact form:</p>
@@ -775,7 +773,10 @@ Y_{\star}^{k_{\textup{min}},k_{\textup{max}}}
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2026, Manu Upadhyaya.</p>
+  <p>
+    &#169; Copyright 2026,
+    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.</p>
+
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

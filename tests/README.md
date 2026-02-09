@@ -1,0 +1,22 @@
+# Test Suite Layout
+
+Tests are grouped by domain:
+
+- `tests/algorithm/`: algorithm construction, matrix generation, setters, and caching.
+- `tests/backend/`: backend behavior (CVXPY/MOSEK), backend equivalence, and backend builders.
+- `tests/convergence/`: convergence checks against theory (including CVXPY-specific convergence tests).
+- `tests/problemclass/`: function/operator conditions, interpolation indices, and inclusion-problem validation/updates.
+- `tests/lyapunov/`: iteration-dependent/independent Lyapunov parameter checks.
+- `tests/solver/`: solver option normalization and policy checks.
+
+Docs-derived tests are grouped by technical domain instead of a separate docs folder.
+Use a `_docs_example` suffix in the filename (for example,
+`test_convergence_proximal_gradient_docs_example.py`) to keep origin traceable.
+
+Shared support modules:
+
+- `tests/conftest.py`: common algorithm fixtures used across test modules.
+- `tests/shared/mosek_utils.py`: MOSEK license checks for MOSEK-dependent tests.
+- `tests/shared/cvxpy_test_utils.py`: CVXPY/MOSEK option-builder helpers.
+- `tests/shared/cvxpy_fixtures.py`: reusable CVXPY/MOSEK fixtures for backend/convergence tests.
+- `tests/convergence/convergence_douglas_rachford_utils.py`: Douglas-Rachford theory formulas and shared bisection wrapper.

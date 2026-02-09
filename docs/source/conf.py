@@ -24,6 +24,7 @@ extensions = [
 ]
 
 autodoc_mock_imports = [
+    "cvxpy",
     "mosek",
     "mosek.fusion",
     "mosek.fusion.pythonic",

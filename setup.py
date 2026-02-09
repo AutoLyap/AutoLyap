@@ -36,7 +36,6 @@ setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Operating System :: OS Independent",
     ],

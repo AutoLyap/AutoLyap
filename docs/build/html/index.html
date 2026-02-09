@@ -9,7 +9,7 @@
   <title>AutoLyap &mdash; AutoLyap 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=45df9099" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=e69cd857" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -17,10 +17,11 @@
       <script src="_static/documentation_options.js?v=01f34227"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/copybutton.js?v=36830154"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Quick start guide" href="quick_start.html" /> 
+    <link rel="next" title="Quick start" href="quick_start.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -28,12 +29,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="#" class="icon icon-home">
-            AutoLyap
-          </a>
+<a href="#" class="icon icon-home">
+  AutoLyap
+</a>
+<div class="sidebar-version">v0.1.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -41,12 +40,13 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 
@@ -87,7 +87,8 @@
 <li><p>Choose the first-order method to analyze.</p></li>
 <li><p>Choose the type of Lyapunov analysis to search for or verify (which implies a convergence or performance conclusion).</p></li>
 </ol>
-<p>AutoLyap builds the SDP and solves it with MOSEK.</p>
+<p>AutoLyap builds the SDP and solves it with MOSEK Fusion by default. It can also
+solve through CVXPY when requested.</p>
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
@@ -98,19 +99,36 @@
 <ul class="simple">
 <li><p><a class="reference external" href="https://numpy.org/">NumPy</a></p></li>
 <li><p><a class="reference external" href="https://docs.mosek.com/latest/install/installation.html">MOSEK</a> (academic license available)</p></li>
+<li><p><a class="reference external" href="https://www.cvxpy.org/">CVXPY</a></p></li>
+</ul>
+</section>
+<section id="solver-backends">
+<h2>Solver backends<a class="headerlink" href="#solver-backends" title="Link to this heading"></a></h2>
+<p>Detailed backend selection, backend-specific parameter configuration, no-license
+CVXPY usage, and troubleshooting are documented in:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://autolyap.github.io/solver_backends.html">Solver backends</a></p></li>
 </ul>
 </section>
 <section id="companion-paper">
 <h2>Companion paper<a class="headerlink" href="#companion-paper" title="Link to this heading"></a></h2>
-<p>The complete mathematical development and examples to get started are available in the companion paper on <a class="reference external" href="https://arxiv.org/abs/2506.24076">arXiv</a>.</p>
+<p>For full mathematical context, see the companion paper <span id="id1">[<a class="reference internal" href="#id3" title="Manu Upadhyaya, Adrien B. Taylor, Sebastian Banert, and Pontus Giselsson. AutoLyap: A python package for computer-assisted lyapunov analyses for first-order methods. 2025. arXiv:2506.24076.">UTBG25</a>]</span>.</p>
+<div class="docutils container" id="id2">
+<div role="list" class="citation-list">
+<div class="citation" id="id3" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">UTBG25</a><span class="fn-bracket">]</span></span>
+<p>Manu Upadhyaya, Adrien B. Taylor, Sebastian Banert, and Pontus Giselsson. AutoLyap: A python package for computer-assisted lyapunov analyses for first-order methods. 2025. <a class="reference external" href="https://arxiv.org/abs/2506.24076">arXiv:2506.24076</a>.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="source-code">
 <h2>Source code<a class="headerlink" href="#source-code" title="Link to this heading"></a></h2>
-<p>➡️  <a class="reference external" href="https://github.com/AutoLyap/AutoLyap">https://github.com/AutoLyap/AutoLyap</a></p>
+<p>GitHub repository: <a class="reference external" href="https://github.com/AutoLyap/AutoLyap">AutoLyap/AutoLyap</a></p>
 </section>
 <section id="other-computer-assisted-methodologies">
 <h2>Other computer-assisted methodologies<a class="headerlink" href="#other-computer-assisted-methodologies" title="Link to this heading"></a></h2>
-<p><a class="reference external" href="https://pepit.readthedocs.io">PEPit</a> is a computer-assisted PEP framework that targets worst-case analysis of first-order methods through performance estimation. AutoLyap is complementary: it focuses on Lyapunov analyses and automates the corresponding SDP formulations. In practice, PEPit is a strong choice for tight bounds, while AutoLyap is tailored to Lyapunov-based proofs and scalable analysis patterns.</p>
+<p><a class="reference external" href="https://pepit.readthedocs.io">PEPit</a> is a computer-assisted PEP framework that targets worst-case analyses of first-order methods through SDP formulations. AutoLyap is complementary: it focuses on Lyapunov analyses and automates the corresponding SDP formulations. In practice, PEPit is a strong choice for tight bounds, while AutoLyap is tailored to Lyapunov-based proofs and scalable analysis patterns.</p>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -120,13 +138,16 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="quick_start.html" class="btn btn-neutral float-right" title="Quick start guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="quick_start.html" class="btn btn-neutral float-right" title="Quick start" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2026, Manu Upadhyaya.</p>
+  <p>
+    &#169; Copyright 2026,
+    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.</p>
+
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

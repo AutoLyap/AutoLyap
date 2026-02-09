@@ -9,7 +9,7 @@
   <title>Iteration-dependent analysis &mdash; AutoLyap 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=45df9099" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=18baee69" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -19,10 +19,11 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/copybutton.js?v=36830154"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="next" title="Solver backends" href="solver_backends.html" />
     <link rel="prev" title="Iteration-independent analysis" href="iteration_independent_analysis.html" /> 
 </head>
 
@@ -31,12 +32,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            AutoLyap
-          </a>
+<a href="index.html" class="icon icon-home">
+  AutoLyap
+</a>
+<div class="sidebar-version">v0.1.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,10 +43,12 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="api_reference.html">API reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="problem_class.html">Problem classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="algorithms.html">Algorithms</a></li>
@@ -59,9 +60,9 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="solver_backends.html">Solver backends</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 
@@ -93,12 +94,9 @@
              
   <section id="iteration-dependent-analysis">
 <h1>Iteration-dependent analysis<a class="headerlink" href="#iteration-dependent-analysis" title="Link to this heading"></a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="#autolyap.IterationDependent" title="autolyap.IterationDependent"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterationDependent</span></code></a></p></li>
-</ul>
 <dl class="py class">
 <dt class="sig sig-object py" id="autolyap.IterationDependent">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.</span></span><span class="sig-name descname"><span class="pre">IterationDependent</span></span><a class="headerlink" href="#autolyap.IterationDependent" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autolyap.</span></span><span class="sig-name descname"><span class="pre">IterationDependent</span></span><a class="reference internal" href="_modules/autolyap/iteration_dependent.html#IterationDependent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.IterationDependent" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Iteration-dependent Lyapunov analysis utilities.</p>
 <section id="class-level-reference">
@@ -187,7 +185,7 @@ When <span class="math notranslate nohighlight">\(\NumFunc = 0\)</span>, the vec
 <dd><em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.IterationDependent.get_parameters_distance_to_solution" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/iteration_dependent.html#IterationDependent.get_parameters_distance_to_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.IterationDependent.get_parameters_distance_to_solution" title="Link to this definition"></a></dt>
 <dd><p>Compute Lyapunov parameters for the distance-to-solution metric at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
 <p>Mathematical notation and shared definitions follow the class-level
 reference in <a class="reference internal" href="#autolyap.IterationDependent" title="autolyap.iteration_dependent.IterationDependent"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterationDependent</span></code></a>.</p>
@@ -246,7 +244,7 @@ q_k &amp;\in \mathbb{R}^{\NumEvalFunc + \NumFunc}.
 <dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.IterationDependent.get_parameters_fixed_point_residual" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/iteration_dependent.html#IterationDependent.get_parameters_fixed_point_residual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.IterationDependent.get_parameters_fixed_point_residual" title="Link to this definition"></a></dt>
 <dd><p>Compute Lyapunov parameters for the fixed-point residual at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
 <p>Mathematical notation and shared definitions follow the class-level
 reference in <a class="reference internal" href="#autolyap.IterationDependent" title="autolyap.iteration_dependent.IterationDependent"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterationDependent</span></code></a>.</p>
@@ -299,7 +297,7 @@ q_k &amp;\in \mathbb{R}^{\NumEvalFunc + \NumFunc}.
 <dd><em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.IterationDependent.get_parameters_function_value_suboptimality" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/iteration_dependent.html#IterationDependent.get_parameters_function_value_suboptimality"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.IterationDependent.get_parameters_function_value_suboptimality" title="Link to this definition"></a></dt>
 <dd><p>Compute Lyapunov parameters for function-value suboptimality at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
 <p>Mathematical notation and shared definitions follow the class-level
 reference in <a class="reference internal" href="#autolyap.IterationDependent" title="autolyap.iteration_dependent.IterationDependent"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterationDependent</span></code></a>.
@@ -349,7 +347,7 @@ or <span class="math notranslate nohighlight">\(m \ne 1\)</span> / <span class="
 <dd><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.IterationDependent.get_parameters_optimality_measure" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/iteration_dependent.html#IterationDependent.get_parameters_optimality_measure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.IterationDependent.get_parameters_optimality_measure" title="Link to this definition"></a></dt>
 <dd><p>Compute Lyapunov parameters for the optimality measure at iteration <span class="math notranslate nohighlight">\(k\)</span>.</p>
 <p>Mathematical notation and shared definitions follow the class-level
 reference in <a class="reference internal" href="#autolyap.IterationDependent" title="autolyap.iteration_dependent.IterationDependent"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterationDependent</span></code></a>.</p>
@@ -422,11 +420,12 @@ q_k &amp;\in \mathbb{R}^{\NumEvalFunc + \NumFunc}.
 <dd><em class="sig-param"><span class="n"><span class="pre">Q_K</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">q_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">q_K</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="solver_backends.html#autolyap.SolverOptions" title="autolyap.solver_options.SolverOptions"><span class="pre">SolverOptions</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 </dl>
 
-<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autolyap.IterationDependent.verify_iteration_dependent_Lyapunov" title="Link to this definition"></a></dt>
+<span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/autolyap/iteration_dependent.html#IterationDependent.verify_iteration_dependent_Lyapunov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#autolyap.IterationDependent.verify_iteration_dependent_Lyapunov" title="Link to this definition"></a></dt>
 <dd><p>Verify feasibility of iteration-dependent Lyapunov inequalities via an SDP.</p>
-<p>This method formulates and solves a semidefinite program (SDP) in MOSEK Fusion
+<p>This method formulates and solves a semidefinite program (SDP)
 for a given inclusion problem, algorithm, and endpoint targets
 <span class="math notranslate nohighlight">\((Q_0,q_0)\)</span> and <span class="math notranslate nohighlight">\((Q_K,q_K)\)</span>.</p>
 <p>Mathematical notation, star-variable definitions, and Lyapunov ansatzes
@@ -483,12 +482,69 @@ dimensions and matrix helpers.</p></li>
 <li><p><cite>q_K</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>]): A vector corresponding to
 <span class="math notranslate nohighlight">\(q_K \in \mathbb{R}^{\NumEvalFunc + \NumFunc}\)</span> for functional components
 (required if <span class="math notranslate nohighlight">\(\NumFunc &gt; 0\)</span>; otherwise <cite>None</cite>).</p></li>
+<li><p><cite>solver_options</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="solver_backends.html#autolyap.SolverOptions" title="autolyap.solver_options.SolverOptions"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverOptions</span></code></a>]):
+Optional backend and parameter settings. Defaults to
+<cite>SolverOptions(backend=”mosek_fusion”)</cite>.</p></li>
 </ul>
 <p><strong>Returns</strong></p>
+<ul>
+<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]): Result dictionary
+with keys <cite>success</cite>, <cite>c</cite>, and <cite>certificate</cite>.</p>
 <ul class="simple">
-<li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]): Returns
-<span class="math notranslate nohighlight">\((True, c)\)</span> if the SDP is solved successfully, where <span class="math notranslate nohighlight">\(c\)</span> is the optimal objective value.
-Returns <span class="math notranslate nohighlight">\((False, None)\)</span> otherwise.</p></li>
+<li><p><cite>success</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>): <cite>True</cite> iff the SDP is feasible.</p></li>
+<li><p><cite>c</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Optimal objective value when
+<cite>success</cite> is <cite>True</cite>; otherwise <cite>None</cite>.</p></li>
+<li><p><cite>certificate</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]]):
+<cite>None</cite> when <cite>success</cite> is <cite>False</cite>; otherwise a feasible certificate.</p></li>
+</ul>
+<p>When <cite>success</cite> is <cite>True</cite>, <cite>certificate</cite> has:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+  &quot;Q_sequence&quot;: List[np.ndarray],   # length K+1, Q_sequence[k] = Q_k
+  &quot;q_sequence&quot;: List[np.ndarray] | None,  # None when m_func == 0
+  &quot;multipliers&quot;: {
+    &quot;operator_lambda&quot;: List[record],
+    &quot;function_lambda&quot;: List[record],
+    &quot;function_nu&quot;: List[record]
+  }
+}
+</pre></div>
+</div>
+<p>Each multiplier list entry is a <cite>record</cite> with:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>record = {
+  &quot;iteration&quot;: int,
+  &quot;component&quot;: int,
+  &quot;interpolation_index&quot;: int,
+  &quot;pairs&quot;: List[{&quot;j&quot;: int | &quot;star&quot;, &quot;k&quot;: int | &quot;star&quot;}],
+  &quot;value&quot;: float
+}
+</pre></div>
+</div>
+<p>Field meanings and ranges:</p>
+<ul>
+<li><p><cite>iteration</cite> corresponds to <span class="math notranslate nohighlight">\(k\)</span> and satisfies
+<span class="math notranslate nohighlight">\(k \in \llbracket 0, K-1 \rrbracket\)</span>.</p></li>
+<li><p><cite>component</cite> corresponds to <span class="math notranslate nohighlight">\(i\)</span> and satisfies
+<span class="math notranslate nohighlight">\(i \in \llbracket 1, m \rrbracket\)</span>.</p></li>
+<li><p><cite>interpolation_index</cite> corresponds to <span class="math notranslate nohighlight">\(o\)</span>, where
+<span class="math notranslate nohighlight">\(o\)</span> is the zero-based index from
+<span class="math notranslate nohighlight">\(\text{enumerate}(\text{prob.get_component_data}(i))\)</span>, so
+<span class="math notranslate nohighlight">\(o \in \llbracket 0, \text{len}(\text{prob.get_component_data}(i)) - 1 \rrbracket\)</span>.</p></li>
+<li><p><cite>pairs</cite> is the concrete interpolation-pair list used by that multiplier.
+Its length is 1 (pattern <cite>“r1”</cite>) or 2 (patterns <cite>“r1&lt;r2”</cite>,
+<cite>“r1!=r2”</cite>, <cite>“r1!=star”</cite>). Typical examples are
+<cite>[{“j”: 2, “k”: 5}]</cite> and
+<cite>[{“j”: 1, “k”: 5}, {“j”: “star”, “k”: “star”}]</cite>.</p>
+<p>Pair entries satisfy</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+j &amp;\in \llbracket 1, \bar m_i \rrbracket \cup \{\star\}, \\
+k_{\text{pair}} &amp;\in \{k, k+1\} \cup \{\star\},
+\end{aligned}\end{split}\]</div>
+<p>with <span class="math notranslate nohighlight">\(j=\star \Leftrightarrow k_{\text{pair}}=\star\)</span>.</p>
+</li>
+<li><p><cite>value</cite> is the scalar multiplier for that record.</p></li>
+</ul>
+</li>
 </ul>
 <p><strong>Raises</strong></p>
 <ul class="simple">
@@ -496,7 +552,8 @@ Returns <span class="math notranslate nohighlight">\((False, None)\)</span> othe
 </ul>
 <p><strong>Notes</strong></p>
 <ul class="simple">
-<li><p>Requires a working MOSEK installation and license.</p></li>
+<li><p>Default backend is MOSEK Fusion. You may also select CVXPY via
+<cite>SolverOptions(backend=”cvxpy”)</cite>.</p></li>
 </ul>
 </dd></dl>
 
@@ -510,13 +567,16 @@ Returns <span class="math notranslate nohighlight">\((False, None)\)</span> othe
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="iteration_independent_analysis.html" class="btn btn-neutral float-left" title="Iteration-independent analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="solver_backends.html" class="btn btn-neutral float-right" title="Solver backends" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2026, Manu Upadhyaya.</p>
+  <p>
+    &#169; Copyright 2026,
+    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.</p>
+
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

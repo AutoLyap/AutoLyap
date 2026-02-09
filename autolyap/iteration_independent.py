@@ -1,9 +1,15 @@
 import numpy as np
-from typing import Type, Optional, Tuple, Union, List, Dict, Iterator
+from typing import Any, Type, Optional, Tuple, Union, List, Dict, Iterator
 from itertools import combinations
 from mosek.fusion import Model, Domain, OptimizeError, Expr
 import mosek.fusion.pythonic
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
+from autolyap.solver_options import (
+    SolverOptions,
+    normalize_solver_options,
+    get_cvxpy_solve_kwargs,
+    get_cvxpy_accepted_statuses,
+)
 from autolyap.utils.validation import (
     ensure_finite_array,
     ensure_integral,
@@ -321,7 +327,8 @@ class LinearConvergence:
             remove_C4: bool = True,
             lower_bound: float = 0.0,
             upper_bound: float = 1.0,
-            tol: float = 1e-12
+            tol: float = 1e-12,
+            solver_options: Optional[SolverOptions] = None,
         ) -> Dict[str, object]:
         r"""
         Perform a bisection search to find the minimum contraction parameter :math:`\rho`.
@@ -362,6 +369,9 @@ class LinearConvergence:
         - `lower_bound` (:class:`float`): Lower bound for :math:`\rho`.
         - `upper_bound` (:class:`float`): Upper bound for :math:`\rho`.
         - `tol` (:class:`float`): Tolerance for the bisection search stopping criterion.
+        - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
+          Optional backend and parameter settings. Defaults to
+          `SolverOptions(backend="mosek_fusion")`.
 
         **Returns**
 
@@ -382,7 +392,8 @@ class LinearConvergence:
         **Raises**
 
         - `ValueError`: If any input is out of range or the bounds are inconsistent.
-        - `mosek.fusion.OptimizeError`: If MOSEK raises a license-related error during optimization.
+        - `mosek.fusion.OptimizeError`: If the MOSEK backend is selected and raises
+          a license-related error during optimization.
         """
         h = ensure_integral(h, "h", minimum=0)
         alpha = ensure_integral(alpha, "alpha", minimum=0)
@@ -396,11 +407,75 @@ class LinearConvergence:
         h, alpha, _, _, _, _, _, _, _ = IterationIndependent._validate_iteration_independent_inputs(
             prob, algo, P, T, p, t, h, alpha
         )
+        solver_options = normalize_solver_options(solver_options)
 
-        Mod = Model()
-        rho_param = Mod.parameter(1)
-        rho_scalar = rho_param.index(0)
-        Mod, solution_handles = IterationIndependent._build_iteration_independent_model(
+        if solver_options.backend == "mosek_fusion":
+            Mod = Model()
+            rho_param = Mod.parameter(1)
+            rho_scalar = rho_param.index(0)
+            Mod, solution_handles = IterationIndependent._build_iteration_independent_model(
+                prob,
+                algo,
+                P,
+                T,
+                p,
+                t,
+                h,
+                alpha,
+                Q_equals_P,
+                S_equals_T,
+                q_equals_p,
+                s_equals_t,
+                remove_C2,
+                remove_C3,
+                remove_C4,
+                rho_term=rho_scalar,
+                model=Mod,
+            )
+            IterationIndependent._apply_mosek_solver_params(Mod, solver_options)
+
+            licence_markers = (
+                "err_license_max",         # 1016 – all floating tokens in use
+                "err_license_server",      # 1015 – server unreachable / down
+                "err_missing_license_file" # 1008 – no licence file / server path
+            )
+
+            def _check_rho(rho_value: float) -> bool:
+                rho_param.setValue([rho_value])
+                try:
+                    Mod.solve()
+                    Mod.primalObjValue()
+                except OptimizeError as e:
+                    if any(mark in str(e) for mark in licence_markers):
+                        raise
+                    return False
+                except Exception:
+                    return False
+                return True
+
+            try:
+                if not _check_rho(upper_bound):
+                    return {"success": False, "rho": None, "certificate": None}
+
+                l = lower_bound
+                u = upper_bound
+                while (u - l) > tol:
+                    mid = (l + u) / 2.0
+                    if _check_rho(mid):
+                        u = mid
+                    else:
+                        l = mid
+                if not _check_rho(u):
+                    return {"success": False, "rho": None, "certificate": None}
+
+                certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
+                return {"success": True, "rho": float(u), "certificate": certificate}
+            finally:
+                Mod.dispose()
+
+        cp = IterationIndependent._import_cvxpy()
+        rho_param = cp.Parameter(nonneg=True, value=upper_bound)
+        problem, solution_handles = IterationIndependent._build_iteration_independent_problem_cvxpy(
             prob,
             algo,
             P,
@@ -416,49 +491,36 @@ class LinearConvergence:
             remove_C2,
             remove_C3,
             remove_C4,
-            rho_term=rho_scalar,
-            model=Mod,
+            rho_term=rho_param,
+            cp=cp,
         )
+        solve_kwargs = get_cvxpy_solve_kwargs(solver_options)
+        accepted_statuses = get_cvxpy_accepted_statuses(cp, solver_options)
 
-        licence_markers = (
-            "err_license_max",         # 1016 – all floating tokens in use
-            "err_license_server",      # 1015 – server unreachable / down
-            "err_missing_license_file" # 1008 – no licence file / server path
-        )
-
-        def _check_rho(rho_value: float) -> bool:
-            rho_param.setValue([rho_value])
+        def _check_rho_cvxpy(rho_value: float) -> bool:
+            rho_param.value = rho_value
             try:
-                Mod.solve()
-                Mod.primalObjValue()
-            except OptimizeError as e:
-                if any(mark in str(e) for mark in licence_markers):
-                    raise
-                return False
+                problem.solve(**solve_kwargs)
             except Exception:
                 return False
-            return True
+            return problem.status in accepted_statuses
 
-        try:
-            # Ensure that the inequality holds at the initial upper bound.
-            if not _check_rho(upper_bound):
-                return {"success": False, "rho": None, "certificate": None}
+        if not _check_rho_cvxpy(upper_bound):
+            return {"success": False, "rho": None, "certificate": None}
 
-            l = lower_bound
-            u = upper_bound
-            while (u - l) > tol:
-                mid = (l + u) / 2.0
-                if _check_rho(mid):
-                    u = mid
-                else:
-                    l = mid
-            if not _check_rho(u):
-                return {"success": False, "rho": None, "certificate": None}
+        l = lower_bound
+        u = upper_bound
+        while (u - l) > tol:
+            mid = (l + u) / 2.0
+            if _check_rho_cvxpy(mid):
+                u = mid
+            else:
+                l = mid
+        if not _check_rho_cvxpy(u):
+            return {"success": False, "rho": None, "certificate": None}
 
-            certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
-            return {"success": True, "rho": float(u), "certificate": certificate}
-        finally:
-            Mod.dispose()
+        certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(solution_handles)
+        return {"success": True, "rho": float(u), "certificate": certificate}
 
 class SublinearConvergence:
     r"""
@@ -1234,6 +1296,36 @@ class IterationIndependent:
         return Expr.mul(rho_term, expr)
 
     @staticmethod
+    def _import_cvxpy():
+        r"""Import cvxpy lazily so MOSEK-only workflows stay lightweight."""
+        try:
+            import cvxpy as cp
+        except ImportError as exc:
+            raise ImportError(
+                "CVXPY backend requested, but cvxpy is not installed. "
+                "Install it with `pip install cvxpy`."
+            ) from exc
+        return cp
+
+    @staticmethod
+    def _apply_mosek_solver_params(mod: Model, solver_options: SolverOptions) -> None:
+        r"""Apply user-provided MOSEK Fusion parameters to a model."""
+        params = solver_options.mosek_params or {}
+        for name, value in params.items():
+            mod.setSolverParam(name, value)
+
+    @staticmethod
+    def _extract_scalar_variable_value(var: object) -> float:
+        r"""Extract a scalar value from either a Fusion variable or a CVXPY variable."""
+        if hasattr(var, "level"):
+            value_arr = np.asarray(var.level(), dtype=float).reshape(-1)
+        elif hasattr(var, "value"):
+            value_arr = np.asarray(var.value, dtype=float).reshape(-1)
+        else:
+            raise ValueError("Unsupported scalar variable handle type.")
+        return float(value_arr[0]) if value_arr.size > 0 else 0.0
+
+    @staticmethod
     def _validate_iteration_independent_inputs(
             prob: Type[InclusionProblem],
             algo: Type[Algorithm],
@@ -1722,6 +1814,261 @@ class IterationIndependent:
         return Mod, solution_handles
 
     @staticmethod
+    def _build_iteration_independent_problem_cvxpy(
+            prob: Type[InclusionProblem],
+            algo: Type[Algorithm],
+            P: np.ndarray,
+            T: np.ndarray,
+            p: Optional[np.ndarray],
+            t: Optional[np.ndarray],
+            h: int,
+            alpha: int,
+            Q_equals_P: bool,
+            S_equals_T: bool,
+            q_equals_p: bool,
+            s_equals_t: bool,
+            remove_C2: bool,
+            remove_C3: bool,
+            remove_C4: bool,
+            rho_term,
+            cp,
+    ) -> Tuple[object, Dict[str, object]]:
+        r"""Assemble and return the CVXPY problem and variable handles."""
+        n = algo.n
+        m_bar = algo.m_bar
+        m = algo.m
+        m_bar_func = algo.m_bar_func
+        m_func = algo.m_func
+
+        dim_P = n + (h + 1) * m_bar + m
+        dim_T = n + (h + alpha + 2) * m_bar + m
+        dim_p = (h + 1) * m_bar_func + m_func
+        dim_t = (h + alpha + 2) * m_bar_func + m_func
+
+        Q_var = None
+        if Q_equals_P:
+            Q = P
+        else:
+            Q_var = cp.Variable((dim_P, dim_P), symmetric=True)
+            Q = Q_var
+
+        S_var = None
+        if S_equals_T:
+            S = T
+        else:
+            S_var = cp.Variable((dim_T, dim_T), symmetric=True)
+            S = S_var
+
+        q_var = None
+        s_var = None
+        if m_func > 0:
+            if q_equals_p:
+                q = np.array(p, dtype=float, copy=True).reshape(-1)
+            else:
+                q_var = cp.Variable(dim_p)
+                q = q_var
+            if s_equals_t:
+                s = np.array(t, dtype=float, copy=True).reshape(-1)
+            else:
+                s_var = cp.Variable(dim_t)
+                s = s_var
+
+        Ws: Dict[str, Any] = {}
+        k_maxs: Dict[str, int] = {}
+
+        Theta0_C1, Theta1_C1 = IterationIndependent._compute_Thetas(algo, h, alpha, condition='C1')
+        Ws["C1"] = (
+            Theta1_C1.T @ Q @ Theta1_C1
+            - rho_term * (Theta0_C1.T @ Q @ Theta0_C1)
+            + S
+        )
+        k_maxs["C1"] = h + alpha + 1
+
+        if not remove_C2:
+            Ws["C2"] = P - Q
+            k_maxs["C2"] = h
+
+        if not remove_C3:
+            Ws["C3"] = T - S
+            k_maxs["C3"] = h + alpha + 1
+
+        if not remove_C4:
+            Theta0_C4, Theta1_C4 = IterationIndependent._compute_Thetas(algo, h, alpha, condition='C4')
+            Ws["C4"] = Theta1_C4.T @ S @ Theta1_C4 - Theta0_C4.T @ S @ Theta0_C4
+            k_maxs["C4"] = h + alpha + 2
+
+        if m_func > 0:
+            ws: Dict[str, Any] = {}
+            theta0_C1, theta1_C1 = IterationIndependent._compute_thetas(algo, h, alpha, condition='C1')
+            ws["C1"] = theta1_C1.T @ q - rho_term * (theta0_C1.T @ q) + s
+
+            if not remove_C2:
+                ws["C2"] = p - q
+            if not remove_C3:
+                ws["C3"] = t - s
+            if not remove_C4:
+                theta0_C4, theta1_C4 = IterationIndependent._compute_thetas(algo, h, alpha, condition='C4')
+                ws["C4"] = (theta1_C4.T - theta0_C4.T) @ s
+
+        conds = ["C1"]
+        if not remove_C2:
+            conds.append("C2")
+        if not remove_C3:
+            conds.append("C3")
+        if not remove_C4:
+            conds.append("C4")
+
+        PSD_constraint_sums: Dict[str, Any] = {}
+        eq_constraint_sums: Dict[str, Any] = {}
+        for cond in conds:
+            PSD_constraint_sums[cond] = -Ws[cond]
+            if m_func > 0:
+                eq_constraint_sums[cond] = -ws[cond]
+
+        lambdas_op: Dict[Tuple[str, int, PairTuple, int], object] = {}
+        lambdas_func: Dict[Tuple[str, int, PairTuple, int], object] = {}
+        nus_func: Dict[Tuple[str, int, PairTuple, int], object] = {}
+
+        op_components = set(algo.I_op)
+        m_bar_is = algo.m_bar_is
+        compute_E = algo.compute_E
+        get_Fs = algo.get_Fs
+        star_pair = ('star', 'star')
+        lifted_E_cache: Dict[Tuple[int, PairTuple, int], np.ndarray] = {}
+        lifted_F_basis_cache: Dict[Tuple[int, PairTuple, int], np.ndarray] = {}
+
+        def _get_lifted_E(i, pairs, k_max):
+            cache_key = (i, pairs, k_max)
+            E_matrix = lifted_E_cache.get(cache_key)
+            if E_matrix is None:
+                E_matrix = compute_E(i, list(pairs), 0, k_max, validate=False)
+                lifted_E_cache[cache_key] = E_matrix
+            return E_matrix
+
+        def _get_lifted_F_basis(i, pairs, k_max):
+            cache_key = (i, pairs, k_max)
+            F_basis = lifted_F_basis_cache.get(cache_key)
+            if F_basis is None:
+                Fs_dict = get_Fs(0, k_max)
+                total_dim = (k_max + 1) * m_bar_func + m_func
+                F_basis = np.empty((total_dim, len(pairs)))
+                for col_idx, (j, k_idx) in enumerate(pairs):
+                    key = (i, 'star', 'star') if (j == 'star' and k_idx == 'star') else (i, j, k_idx)
+                    F_basis[:, col_idx] = Fs_dict[key].reshape(-1)
+                lifted_F_basis_cache[cache_key] = F_basis
+            return F_basis
+
+        def process_pairs(
+                cond: str,
+                i: int,
+                o: int,
+                interpolation_data: InterpolationData,
+                pairs: PairTuple,
+                comp_type: str,
+                has_quadratic: bool,
+                has_linear: bool) -> None:
+            key = (cond, i, pairs, o)
+
+            if comp_type == 'op':
+                if not has_quadratic:
+                    return
+                M, _ = interpolation_data
+            else:
+                M, a, eq, _ = interpolation_data
+                if not has_quadratic and not has_linear:
+                    return
+
+            W_matrix = None
+            k_max = k_maxs[cond]
+            if has_quadratic:
+                E_matrix = _get_lifted_E(i, pairs, k_max)
+                W_matrix = E_matrix.T @ M @ E_matrix
+
+            if comp_type == 'op':
+                lambda_var = cp.Variable(nonneg=True)
+                lambdas_op[key] = lambda_var
+                PSD_constraint_sums[cond] = PSD_constraint_sums[cond] + lambda_var * W_matrix
+            else:
+                F_vector = None
+                if has_linear:
+                    F_basis = _get_lifted_F_basis(i, pairs, k_max)
+                    F_vector = (F_basis @ a).reshape(-1)
+                if eq:
+                    nu_var = cp.Variable()
+                    nus_func[key] = nu_var
+                    if has_quadratic:
+                        PSD_constraint_sums[cond] = PSD_constraint_sums[cond] + nu_var * W_matrix
+                    if has_linear:
+                        eq_constraint_sums[cond] = eq_constraint_sums[cond] + nu_var * F_vector
+                else:
+                    lambda_var = cp.Variable(nonneg=True)
+                    lambdas_func[key] = lambda_var
+                    if has_quadratic:
+                        PSD_constraint_sums[cond] = PSD_constraint_sums[cond] + lambda_var * W_matrix
+                    if has_linear:
+                        eq_constraint_sums[cond] = eq_constraint_sums[cond] + lambda_var * F_vector
+
+        component_data = IterationIndependent._collect_iteration_independent_component_data(
+            prob, m, op_components
+        )
+
+        pairs_cache: Dict[str, Dict[int, Tuple[List[Union[Tuple[int, int], Tuple[str, str]]], List[Tuple[int, int]]]]] = {}
+        for cond in conds:
+            pairs_cache[cond] = {}
+            k_max = k_maxs[cond]
+            k_range = range(k_max + 1)
+            for i in range(1, m + 1):
+                m_bar_i = m_bar_is[i - 1]
+                pairs_no_star = [(j, k) for j in range(1, m_bar_i + 1) for k in k_range]
+                pairs_with_star = pairs_no_star + [star_pair]
+                pairs_cache[cond][i] = (pairs_with_star, pairs_no_star)
+
+        for cond in conds:
+            for i in range(1, m + 1):
+                is_op = i in op_components
+                comp_type = 'op' if is_op else 'func'
+                pairs_with_star, pairs_no_star = pairs_cache[cond][i]
+                for o, (interp_data, interp_key, has_quadratic, has_linear) in enumerate(component_data[i]):
+                    for pair_pattern in IterationIndependent._iter_pair_patterns(
+                        interp_key, pairs_with_star, pairs_no_star, star_pair
+                    ):
+                        process_pairs(
+                            cond,
+                            i,
+                            o,
+                            interp_data,
+                            pair_pattern,
+                            comp_type,
+                            has_quadratic,
+                            has_linear,
+                        )
+
+        constraints = []
+        for cond in conds:
+            constraints.append(PSD_constraint_sums[cond] >> 0)
+            if m_func > 0:
+                constraints.append(eq_constraint_sums[cond] == 0)
+
+        problem = cp.Problem(cp.Minimize(0), constraints)
+        solution_handles: Dict[str, object] = {
+            "dim_P": dim_P,
+            "dim_T": dim_T,
+            "m_func": m_func,
+            "P": P,
+            "T": T,
+            "p": p,
+            "t": t,
+            "Q_var": Q_var,
+            "S_var": S_var,
+            "q_var": q_var,
+            "s_var": s_var,
+            "lambdas_op": lambdas_op,
+            "lambdas_func": lambdas_func,
+            "nus_func": nus_func,
+        }
+        return problem, solution_handles
+
+    @staticmethod
     def _pairs_to_readable(pairs: PairTuple) -> List[Dict[str, Union[int, str]]]:
         r"""Convert interpolation-pair tuples into readable dictionaries."""
         return [{"j": pair[0], "k": pair[1]} for pair in pairs]
@@ -1731,7 +2078,7 @@ class IterationIndependent:
             multiplier_vars: Dict[Tuple[str, int, PairTuple, int], object]
     ) -> List[Dict[str, object]]:
         r"""
-        Convert scalar MOSEK multiplier variables into readable records.
+        Convert scalar multiplier variables into readable records.
 
         Schema:
 
@@ -1776,8 +2123,7 @@ class IterationIndependent:
                 multiplier_vars.items(),
                 key=lambda item: (item[0][0], item[0][1], item[0][3], str(item[0][2]))):
             cond, component, pairs, interpolation_index = key
-            value_arr = np.asarray(var.level(), dtype=float).reshape(-1)
-            value = float(value_arr[0]) if value_arr.size > 0 else 0.0
+            value = IterationIndependent._extract_scalar_variable_value(var)
             records.append({
                 "condition": cond,
                 "component": component,
@@ -1849,6 +2195,56 @@ class IterationIndependent:
         }
 
     @staticmethod
+    def _extract_iteration_independent_certificate_cvxpy(solution_handles: Dict[str, object]) -> Dict[str, object]:
+        r"""Extract a solved CVXPY-backed iteration-independent certificate."""
+        m_func = int(solution_handles["m_func"])
+        P = solution_handles["P"]
+        T = solution_handles["T"]
+        p = solution_handles["p"]
+        t = solution_handles["t"]
+        Q_var = solution_handles["Q_var"]
+        S_var = solution_handles["S_var"]
+        q_var = solution_handles["q_var"]
+        s_var = solution_handles["s_var"]
+
+        if Q_var is None:
+            Q_mat = np.array(P, dtype=float, copy=True)
+        else:
+            Q_mat = np.asarray(Q_var.value, dtype=float)
+
+        if S_var is None:
+            S_mat = np.array(T, dtype=float, copy=True)
+        else:
+            S_mat = np.asarray(S_var.value, dtype=float)
+
+        q_vec = None
+        s_vec = None
+        if m_func > 0:
+            if q_var is None:
+                q_vec = np.array(p, dtype=float, copy=True).reshape(-1) if p is not None else None
+            else:
+                q_vec = np.asarray(q_var.value, dtype=float).reshape(-1)
+            if s_var is None:
+                s_vec = np.array(t, dtype=float, copy=True).reshape(-1) if t is not None else None
+            else:
+                s_vec = np.asarray(s_var.value, dtype=float).reshape(-1)
+
+        lambdas_op = solution_handles["lambdas_op"]
+        lambdas_func = solution_handles["lambdas_func"]
+        nus_func = solution_handles["nus_func"]
+        return {
+            "Q": Q_mat,
+            "S": S_mat,
+            "q": q_vec,
+            "s": s_vec,
+            "multipliers": {
+                "operator_lambda": IterationIndependent._serialize_multipliers(lambdas_op),
+                "function_lambda": IterationIndependent._serialize_multipliers(lambdas_func),
+                "function_nu": IterationIndependent._serialize_multipliers(nus_func),
+            },
+        }
+
+    @staticmethod
     def verify_iteration_independent_Lyapunov(
             prob: Type[InclusionProblem],
             algo: Type[Algorithm],
@@ -1865,12 +2261,13 @@ class IterationIndependent:
             s_equals_t: bool = False,
             remove_C2: bool = False,
             remove_C3: bool = False,
-            remove_C4: bool = True
+            remove_C4: bool = True,
+            solver_options: Optional[SolverOptions] = None,
     ) -> Dict[str, object]:
         r"""
         Verify feasibility of an iteration-independent Lyapunov inequality via an SDP.
 
-        This method formulates and solves a semidefinite program (SDP) in MOSEK Fusion
+        This method formulates and solves a semidefinite program (SDP)
         for a given inclusion problem, algorithm, and user-specified targets
         :math:`(P,p,T,t,\rho,h,\alpha)`.
 
@@ -1924,6 +2321,9 @@ class IterationIndependent:
         - `remove_C2` (:class:`bool`): Flag to remove constraint C2.
         - `remove_C3` (:class:`bool`): Flag to remove constraint C3.
         - `remove_C4` (:class:`bool`): Flag to remove constraint C4.
+        - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
+          Optional backend and parameter settings. Defaults to
+          `SolverOptions(backend="mosek_fusion")`.
 
         **Returns**
 
@@ -1996,7 +2396,7 @@ class IterationIndependent:
                 k_{\textup{max}}(\text{"C3"}) &= h+\alpha+1, \\
                 k_{\textup{max}}(\text{"C4"}) &= h+\alpha+2.
                 \end{aligned}
-          - `value` is the scalar MOSEK multiplier for that record.
+          - `value` is the scalar multiplier for that record.
 
         **Raises**
 
@@ -2004,7 +2404,8 @@ class IterationIndependent:
 
         **Notes**
 
-        - Requires a working MOSEK installation and license.
+        - Default backend is MOSEK Fusion. You may also select CVXPY via
+          `SolverOptions(backend="cvxpy")`.
         - The inputs `(P, p, T, t)` are typically built with
           :class:`~autolyap.iteration_independent.LinearConvergence` and
           :class:`~autolyap.iteration_independent.SublinearConvergence` helper methods.
@@ -2013,8 +2414,50 @@ class IterationIndependent:
             prob, algo, P, T, p, t, h, alpha
         )
         rho = ensure_real_number(rho, "rho", finite=True, minimum=0.0)
+        solver_options = normalize_solver_options(solver_options)
 
-        Mod, solution_handles = IterationIndependent._build_iteration_independent_model(
+        if solver_options.backend == "mosek_fusion":
+            Mod, solution_handles = IterationIndependent._build_iteration_independent_model(
+                prob,
+                algo,
+                P,
+                T,
+                p,
+                t,
+                h,
+                alpha,
+                Q_equals_P,
+                S_equals_T,
+                q_equals_p,
+                s_equals_t,
+                remove_C2,
+                remove_C3,
+                remove_C4,
+                rho_term=rho,
+            )
+            IterationIndependent._apply_mosek_solver_params(Mod, solver_options)
+
+            licence_markers = (
+                "err_license_max",         # 1016 – all floating tokens in use
+                "err_license_server",      # 1015 – server unreachable / down
+                "err_missing_license_file" # 1008 – no licence file / server path
+            )
+            try:
+                Mod.solve()
+                Mod.primalObjValue()
+                certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
+                return {"success": True, "rho": float(rho), "certificate": certificate}
+            except OptimizeError as e:
+                if any(mark in str(e) for mark in licence_markers):
+                    raise
+                return {"success": False, "rho": float(rho), "certificate": None}
+            except Exception:
+                return {"success": False, "rho": float(rho), "certificate": None}
+            finally:
+                Mod.dispose()
+
+        cp = IterationIndependent._import_cvxpy()
+        problem, solution_handles = IterationIndependent._build_iteration_independent_problem_cvxpy(
             prob,
             algo,
             P,
@@ -2031,27 +2474,20 @@ class IterationIndependent:
             remove_C3,
             remove_C4,
             rho_term=rho,
+            cp=cp,
         )
-        licence_markers = (
-            "err_license_max",         # 1016 – all floating tokens in use
-            "err_license_server",      # 1015 – server unreachable / down
-            "err_missing_license_file" # 1008 – no licence file / server path
-        )
+        solve_kwargs = get_cvxpy_solve_kwargs(solver_options)
+        accepted_statuses = get_cvxpy_accepted_statuses(cp, solver_options)
         try:
-            Mod.solve()
-            Mod.primalObjValue()
-            certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
-            return {"success": True, "rho": float(rho), "certificate": certificate}
-        except OptimizeError as e:
-            if any(mark in str(e) for mark in licence_markers):
-                raise
-            return {"success": False, "rho": float(rho), "certificate": None}
+            problem.solve(**solve_kwargs)
         except Exception:
-            # Uncomment the following line for debugging if needed.
-            # print("Error during solve: {0}".format(e))
             return {"success": False, "rho": float(rho), "certificate": None}
-        finally:
-            Mod.dispose()
+
+        if problem.status not in accepted_statuses:
+            return {"success": False, "rho": float(rho), "certificate": None}
+
+        certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(solution_handles)
+        return {"success": True, "rho": float(rho), "certificate": certificate}
     
     @staticmethod
     def _compute_Thetas(algo: Type[Algorithm], h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:
