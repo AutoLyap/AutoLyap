@@ -8,6 +8,7 @@ More examples are coming. Contributions to this list are welcome; see
 ```{toctree}
 :maxdepth: 1
 
+examples/heavy_ball
 examples/proximal_gradient
 examples/proximal_point
 ```
