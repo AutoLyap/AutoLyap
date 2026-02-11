@@ -44,4 +44,5 @@ quick_start
 examples
 api_reference
 contributing
+whats_new
 ```

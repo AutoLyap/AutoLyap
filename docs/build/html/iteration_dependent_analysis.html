@@ -6,15 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iteration-dependent analysis &mdash; AutoLyap 0.1.0 documentation</title>
+  <title>Iteration-dependent analysis &mdash; AutoLyap 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=18baee69" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a6713d5d" />
 
   
+    <link rel="shortcut icon" href="_static/favicon.svg"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
@@ -32,10 +33,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-<a href="index.html" class="icon icon-home">
+<a href="index.html">
   AutoLyap
 </a>
-<div class="sidebar-version">v0.1.0</div>
+<div class="sidebar-version">v0.2.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -64,6 +65,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new</a></li>
 </ul>
 
         </div>
@@ -79,10 +81,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="api_reference.html">API reference</a></li>
-          <li class="breadcrumb-item"><a href="lyapunov_analyses.html">Lyapunov analyses</a></li>
-      <li class="breadcrumb-item active">Iteration-dependent analysis</li>
+      <li class="breadcrumb-item"><a href="api_reference.html">API reference</a></li>
+      <li class="breadcrumb-item"><a href="lyapunov_analyses.html">Lyapunov analyses</a></li>
+    <li class="breadcrumb-item active">Iteration-dependent analysis</li>
+
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/iteration_dependent_analysis.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -162,7 +164,9 @@ q_k \in \mathbb{R}^{\NumEvalFunc + \NumFunc}.\]</div>
 The vector <span class="math notranslate nohighlight">\(\hat{\bu}^{\star}\)</span> is void when <span class="math notranslate nohighlight">\(m = 1\)</span>.
 When <span class="math notranslate nohighlight">\(\NumFunc = 0\)</span>, the vectors <span class="math notranslate nohighlight">\(q_k\)</span> are omitted.</p>
 <p><strong>Chained Lyapunov inequalities</strong></p>
-<p>We search for a sequence <span class="math notranslate nohighlight">\((Q_{k},q_{k})_{k=0}^{K}\)</span> and a scalar <span class="math notranslate nohighlight">\(c \ge 0\)</span> such that</p>
+<p>We set the endpoint parameters <span class="math notranslate nohighlight">\((Q_0,q_0)\)</span> and <span class="math notranslate nohighlight">\((Q_K,q_K)\)</span> and
+search for intermediate <span class="math notranslate nohighlight">\((Q_k,q_k)\)</span> for
+<span class="math notranslate nohighlight">\(k \in \llbracket 1, K-1 \rrbracket\)</span>, together with a scalar <span class="math notranslate nohighlight">\(c \ge 0\)</span>, such that</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c\,\mathcal{V}(0).\]</div>
 <p><strong>Role of K</strong></p>
@@ -437,7 +441,8 @@ follow the class-level reference in
 \[\mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c\,\mathcal{V}(0).\]</div>
 <p>with <span class="math notranslate nohighlight">\(c \ge 0\)</span>.</p>
 <p><strong>User-specified targets</strong></p>
-<p>The user specifies the endpoint parameters <span class="math notranslate nohighlight">\((Q_0,q_0)\)</span> and <span class="math notranslate nohighlight">\((Q_K,q_K)\)</span>.
+<p>The user sets the endpoint parameters <span class="math notranslate nohighlight">\((Q_0,q_0)\)</span> and <span class="math notranslate nohighlight">\((Q_K,q_K)\)</span>.
+These endpoint parameters are fixed inputs to the SDP (not optimization variables).
 The SDP then searches for intermediate <span class="math notranslate nohighlight">\((Q_k,q_k)\)</span> for
 <span class="math notranslate nohighlight">\(k \in \llbracket 1, K-1\rrbracket\)</span> and the minimum feasible <span class="math notranslate nohighlight">\(c\)</span>.
 When <span class="math notranslate nohighlight">\(\NumFunc = 0\)</span>, the vectors <span class="math notranslate nohighlight">\(q_k\)</span> (and inputs <cite>q_0</cite>, <cite>q_K</cite>) are omitted.</p>

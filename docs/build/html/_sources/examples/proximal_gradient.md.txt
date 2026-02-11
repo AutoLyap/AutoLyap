@@ -189,24 +189,18 @@ print(f"rho (AutoLyap):  {rho_autolyap:.8f}")
 print(f"rho (theory):    {rho_taylor:.8f}")
 ```
 
-Hence, for the distance-to-solution target, the method satisfies
+The computed value `rho (AutoLyap)` matches the closed-form theoretical rate expression from Theorem 2.1 in {cite}`taylor2018proximal`, i.e., 
 
 ```{math}
 \|x^k - x^\star\|^2 = O(\rho^k), \qquad
-\rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2.
+\rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2,
 ```
 
-Equivalently,
+or
 
 ```{math}
 \|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).
 ```
-
-## Notes
-
-- The runtime checks in Step 5 enforce `0 < mu < L` and `0 < gamma <= 2/L`.
-- The comparison value `rho (theory)` uses the closed-form expression from
-  Theorem 2.1 in {cite}`taylor2018proximal`.
 
 ## References
 

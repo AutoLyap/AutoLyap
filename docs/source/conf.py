@@ -31,10 +31,11 @@ autodoc_mock_imports = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = ["release_notes/_template.md"]
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+html_favicon = "_static/favicon.svg"
 html_css_files = ["custom.css"]
 html_js_files = ["copybutton.js"]
 maximum_signature_line_length = 1

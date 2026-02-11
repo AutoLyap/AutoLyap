@@ -6,15 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The proximal point method &mdash; AutoLyap 0.1.0 documentation</title>
+  <title>The proximal point method &mdash; AutoLyap 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=18baee69" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a6713d5d" />
 
   
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
@@ -32,10 +33,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-<a href="../index.html" class="icon icon-home">
+<a href="../index.html">
   AutoLyap
 </a>
-<div class="sidebar-version">v0.1.0</div>
+<div class="sidebar-version">v0.2.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -61,6 +62,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api_reference.html">API reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new</a></li>
 </ul>
 
         </div>
@@ -76,9 +78,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
-      <li class="breadcrumb-item active">The proximal point method</li>
+      <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+    <li class="breadcrumb-item active">The proximal point method</li>
+
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/examples/proximal_point.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -92,12 +94,13 @@
 <h1>The proximal point method<a class="headerlink" href="#the-proximal-point-method" title="Link to this heading"></a></h1>
 <section id="problem-setup">
 <h2>Problem setup<a class="headerlink" href="#problem-setup" title="Link to this heading"></a></h2>
-<p>We consider one functional component:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(f\)</span> is <span class="math notranslate nohighlight">\(\mu\)</span>-strongly convex, with <span class="math notranslate nohighlight">\(\mu &gt; 0\)</span>.</p></li>
-<li><p>Problem class: <a class="reference internal" href="../problem_class.html#autolyap.problemclass.InclusionProblem" title="autolyap.problemclass.InclusionProblem"><code class="xref py py-class docutils literal notranslate"><span class="pre">autolyap.problemclass.InclusionProblem</span></code></a> with
-<a class="reference internal" href="../function_classes.html#autolyap.problemclass.StronglyConvex" title="autolyap.problemclass.StronglyConvex"><code class="xref py py-class docutils literal notranslate"><span class="pre">autolyap.problemclass.StronglyConvex</span></code></a>.</p></li>
-</ul>
+<p>Consider minimizing a <span class="math notranslate nohighlight">\(\mu\)</span>-strongly convex function
+<span class="math notranslate nohighlight">\(f : \calH \to \reals\)</span>, with <span class="math notranslate nohighlight">\(\mu &gt; 0\)</span>; for an initial point
+<span class="math notranslate nohighlight">\(x^0 \in \calH\)</span> and step size <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>, the proximal
+point method updates as</p>
+<div class="math notranslate nohighlight">
+\[(\forall k \in \naturals)\quad
+x^{k+1} = \prox_{\gamma f}(x^k).\]</div>
 </section>
 <section id="run-the-iteration-independent-analysis">
 <h2>Run the iteration-independent analysis<a class="headerlink" href="#run-the-iteration-independent-analysis" title="Link to this heading"></a></h2>
@@ -137,12 +140,11 @@
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rho (theory):   </span><span class="si">{</span><span class="n">rho_theory</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The theoretical rate expression for proximal point is classical; see <span id="id1">[<a class="reference internal" href="#id5" title="R. Tyrrell Rockafellar. Monotone operators and the proximal point algorithm. SIAM Journal on Control and Optimization, 14(5):877–898, 1976. doi:10.1137/0314056.">Roc76</a>]</span>.</p>
-<p>Hence, for the distance-to-solution target, the method satisfies</p>
+<p>The computed value <code class="docutils literal notranslate"><span class="pre">rho</span> <span class="pre">(AutoLyap)</span></code> matches the theoretical rate expression given in <span id="id1">[<a class="reference internal" href="#id5" title="R. Tyrrell Rockafellar. Monotone operators and the proximal point algorithm. SIAM Journal on Control and Optimization, 14(5):877–898, 1976. doi:10.1137/0314056.">Roc76</a>]</span>, i.e.,</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\|^2 = O(\rho^k), \qquad
-\rho = \left(\frac{1}{1+\gamma\mu}\right)^2.\]</div>
-<p>Equivalently,</p>
+\rho = \left(\frac{1}{1+\gamma\mu}\right)^2,\]</div>
+<p>or</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\| = O\!\left(\left(\frac{1}{1+\gamma\mu}\right)^k\right).\]</div>
 </section>
