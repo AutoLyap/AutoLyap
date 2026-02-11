@@ -64,6 +64,16 @@ or
 \|x^k - x^\star\| = O\!\left(\left(\frac{1}{1+\gamma\mu}\right)^k\right).
 ```
 
+Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 5` gives
+the plot below, with the theoretical rate in black and AutoLyap certificates
+as blue dots.
+
+```{image} ../_static/proximal_point_rho_vs_gamma.svg
+:alt: Proximal-point rho versus gamma with theoretical line and AutoLyap points.
+:align: center
+:width: 100%
+```
+
 ## References
 
 ```{bibliography}

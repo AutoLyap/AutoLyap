@@ -89,6 +89,16 @@ or
 \|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).
 ```
 
+Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 2/L` gives
+the plot below, with the theoretical rate in black and AutoLyap certificates
+as blue dots.
+
+```{image} _static/gradient_method_rho_vs_gamma.svg
+:alt: Gradient-method rho versus gamma with theoretical line and AutoLyap points.
+:align: center
+:width: 100%
+```
+
 ## Iteration-dependent example: The optimized gradient method
 
 For background on the optimized gradient method, see {cite}`quick-kin2028ogm`.
@@ -183,6 +193,15 @@ In particular,
 
 ```{math}
 f(x^K) - f(x^\star) = O\!\left(\frac{1}{\theta_K^2}\right) = O\!\left(\frac{1}{K^2}\right).
+```
+
+Sweeping over {math}`K \in \llbracket 1, 100\rrbracket` gives the log-log plot below, with
+the theoretical bound in black and AutoLyap certificates as blue dots.
+
+```{image} _static/optimized_gradient_method_c_vs_K_loglog.svg
+:alt: Optimized-gradient c versus K in log-log scale with theoretical line and AutoLyap points.
+:align: center
+:width: 100%
 ```
 
 ## What to inspect

@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Generate heavy-ball sweep data and docs plot assets."""
+"""Generate heavy-ball sweep data and a publication-style SVG plot asset.
+
+Usage:
+    python docs/source/examples/scripts/generate_heavy_ball_assets.py
+
+    # Regenerate only the SVG from an existing CSV table
+    python docs/source/examples/scripts/generate_heavy_ball_assets.py --reuse-data
+"""
 
 from __future__ import annotations
 
@@ -22,27 +29,48 @@ if str(SCRIPT_DIR) not in sys.path:
 from autolyap import IterationIndependent, SolverOptions
 from autolyap.algorithms import HeavyBallMethod
 from autolyap.problemclass import InclusionProblem, SmoothConvex
-from plotting_utils import render_tex_input_to_png, write_csv_rows
+from plotting_utils import (
+    CartesianStyle,
+    read_xy_rows,
+    render_scatter_svg,
+    write_csv_rows,
+)
 
 
 # Output locations (relative to --output-dir).
-SMOOTH_DATA_REL = Path("data") / "heavy_ball_smooth_convex" / "gammas_deltas.tex"
-PLOT_TEX_REL = Path("plots") / "heavy_ball.tex"
-PLOT_IMAGE_REL = Path("_static") / "heavy_ball_smooth_convex.png"
+SMOOTH_DATA_REL = Path("data") / "heavy_ball_smooth_convex" / "gammas_deltas.csv"
+PLOT_IMAGE_REL = Path("_static") / "heavy_ball_smooth_convex.svg"
 
-# Single sweep grid (dense).
-GAMMA_MIN = 0.05
-GAMMA_MAX = 2.60
-GAMMA_COUNT = 59
-DELTA_MIN = -0.95
-DELTA_MAX = 0.95
-DELTA_COUNT = 59
+# Single sweep grid (dense): (min, max, count).
+GAMMA_SWEEP = (0.05, 2.61, 100)
+DELTA_SWEEP = (-0.99, 0.99, 100)
+
+# Plot configuration.
+PLOT_MOSEK_PARAMS = {
+    "intpntCoTolPfeas": 1e-9,
+    "intpntCoTolDfeas": 1e-9,
+    "intpntCoTolRelGap": 1e-9,
+    "intpntMaxIterations": 1000,
+}
+
+PLOT_X_RANGE = (0.0, 2.61)
+PLOT_Y_RANGE = (-1.0, 1.0)
+PLOT_X_TICKS = (0.0, 0.5, 1.0, 1.5, 2.0, 2.5)
+PLOT_Y_TICKS = (-1.0, -0.5, 0.0, 0.5, 1.0)
+PLOT_X_LABEL = r"$\gamma$"
+PLOT_Y_LABEL = r"$\delta$"
+PLOT_Y_LABEL_ROTATION_DEG = 0
+PLOT_SHOW_GRID = True
+PLOT_TITLE = "Certified heavy-ball smooth-convex region"
+PLOT_DESCRIPTION = "Scatter plot of feasible parameter pairs in the (gamma, delta) plane."
+PLOT_ARIA_LABEL = "Heavy-ball certified parameter region"
+PLOT_STYLE = CartesianStyle(grid_color="#9ca3af", grid_width_px=1.35)
 
 
 def _build_parser() -> argparse.ArgumentParser:
     default_output = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(
-        description="Generate smooth-convex heavy-ball sweep data and plot assets."
+        description="Generate smooth-convex heavy-ball sweep data and SVG plot assets."
     )
     parser.add_argument(
         "--output-dir",
@@ -62,19 +90,29 @@ def _build_parser() -> argparse.ArgumentParser:
         default="CLARABEL",
         help="CVXPY solver name when --backend=cvxpy.",
     )
+    parser.add_argument(
+        "--reuse-data",
+        action="store_true",
+        help=(
+            "Skip the expensive sweep and render the SVG from an existing "
+            "data table."
+        ),
+    )
     return parser
 
 
 def _build_grid() -> Tuple[np.ndarray, np.ndarray]:
-    gammas = np.linspace(GAMMA_MIN, GAMMA_MAX, GAMMA_COUNT)
-    deltas = np.linspace(DELTA_MIN, DELTA_MAX, DELTA_COUNT)
+    gamma_min, gamma_max, gamma_count = GAMMA_SWEEP
+    delta_min, delta_max, delta_count = DELTA_SWEEP
+    gammas = np.linspace(gamma_min, gamma_max, gamma_count)
+    deltas = np.linspace(delta_min, delta_max, delta_count)
     return gammas, deltas
 
 
 def _make_solver_options(args: argparse.Namespace) -> SolverOptions:
     if args.backend == "cvxpy":
         return SolverOptions(backend="cvxpy", cvxpy_solver=args.cvxpy_solver)
-    return SolverOptions(backend="mosek_fusion")
+    return SolverOptions(backend="mosek_fusion", mosek_params=PLOT_MOSEK_PARAMS)
 
 
 def _run_smooth_convex_scan(
@@ -135,40 +173,47 @@ def _run_smooth_convex_scan(
     return feasible, errors
 
 
-def _write_plot_tex(output_dir: Path) -> Path:
-    tex_path = output_dir / PLOT_TEX_REL
-    tex_path.parent.mkdir(parents=True, exist_ok=True)
-    tex_source = r"""\begin{tikzpicture}
-    \begin{axis}[
-      width=\textwidth,
-      height=\textwidth,
-      font=\normalsize,
-      label style={font=\normalsize},
-      tick label style={font=\normalsize},
-      xlabel={\(\gamma\)},
-      ylabel={\(\delta\)},
-      grid=both,
-      xmin=0,
-      xmax=2.6,
-      ymin=-1,
-      ymax=1,
-      ylabel style={rotate=-90},
-    ]
-      \pgfplotstableread[col sep=comma]{data/heavy_ball_smooth_convex/gammas_deltas.tex}\gamdeltatable
-      \addplot [
-        color={rgb,255:red,95;green,168;blue,232},
-        mark options={fill={rgb,255:red,95;green,168;blue,232}, draw={rgb,255:red,95;green,168;blue,232}},
-        only marks,
-        mark size=1.5pt
-      ] table [x=x, y=y] {\gamdeltatable};
-    \end{axis}
-  \end{tikzpicture}
-"""
-    tex_path.write_text(tex_source, encoding="utf-8")
-    return tex_path
+def _load_existing_points(output_dir: Path) -> List[Tuple[float, float]]:
+    csv_path = output_dir / SMOOTH_DATA_REL
+
+    if csv_path.exists():
+        return read_xy_rows(csv_path)
+
+    raise FileNotFoundError(
+        "No sweep data found. Run the script without `--reuse-data` first, "
+        f"or provide an existing table at:\n  - {csv_path}"
+    )
+
+
+def _render_plot(output_dir: Path, smooth_points: Sequence[Tuple[float, float]]) -> Path:
+    x_min, x_max = PLOT_X_RANGE
+    y_min, y_max = PLOT_Y_RANGE
+    return render_scatter_svg(
+        path=output_dir / PLOT_IMAGE_REL,
+        points=smooth_points,
+        x_min=x_min,
+        x_max=x_max,
+        y_min=y_min,
+        y_max=y_max,
+        x_ticks=PLOT_X_TICKS,
+        y_ticks=PLOT_Y_TICKS,
+        x_label=PLOT_X_LABEL,
+        y_label=PLOT_Y_LABEL,
+        title=PLOT_TITLE,
+        description=PLOT_DESCRIPTION,
+        aria_label=PLOT_ARIA_LABEL,
+        y_label_rotation_deg=PLOT_Y_LABEL_ROTATION_DEG,
+        show_grid=PLOT_SHOW_GRID,
+        style=PLOT_STYLE,
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Run the CLI entrypoint.
+
+    Parameters:
+        argv: Optional argument vector. When omitted, argparse reads from sys.argv.
+    """
     parser = _build_parser()
     args = parser.parse_args(argv)
 
@@ -189,40 +234,38 @@ def main(argv: Sequence[str] | None = None) -> int:
     print()
 
     started = time.time()
-    print("Running smooth-convex sweep...")
-    smooth_points, smooth_errors = _run_smooth_convex_scan(
-        gammas, deltas, args.L, solver_options
-    )
-    print(
-        f"Smooth sweep complete: feasible={len(smooth_points)}, solver_errors={smooth_errors}"
-    )
-    print()
+    if args.reuse_data:
+        print("Reusing existing sweep data...")
+        smooth_points = _load_existing_points(args.output_dir)
+        smooth_errors = 0
+        smooth_data = args.output_dir / SMOOTH_DATA_REL
+        print(f"Loaded {len(smooth_points)} feasible points from {smooth_data}")
+    else:
+        print("Running smooth-convex sweep...")
+        smooth_points, smooth_errors = _run_smooth_convex_scan(
+            gammas, deltas, args.L, solver_options
+        )
+        print(
+            f"Smooth sweep complete: feasible={len(smooth_points)}, solver_errors={smooth_errors}"
+        )
+        print()
 
-    smooth_data = args.output_dir / SMOOTH_DATA_REL
-    write_csv_rows(
-        smooth_data,
-        "x,y",
-        (f"{gamma:.6f},{delta:.6f}" for gamma, delta in smooth_points),
-    )
+        smooth_data = args.output_dir / SMOOTH_DATA_REL
+        write_csv_rows(
+            smooth_data,
+            "x,y",
+            (f"{gamma:.6f},{delta:.6f}" for gamma, delta in smooth_points),
+        )
 
-    plot_tex_path = _write_plot_tex(args.output_dir)
-    preview_png = render_tex_input_to_png(
-        output_dir=args.output_dir,
-        tex_input_relpath=PLOT_TEX_REL,
-        png_output_relpath=PLOT_IMAGE_REL,
-        wrapper_stem="_heavy_ball_preview_wrapper",
-        font_size_pt=12,
-        dpi=220,
-        preview_border_pt=2,
-    )
+    plot_svg_path = _render_plot(args.output_dir, smooth_points)
 
     elapsed = time.time() - started
     print("Finished.")
     print(f"  Smooth data: {smooth_data}")
-    print(f"  Plot source: {plot_tex_path}")
-    if preview_png is not None:
-        print(f"  Plot image:  {preview_png}")
+    print(f"  Plot image:  {plot_svg_path}")
     print(f"  Elapsed:     {elapsed:.1f}s")
+    if smooth_errors:
+        print(f"  Solver errors during sweep: {smooth_errors}")
     return 0
 
 
