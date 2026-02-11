@@ -72,7 +72,7 @@ or equivalently
 Sweeping over {math}`\gamma` and {math}`\delta` gives the plot below, where
 each dot denotes a parameter pair for which the verification is successful.
 
-```{image} ../_static/heavy_ball_smooth_convex.png
+```{image} ../_static/heavy_ball_smooth_convex.svg
 :alt: Certified heavy-ball smooth-convex region in the (gamma, delta) plane.
 :width: 100%
 ```

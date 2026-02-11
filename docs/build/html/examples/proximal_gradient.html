@@ -124,6 +124,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick start</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="douglas_rachford_operator_giselsson.html">The Douglas–Rachford method (operator form)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="heavy_ball.html">The heavy-ball method</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Define your own algorithm: The proximal gradient method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#step-1-problem-statement">Step 1: Problem statement</a></li>
@@ -341,6 +342,11 @@ D_k &amp;=
 <p>or</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).\]</div>
+<p>Sweeping over 100 values of <span class="math notranslate nohighlight">\(\gamma\)</span> on <span class="math notranslate nohighlight">\(0 &lt; \gamma \le 2/L\)</span> gives
+the plot below, with the theoretical rate in black and AutoLyap certificates
+as blue dots.</p>
+<a class="reference internal image-reference" href="../_images/proximal_gradient_rho_vs_gamma.svg"><img alt="Proximal-gradient rho versus gamma with theoretical line and AutoLyap points." class="align-center" src="../_images/proximal_gradient_rho_vs_gamma.svg" style="width: 100%;" />
+</a>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>

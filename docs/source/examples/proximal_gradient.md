@@ -202,6 +202,16 @@ or
 \|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).
 ```
 
+Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 2/L` gives
+the plot below, with the theoretical rate in black and AutoLyap certificates
+as blue dots.
+
+```{image} ../_static/proximal_gradient_rho_vs_gamma.svg
+:alt: Proximal-gradient rho versus gamma with theoretical line and AutoLyap points.
+:align: center
+:width: 100%
+```
+
 ## References
 
 ```{bibliography}

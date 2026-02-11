@@ -243,6 +243,11 @@ x^{k+1} = x^k - \gamma \nabla f(x^k).\]</div>
 <p>or</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).\]</div>
+<p>Sweeping over 100 values of <span class="math notranslate nohighlight">\(\gamma\)</span> on <span class="math notranslate nohighlight">\(0 &lt; \gamma \le 2/L\)</span> gives
+the plot below, with the theoretical rate in black and AutoLyap certificates
+as blue dots.</p>
+<a class="reference internal image-reference" href="_images/gradient_method_rho_vs_gamma.svg"><img alt="Gradient-method rho versus gamma with theoretical line and AutoLyap points." class="align-center" src="_images/gradient_method_rho_vs_gamma.svg" style="width: 100%;" />
+</a>
 </section>
 <section id="iteration-dependent-example-the-optimized-gradient-method">
 <h2>Iteration-dependent example: The optimized gradient method<a class="headerlink" href="#iteration-dependent-example-the-optimized-gradient-method" title="Link to this heading"></a></h2>
@@ -327,6 +332,10 @@ c = \frac{L}{2\theta_K^2}.\]</div>
 <p>In particular,</p>
 <div class="math notranslate nohighlight">
 \[f(x^K) - f(x^\star) = O\!\left(\frac{1}{\theta_K^2}\right) = O\!\left(\frac{1}{K^2}\right).\]</div>
+<p>Sweeping over <span class="math notranslate nohighlight">\(K \in \llbracket 1, 100\rrbracket\)</span> gives the log-log plot below, with
+the theoretical bound in black and AutoLyap certificates as blue dots.</p>
+<a class="reference internal image-reference" href="_images/optimized_gradient_method_c_vs_K_loglog.svg"><img alt="Optimized-gradient c versus K in log-log scale with theoretical line and AutoLyap points." class="align-center" src="_images/optimized_gradient_method_c_vs_K_loglog.svg" style="width: 100%;" />
+</a>
 </section>
 <section id="what-to-inspect">
 <h2>What to inspect<a class="headerlink" href="#what-to-inspect" title="Link to this heading"></a></h2>
