@@ -40,12 +40,6 @@ The complete mathematical development and examples to get started are available 
 
 [GitHub repository](https://github.com/AutoLyap/AutoLyap)
 
-## Release and versioning
-
-AutoLyap follows [Semantic Versioning](https://semver.org/). See
-[`CHANGELOG.md`](CHANGELOG.md) for release notes and [`RELEASING.md`](RELEASING.md)
-for maintainer release steps.
-
 ## Development install & tests
 
 If you want to work on the source or run the test suite:
