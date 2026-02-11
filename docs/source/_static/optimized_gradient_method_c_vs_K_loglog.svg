@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="480" viewBox="0 0 960 480" role="img" aria-label="Optimized-gradient c versus K in log-log scale">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="480" viewBox="0 0 960 480" role="img" aria-label="Optimized-gradient c_K versus K in log-log scale">
   <title>Optimized-gradient bound vs iteration budget (log-log)</title>
-  <desc>Log-log c vs K for optimized gradient method: theoretical curve and AutoLyap points.</desc>
+  <desc>Log-log c_K vs K for optimized gradient method: theoretical curve and AutoLyap points.</desc>
   <rect x="0" y="0" width="960" height="480" fill="#ffffff"/>
   <rect x="96.000" y="24.000" width="832.000" height="368.000" fill="#f8fafc"/>
   <defs>
@@ -362,6 +362,6 @@
   <text x="82.000" y="34.368" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
   <line x1="104.000" y1="24.000" x2="96.000" y2="24.000" stroke="#3f3f46" stroke-width="1.4"/>
   <text x="82.000" y="31.000" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">0</tspan></text>
-  <text x="512.000" y="470.000" text-anchor="middle" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28">K</text>
-  <text x="30.0" y="208.000" text-anchor="middle" transform="rotate(0 30.0 208.000)" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28">c</text>
+  <text x="512.000" y="470.000" text-anchor="middle" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28" font-style="italic">K</text>
+  <text x="30.0" y="208.000" text-anchor="middle" transform="rotate(0 30.0 208.000)" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28" font-style="italic">c<tspan baseline-shift="sub" font-size="65%">K</tspan></text>
 </svg>

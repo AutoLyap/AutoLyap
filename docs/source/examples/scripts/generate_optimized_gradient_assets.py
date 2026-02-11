@@ -62,13 +62,13 @@ PLOT_MOSEK_PARAMS = {
 PLOT_WIDTH_PX = 960
 PLOT_HEIGHT_PX = PLOT_WIDTH_PX // 2
 PLOT_X_LABEL = r"$K$"
-PLOT_Y_LABEL = r"$c$"
+PLOT_Y_LABEL = r"$c_{K}$"
 PLOT_Y_LABEL_ROTATION_DEG = 0.0
 PLOT_TITLE = "Optimized-gradient bound vs iteration budget (log-log)"
 PLOT_DESCRIPTION = (
-    "Log-log c vs K for optimized gradient method: theoretical curve and AutoLyap points."
+    "Log-log c_K vs K for optimized gradient method: theoretical curve and AutoLyap points."
 )
-PLOT_ARIA_LABEL = "Optimized-gradient c versus K in log-log scale"
+PLOT_ARIA_LABEL = "Optimized-gradient c_K versus K in log-log scale"
 PLOT_SHOW_GRID = True
 PLOT_STYLE = CartesianStyle(grid_color="#9ca3af", grid_width_px=1.35)
 THEORY_COLOR = "#000000"
@@ -97,7 +97,7 @@ PLOT_LEGEND = (
 def _build_parser() -> argparse.ArgumentParser:
     default_output = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(
-        description="Generate optimized-gradient c-vs-K data and SVG plot assets."
+        description="Generate optimized-gradient c_K-vs-K data and SVG plot assets."
     )
     parser.add_argument(
         "--output-dir",
@@ -161,7 +161,7 @@ def _make_solver_options(args: argparse.Namespace) -> SolverOptions:
     return SolverOptions(backend="mosek_fusion", mosek_params=PLOT_MOSEK_PARAMS)
 
 
-def _c_theory(algorithm: OptimizedGradientMethod, K: int) -> float:
+def _c_K_theory(algorithm: OptimizedGradientMethod, K: int) -> float:
     theta_K = algorithm._compute_theta(K, K)
     return algorithm.L / (2.0 * theta_K ** 2)
 
@@ -179,7 +179,7 @@ def _run_scan(
     for row_id, K in enumerate(ks, start=1):
         k_int = int(K)
         algorithm = OptimizedGradientMethod(L=L, K=k_int)
-        c_theory = _c_theory(algorithm, k_int)
+        c_K_theory = _c_K_theory(algorithm, k_int)
         Q_0, q_0 = IterationDependent.get_parameters_distance_to_solution(
             algorithm,
             0,
@@ -204,22 +204,22 @@ def _run_scan(
             )
         except Exception as exc:
             errors += 1
-            c_autolyap = float("nan")
+            c_K_autolyap = float("nan")
             print(f"[scan] solver error at K={k_int}: {exc}")
         else:
             if result.get("success", False):
-                c_autolyap = float(result["c"])
+                c_K_autolyap = float(result["c_K"])
             else:
                 errors += 1
-                c_autolyap = float("nan")
+                c_K_autolyap = float("nan")
                 print(f"[scan] no certificate at K={k_int}.")
 
-        rows.append((k_int, c_autolyap, c_theory))
+        rows.append((k_int, c_K_autolyap, c_K_theory))
         if row_id == 1 or row_id % 10 == 0 or row_id == len(ks):
-            c_auto_text = f"{c_autolyap:.6e}" if np.isfinite(c_autolyap) else "nan"
+            c_K_auto_text = f"{c_K_autolyap:.6e}" if np.isfinite(c_K_autolyap) else "nan"
             print(
                 f"[scan] {row_id:>3}/{len(ks)} K={k_int:>3} "
-                f"c_autolyap={c_auto_text:>12} c_theory={c_theory:>12.6e}"
+                f"c_K_autolyap={c_K_auto_text:>12} c_K_theory={c_K_theory:>12.6e}"
             )
 
     return rows, errors
@@ -228,14 +228,14 @@ def _run_scan(
 def _write_rows(path: Path, rows: Sequence[Tuple[int, float, float]]) -> None:
     write_csv_rows(
         path,
-        "K,c_autolyap,c_theory",
+        "K,c_K_autolyap,c_K_theory",
         (
             (
                 f"{K:d},"
-                f"{c_autolyap:.12e},"
-                f"{c_theory:.12e}"
+                f"{c_K_autolyap:.12e},"
+                f"{c_K_theory:.12e}"
             )
-            for K, c_autolyap, c_theory in rows
+            for K, c_K_autolyap, c_K_theory in rows
         ),
     )
 
@@ -251,12 +251,28 @@ def _load_rows(output_dir: Path) -> List[Tuple[int, float, float]]:
     rows: List[Tuple[int, float, float]] = []
     with csv_path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
+        if reader.fieldnames is None:
+            raise ValueError(f"CSV file has no header row: {csv_path}")
+        has_new_schema = {"K", "c_K_autolyap", "c_K_theory"}.issubset(reader.fieldnames)
+        has_old_schema = {"K", "c_autolyap", "c_theory"}.issubset(reader.fieldnames)
+        if not has_new_schema and not has_old_schema:
+            raise ValueError(
+                "Unrecognized OGM CSV schema. "
+                "Expected headers with either "
+                "`K,c_K_autolyap,c_K_theory` or `K,c_autolyap,c_theory`."
+            )
         for row in reader:
+            if has_new_schema:
+                c_k_autolyap = row["c_K_autolyap"]
+                c_k_theory = row["c_K_theory"]
+            else:
+                c_k_autolyap = row["c_autolyap"]
+                c_k_theory = row["c_theory"]
             rows.append(
                 (
                     int(row["K"]),
-                    float(row["c_autolyap"]),
-                    float(row["c_theory"]),
+                    float(c_k_autolyap),
+                    float(c_k_theory),
                 )
             )
     return rows
@@ -302,25 +318,25 @@ def _render_plot(
     output_dir: Path,
     rows: Sequence[Tuple[int, float, float]],
 ) -> Path:
-    theory_points_raw = [(float(K), float(c_theory)) for K, _, c_theory in rows if c_theory > 0.0]
+    theory_points_raw = [(float(K), float(c_K_theory)) for K, _, c_K_theory in rows if c_K_theory > 0.0]
     autolyap_points_raw = [
-        (float(K), float(c_autolyap))
-        for K, c_autolyap, _ in rows
-        if np.isfinite(c_autolyap) and c_autolyap > 0.0
+        (float(K), float(c_K_autolyap))
+        for K, c_K_autolyap, _ in rows
+        if np.isfinite(c_K_autolyap) and c_K_autolyap > 0.0
     ]
     if not autolyap_points_raw:
-        raise RuntimeError("No finite positive AutoLyap c values available for plotting.")
+        raise RuntimeError("No finite positive AutoLyap c_K values available for plotting.")
 
-    theory_points = [_log10_pair(K, c_theory) for K, c_theory in theory_points_raw]
-    autolyap_points = [_log10_pair(K, c_autolyap) for K, c_autolyap in autolyap_points_raw]
+    theory_points = [_log10_pair(K, c_K_theory) for K, c_K_theory in theory_points_raw]
+    autolyap_points = [_log10_pair(K, c_K_autolyap) for K, c_K_autolyap in autolyap_points_raw]
 
-    all_c_values = [c for _, c in theory_points_raw] + [c for _, c in autolyap_points_raw]
-    c_min = min(all_c_values)
-    c_max = max(all_c_values)
-    c_min_exp = math.floor(math.log10(c_min))
-    c_max_exp = math.ceil(math.log10(c_max))
-    y_min_value = 10.0 ** c_min_exp
-    y_max_value = 10.0 ** c_max_exp
+    all_c_K_values = [c_K for _, c_K in theory_points_raw] + [c_K for _, c_K in autolyap_points_raw]
+    c_K_min = min(all_c_K_values)
+    c_K_max = max(all_c_K_values)
+    c_K_min_exp = math.floor(math.log10(c_K_min))
+    c_K_max_exp = math.ceil(math.log10(c_K_max))
+    y_min_value = 10.0 ** c_K_min_exp
+    y_max_value = 10.0 ** c_K_max_exp
     y_tick_values_with_labels = _standard_log_ticks(y_min_value, y_max_value)
     y_ticks = [math.log10(value) for value, _ in y_tick_values_with_labels]
     y_tick_labels = [label for _, label in y_tick_values_with_labels]
@@ -379,6 +395,7 @@ def _render_plot(
         width_px=PLOT_WIDTH_PX,
         height_px=PLOT_HEIGHT_PX,
         y_label_rotation_deg=PLOT_Y_LABEL_ROTATION_DEG,
+        italic_math_labels=True,
         show_grid=PLOT_SHOW_GRID,
         style=PLOT_STYLE,
     )
@@ -417,13 +434,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         data_path = args.output_dir / DATA_REL
         print(f"Loaded {len(rows)} rows from {data_path}")
     else:
-        print("Running optimized-gradient c sweep...")
+        print("Running optimized-gradient c_K sweep...")
         rows, errors = _run_scan(ks, args.L, solver_options)
         data_path = args.output_dir / DATA_REL
         _write_rows(data_path, rows)
-        finite_count = sum(1 for _, c_auto, _ in rows if np.isfinite(c_auto))
+        finite_count = sum(1 for _, c_K_auto, _ in rows if np.isfinite(c_K_auto))
         print(
-            f"Sweep complete: finite_c={finite_count}/{len(rows)}, "
+            f"Sweep complete: finite_c_K={finite_count}/{len(rows)}, "
             f"errors={errors}"
         )
 

@@ -108,9 +108,9 @@ def test_iteration_dependent_verify_cvxpy_warm_start_equivalence_open_source(
     )
 
     assert result_warm["success"] and result_cold["success"]
-    assert result_warm["c"] is not None and result_cold["c"] is not None
+    assert result_warm["c_K"] is not None and result_cold["c_K"] is not None
     assert np.isclose(
-        result_warm["c"],
-        result_cold["c"],
+        result_warm["c_K"],
+        result_cold["c_K"],
         atol=_c_equivalence_tolerance(cvxpy_open_source_solver_name),
     )

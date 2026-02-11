@@ -30,7 +30,7 @@ def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
             q_K=q_k,
         )
         assert result["success"] is True
-        assert result["c"] is not None
+        assert result["c_K"] is not None
         assert result["certificate"] is not None
         certificate = result["certificate"]
         assert len(certificate["Q_sequence"]) == k + 1
@@ -40,4 +40,4 @@ def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
         assert len(certificate["q_sequence"]) == k + 1
         assert np.allclose(certificate["q_sequence"][0], q_0)
         assert np.allclose(certificate["q_sequence"][-1], q_k)
-        assert result["c"] == pytest.approx(bound_theoretical, rel=0.1, abs=1e-5)
+        assert result["c_K"] == pytest.approx(bound_theoretical, rel=0.1, abs=1e-5)

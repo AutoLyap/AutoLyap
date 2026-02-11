@@ -38,7 +38,7 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
         )
 
         assert result["success"] is True
-        assert result["c"] is not None
+        assert result["c_K"] is not None
         assert result["certificate"] is not None
         certificate = result["certificate"]
         assert len(certificate["Q_sequence"]) == k + 1
@@ -48,7 +48,7 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
 
         kim_bound = 1.0 / (k + 1) ** 2
         # The SDP certificate should match Kim's bound up to solver tolerances.
-        assert result["c"] == pytest.approx(kim_bound, abs=5e-6)
+        assert result["c_K"] == pytest.approx(kim_bound, abs=5e-6)
 
 
 def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_rate():
@@ -82,7 +82,7 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
         )
 
         assert result["success"] is True
-        assert result["c"] is not None
+        assert result["c_K"] is not None
         assert result["certificate"] is not None
         certificate = result["certificate"]
         assert len(certificate["Q_sequence"]) == k + 1
@@ -95,4 +95,4 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
 
         kim_bound = 1.0 / (k + 1) ** 2
         # The SDP certificate should match Kim's bound up to solver tolerances.
-        assert result["c"] == pytest.approx(kim_bound, abs=5e-6)
+        assert result["c_K"] == pytest.approx(kim_bound, abs=5e-6)
