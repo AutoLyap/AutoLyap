@@ -20,7 +20,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .[test]
+      - name: Prepare MOSEK license file
+        shell: bash
+        run: |
+          printf '%s' "${{ secrets.MOSEK_LICENSE }}" > "$RUNNER_TEMP/mosek.lic"
+          echo "MOSEKLM_LICENSE_FILE=$RUNNER_TEMP/mosek.lic" >> "$GITHUB_ENV"
       - name: Run tests
-        env:
-          MOSEKLM_LICENSE_FILE: ${{ secrets.MOSEK_LICENSE }}
         run: python -m pytest
