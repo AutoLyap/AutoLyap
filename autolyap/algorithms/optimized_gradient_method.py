@@ -93,8 +93,8 @@ class OptimizedGradientMethod(Algorithm):
         Initialize the optimized gradient method.
         """
         super().__init__(2, 1, [1], [1], [])
-        self.L = L
-        self.K = K
+        self.set_L(L)
+        self.set_K(K)
     
     def set_L(self, L: float) -> None:
         r"""
@@ -133,10 +133,12 @@ class OptimizedGradientMethod(Algorithm):
         self._set_dynamic_parameter("K", K)
     
     def _compute_theta(self, k: int, K: int) -> float:
-        if k < 0 or k > K:
-            raise ValueError("k must be a non-negative integer and less than or equal to K.")
-        
-        theta = 1.0 
+        k = self._validate_nonnegative_integral(k, "k")
+        K = self._validate_nonnegative_integral(K, "K")
+        if k > K:
+            raise ValueError("k must be less than or equal to K.")
+
+        theta = 1.0
         for i in range(1, k + 1):
             if i == K:
                 theta = (1 + math.sqrt(1 + 8 * theta ** 2)) / 2
@@ -145,6 +147,7 @@ class OptimizedGradientMethod(Algorithm):
         return theta
     
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        k = self._validate_nonnegative_integral(k, "k")
 
         if k < self.K:
             theta_k = self._compute_theta(k, self.K)

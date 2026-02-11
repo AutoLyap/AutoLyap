@@ -79,8 +79,8 @@ class TripleMomentum(Algorithm):
         Initialize the triple-momentum method.
         """
         super().__init__(2, 1, [1], [1], [])
-        self.mu = mu
-        self.L = L
+        self.set_L(L)
+        self.set_mu(mu)
 
     def set_mu(self, mu: float) -> None:
         r"""
