@@ -1,0 +1,204 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The heavy-ball method &mdash; AutoLyap 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a6713d5d" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../_static/copybutton.js?v=36830154"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Define your own algorithm: The proximal gradient method" href="proximal_gradient.html" />
+    <link rel="prev" title="Examples" href="../examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+<a href="../index.html">
+  AutoLyap
+</a>
+<div class="sidebar-version">v0.2.0</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">The heavy-ball method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#problem-setup">Problem setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-the-iteration-independent-analysis-with-c4">Run the iteration-independent analysis with C4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="proximal_gradient.html">Define your own algorithm: The proximal gradient method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="proximal_point.html">The proximal point method</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api_reference.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AutoLyap</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+    <li class="breadcrumb-item active">The heavy-ball method</li>
+
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/heavy_ball.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-heavy-ball-method">
+<h1>The heavy-ball method<a class="headerlink" href="#the-heavy-ball-method" title="Link to this heading"></a></h1>
+<section id="problem-setup">
+<h2>Problem setup<a class="headerlink" href="#problem-setup" title="Link to this heading"></a></h2>
+<p>We consider the unconstrained minimization of a convex,
+<span class="math notranslate nohighlight">\(L\)</span>-smooth function <span class="math notranslate nohighlight">\(f : \calH \to \reals\)</span>, with <span class="math notranslate nohighlight">\(L &gt; 0\)</span>.</p>
+<p>Given initial points <span class="math notranslate nohighlight">\(x^{-1}, x^0 \in \calH\)</span>, momentum
+<span class="math notranslate nohighlight">\(\delta \in \reals\)</span>, and step size <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,
+the heavy-ball iteration is</p>
+<div class="math notranslate nohighlight">
+\[(\forall k \in \naturals)\quad
+x^{k+1} = x^k - \gamma \nabla f(x^k) + \delta(x^k - x^{k-1}).\]</div>
+<p>This method was introduced in <span id="id1">[<a class="reference internal" href="#id7" title="B. T. Polyak. Some methods of speeding up the convergence of iteration methods. USSR Computational Mathematics and Mathematical Physics, 4(5):1–17, 1964. doi:10.1016/0041-5553(64)90137-5.">Pol64</a>]</span>.</p>
+<p>In this example, we certify function-value suboptimality in the sublinear
+setting (<span class="math notranslate nohighlight">\(\rho = 1\)</span>) while enforcing condition (C4), yielding an
+<span class="math notranslate nohighlight">\(o(1/k)\)</span> conclusion.</p>
+</section>
+<section id="run-the-iteration-independent-analysis-with-c4">
+<h2>Run the iteration-independent analysis with C4<a class="headerlink" href="#run-the-iteration-independent-analysis-with-c4" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">autolyap</span><span class="w"> </span><span class="kn">import</span> <span class="n">IterationIndependent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autolyap.algorithms</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeavyBallMethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autolyap.problemclass</span><span class="w"> </span><span class="kn">import</span> <span class="n">InclusionProblem</span><span class="p">,</span> <span class="n">SmoothConvex</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="mf">0.4</span>
+
+<span class="n">problem</span> <span class="o">=</span> <span class="n">InclusionProblem</span><span class="p">([</span><span class="n">SmoothConvex</span><span class="p">(</span><span class="n">L</span><span class="p">)])</span>
+<span class="n">algorithm</span> <span class="o">=</span> <span class="n">HeavyBallMethod</span><span class="p">(</span><span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="n">delta</span><span class="p">)</span>
+
+<span class="c1"># V(P,p,k) = 0 and R(T,t,k) = f(x^k) - f(x^*)</span>
+<span class="n">P</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">IterationIndependent</span><span class="o">.</span><span class="n">SublinearConvergence</span><span class="o">.</span><span class="n">get_parameters_function_value_suboptimality</span><span class="p">(</span>
+    <span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">tau</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">IterationIndependent</span><span class="o">.</span><span class="n">verify_iteration_independent_Lyapunov</span><span class="p">(</span>
+    <span class="n">problem</span><span class="p">,</span>
+    <span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">P</span><span class="p">,</span>
+    <span class="n">T</span><span class="p">,</span>
+    <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+    <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+    <span class="n">rho</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">remove_C4</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No feasible Lyapunov certificate for this (gamma, delta) pair.&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Feasible certificate found with C4 enabled.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When the certificate is feasible, the certified function-value convergence is</p>
+<div class="math notranslate nohighlight">
+\[f(x^k) - f(x^\star) = o\!\left(\frac{1}{k}\right),\]</div>
+<p>or equivalently</p>
+<div class="math notranslate nohighlight">
+\[\lim_{k \to \infty} k\bigl(f(x^k)-f(x^\star)\bigr)=0.\]</div>
+<p>Sweeping over <span class="math notranslate nohighlight">\(\gamma\)</span> and <span class="math notranslate nohighlight">\(\delta\)</span> gives the plot below, where
+each dot denotes a parameter pair for which the verification is successful.</p>
+<a class="reference internal image-reference" href="../_images/heavy_ball_smooth_convex.png"><img alt="Certified heavy-ball smooth-convex region in the (gamma, delta) plane." src="../_images/heavy_ball_smooth_convex.png" style="width: 100%;" />
+</a>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div class="docutils container" id="id2">
+<div role="list" class="citation-list">
+<div class="citation" id="id7" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Pol64</a><span class="fn-bracket">]</span></span>
+<p>B. T. Polyak. Some methods of speeding up the convergence of iteration methods. <em>USSR Computational Mathematics and Mathematical Physics</em>, 4(5):1–17, 1964. <a class="reference external" href="https://doi.org/10.1016/0041-5553(64)90137-5">doi:10.1016/0041-5553(64)90137-5</a>.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="proximal_gradient.html" class="btn btn-neutral float-right" title="Define your own algorithm: The proximal gradient method" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+  <p>
+    &#169; Copyright 2026,
+    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.</p>
+
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
