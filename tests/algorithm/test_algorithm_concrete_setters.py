@@ -37,7 +37,7 @@ POSITIVE_REAL_SETTERS = [
     (lambda: TripleMomentum(mu=1.0, L=4.0), "set_mu"),
     (lambda: TripleMomentum(mu=1.0, L=4.0), "set_L"),
     (lambda: ITEM(mu=1.0, L=4.0), "set_mu"),
-    (lambda: ITEM(mu=1.0, L=4.0), "set_L"),
+    (lambda: ITEM(mu=0.1, L=4.0), "set_L"),
     (lambda: OptimizedGradientMethod(L=1.0, K=1), "set_L"),
     (lambda: ChambollePock(tau=0.1, sigma=0.2, theta=0.0), "set_tau"),
     (lambda: ChambollePock(tau=0.1, sigma=0.2, theta=0.0), "set_sigma"),
@@ -101,6 +101,61 @@ def test_optimized_gradient_method_set_k_validation():
     for bad in [-1, 1.5, "3", True]:
         with pytest.raises(ValueError):
             algo.set_K(bad)
+
+
+def test_optimized_gradient_method_compute_theta_validation():
+    algo = OptimizedGradientMethod(L=1.0, K=5)
+    assert algo._compute_theta(0, 5) == pytest.approx(1.0)
+    assert algo._compute_theta(1, 5) == pytest.approx((1.0 + np.sqrt(5.0)) / 2.0)
+    assert algo._compute_theta(5, 5) > algo._compute_theta(4, 5)
+
+    for bad in [-1, 1.5, "3", True]:
+        with pytest.raises(ValueError):
+            algo._compute_theta(bad, 5)
+        with pytest.raises(ValueError):
+            algo._compute_theta(1, bad)
+    with pytest.raises(ValueError):
+        algo._compute_theta(6, 5)
+
+
+@pytest.mark.parametrize(
+    "factory",
+    [
+        lambda: NesterovConstant(mu=0.0, L=4.0),
+        lambda: NesterovConstant(mu=1.0, L=0.0),
+        lambda: TripleMomentum(mu=0.0, L=4.0),
+        lambda: TripleMomentum(mu=1.0, L=0.0),
+        lambda: ITEM(mu=0.0, L=4.0),
+        lambda: ITEM(mu=1.0, L=1.0),
+        lambda: ITEM(mu=2.0, L=1.0),
+        lambda: OptimizedGradientMethod(L=0.0, K=1),
+        lambda: OptimizedGradientMethod(L=1.0, K=-1),
+    ],
+)
+def test_constructors_validate_inputs(factory):
+    with pytest.raises(ValueError):
+        factory()
+
+
+def test_item_requires_mu_less_than_l_in_setters():
+    algo = ITEM(mu=1.0, L=4.0)
+    algo.set_mu(3.0)
+    algo.set_L(3.5)
+
+    with pytest.raises(ValueError):
+        algo.set_mu(3.5)
+    with pytest.raises(ValueError):
+        algo.set_L(3.0)
+
+
+@pytest.mark.parametrize("method_name", ["get_A", "compute_beta", "compute_delta", "get_ABCD"])
+def test_item_iteration_index_validation(method_name):
+    algo = ITEM(mu=1.0, L=4.0)
+    method = getattr(algo, method_name)
+
+    for bad in [-1, 1.5, "3", True]:
+        with pytest.raises(ValueError):
+            method(bad)
 
 
 def test_constructor_type_parameter_validation():

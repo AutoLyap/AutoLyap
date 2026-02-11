@@ -77,8 +77,13 @@ class ITEM(Algorithm):
         Initialize ITEM.
         """
         super().__init__(2, 1, [1], [1], [])
-        self.mu = mu
-        self.L = L
+        self.set_L(L)
+        self.set_mu(mu)
+
+    @staticmethod
+    def _validate_mu_lt_L(mu: float, L: float) -> None:
+        if mu >= L:
+            raise ValueError(f"Require mu < L. Got mu={mu}, L={L}.")
     
     def set_L(self, L: float) -> None:
         r"""
@@ -93,9 +98,12 @@ class ITEM(Algorithm):
 
         **Raises**
 
-        - `ValueError`: If `L` is not a finite real number or if :math:`L \le 0`.
+        - `ValueError`: If `L` is not a finite real number, if :math:`L \le 0`,
+          or if :math:`\mu \ge L`.
         """
         L = self._validate_positive_finite_real(L, "L")
+        if hasattr(self, "mu"):
+            self._validate_mu_lt_L(self.mu, L)
         self._set_dynamic_parameter("L", L)
 
     def set_mu(self, mu: float) -> None:
@@ -111,12 +119,16 @@ class ITEM(Algorithm):
 
         **Raises**
 
-        - `ValueError`: If `mu` is not a finite real number or if :math:`\mu \le 0`.
+        - `ValueError`: If `mu` is not a finite real number, if :math:`\mu \le 0`,
+          or if :math:`\mu \ge L`.
         """
         mu = self._validate_positive_finite_real(mu, "mu")
+        if hasattr(self, "L"):
+            self._validate_mu_lt_L(mu, self.L)
         self._set_dynamic_parameter("mu", mu)
     
     def get_A(self, k: int) -> float:
+        k = self._validate_nonnegative_integral(k, "k")
         q = self.mu / self.L
         A = 0.0 
         for _ in range(k):
@@ -124,12 +136,14 @@ class ITEM(Algorithm):
         return A
 
     def compute_beta(self, k: int) -> float:
+        k = self._validate_nonnegative_integral(k, "k")
         q = self.mu / self.L
         A_k = self.get_A(k)
         A_k1 = self.get_A(k + 1)
         return A_k / ((1 - q) * A_k1)
 
     def compute_delta(self, k: int) -> float:
+        k = self._validate_nonnegative_integral(k, "k")
         q = self.mu / self.L
         A_k = self.get_A(k)
         A_k1 = self.get_A(k + 1)
@@ -138,6 +152,7 @@ class ITEM(Algorithm):
         return numerator / denominator
 
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        k = self._validate_nonnegative_integral(k, "k")
         q = self.mu / self.L
         beta = self.compute_beta(k)
         delta = self.compute_delta(k)
