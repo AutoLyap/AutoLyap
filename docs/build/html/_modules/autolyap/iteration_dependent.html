@@ -8,19 +8,28 @@
   <title>autolyap.iteration_dependent &mdash; AutoLyap 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a6713d5d" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=8de98dc3" />
 
   
-    <link rel="shortcut icon" href="../../_static/favicon.svg"/>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script src="../../_static/copybutton.js?v=36830154"></script>
+      <script defer="defer" src="../../_static/copybutton.js?v=36830154"></script>
+      <script defer="defer" src="../../_static/perf.js?v=1e8a3ede"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
+ 
+<link rel="icon" type="image/x-icon" href="../../_static/favicon.ico"/>
+<link rel="shortcut icon" type="image/x-icon" href="../../_static/favicon.ico"/>
+<link rel="icon" type="image/svg+xml" href="../../_static/favicon.svg"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../../_static/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="64x64" href="../../_static/favicon.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="../../_static/apple-touch-icon.png"/>
+
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -242,6 +251,317 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported scalar variable handle type.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">value_arr</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pairs_from_readable</span><span class="p">(</span><span class="n">pairs_readable</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">PairTuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Convert readable pair dictionaries back into internal tuple form.&quot;&quot;&quot;</span>
+        <span class="n">pairs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Pair</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">pairs_readable</span><span class="p">:</span>
+            <span class="n">j_val</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="s2">&quot;j&quot;</span><span class="p">]</span>
+            <span class="n">k_val</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">j_val</span> <span class="o">==</span> <span class="s2">&quot;star&quot;</span> <span class="ow">or</span> <span class="n">k_val</span> <span class="o">==</span> <span class="s2">&quot;star&quot;</span><span class="p">:</span>
+                <span class="n">pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;star&quot;</span><span class="p">,</span> <span class="s2">&quot;star&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="n">j_val</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">k_val</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_min_symmetric_eigenvalue</span><span class="p">(</span><span class="n">matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the smallest eigenvalue of a symmetrized matrix.&quot;&quot;&quot;</span>
+        <span class="n">symmetric_matrix</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">matrix</span> <span class="o">+</span> <span class="n">matrix</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">eigvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvalsh</span><span class="p">(</span><span class="n">symmetric_matrix</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">eigvals</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
+            <span class="n">eigvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="n">symmetric_matrix</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">eigvals</span><span class="p">)))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_iteration_dependent_diagnostics</span><span class="p">(</span>
+            <span class="n">prob</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">InclusionProblem</span><span class="p">],</span>
+            <span class="n">algo</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Algorithm</span><span class="p">],</span>
+            <span class="n">K</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">c_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="n">certificate</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute post-solve diagnostics for nonnegativity, PSD, and equality constraints.&quot;&quot;&quot;</span>
+        <span class="n">Q_sequence</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Q_k</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">Q_k</span> <span class="ow">in</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;Q_sequence&quot;</span><span class="p">]]</span>
+        <span class="n">q_sequence_raw</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;q_sequence&quot;</span><span class="p">]</span>
+        <span class="n">q_sequence</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">q_sequence_raw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">q_sequence</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">q_k</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">q_k</span> <span class="ow">in</span> <span class="n">q_sequence_raw</span><span class="p">]</span>
+        <span class="n">multipliers</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;multipliers&quot;</span><span class="p">]</span>
+
+        <span class="n">nonnegative_records</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">c_value</span><span class="p">))]</span>
+        <span class="k">for</span> <span class="n">multiplier_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;operator_lambda&quot;</span><span class="p">,</span> <span class="s2">&quot;function_lambda&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">multipliers</span><span class="p">[</span><span class="n">multiplier_name</span><span class="p">]:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">multiplier_name</span><span class="si">}</span><span class="s2">(iteration=</span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;iteration&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">,&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; component=</span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">,&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; interpolation_index=</span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;interpolation_index&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+                <span class="n">nonnegative_records</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">label</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])))</span>
+
+        <span class="n">negative_nonnegative</span> <span class="o">=</span> <span class="p">[(</span><span class="n">label</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">nonnegative_records</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="n">largest_nonnegative_violation</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="o">-</span><span class="n">value</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">negative_nonnegative</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">worst_nonnegative</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">nonnegative_records</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">Ws</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">Theta0_0</span><span class="p">,</span> <span class="n">Theta1_0</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_compute_Thetas</span><span class="p">(</span><span class="n">algo</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">Ws</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Theta1_0</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q_sequence</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">@</span> <span class="n">Theta1_0</span> <span class="o">-</span> <span class="n">c_value</span> <span class="o">*</span> <span class="p">(</span><span class="n">Theta0_0</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q_sequence</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">@</span> <span class="n">Theta0_0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+            <span class="n">Theta0_k</span><span class="p">,</span> <span class="n">Theta1_k</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_compute_Thetas</span><span class="p">(</span><span class="n">algo</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">Ws</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">Theta1_k</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q_sequence</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">@</span> <span class="n">Theta1_k</span> <span class="o">-</span> <span class="n">Theta0_k</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q_sequence</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">@</span> <span class="n">Theta0_k</span>
+
+        <span class="n">psd_constraint_sums</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Ws</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span><span class="p">)}</span>
+
+        <span class="n">all_psd_multiplier_records</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">multipliers</span><span class="p">[</span><span class="s2">&quot;operator_lambda&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">multipliers</span><span class="p">[</span><span class="s2">&quot;function_lambda&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">multipliers</span><span class="p">[</span><span class="s2">&quot;function_nu&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">component_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">algo</span><span class="o">.</span><span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)}</span>
+
+        <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">all_psd_multiplier_records</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;iteration&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">psd_constraint_sums</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;component&quot;</span><span class="p">])</span>
+            <span class="n">interpolation_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;interpolation_index&quot;</span><span class="p">])</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+            <span class="n">interpolation_data</span> <span class="o">=</span> <span class="n">component_data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">interpolation_index</span><span class="p">]</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">interpolation_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="n">pairs</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_pairs_from_readable</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;pairs&quot;</span><span class="p">])</span>
+            <span class="n">E_matrix</span> <span class="o">=</span> <span class="n">algo</span><span class="o">.</span><span class="n">compute_E</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">pairs</span><span class="p">),</span> <span class="n">k</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">W_matrix</span> <span class="o">=</span> <span class="n">E_matrix</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">M</span> <span class="o">@</span> <span class="n">E_matrix</span>
+            <span class="n">psd_constraint_sums</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">psd_constraint_sums</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">value</span> <span class="o">*</span> <span class="n">W_matrix</span>
+
+        <span class="n">psd_per_constraint</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">largest_psd_violation</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">worst_psd_entry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+            <span class="n">min_eigenvalue</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_min_symmetric_eigenvalue</span><span class="p">(</span><span class="n">psd_constraint_sums</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="n">violation</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="n">min_eigenvalue</span><span class="p">)</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;iteration=</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;iteration&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+                <span class="s2">&quot;min_eigenvalue&quot;</span><span class="p">:</span> <span class="n">min_eigenvalue</span><span class="p">,</span>
+                <span class="s2">&quot;violation&quot;</span><span class="p">:</span> <span class="n">violation</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="n">psd_per_constraint</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">worst_psd_entry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">min_eigenvalue</span> <span class="o">&lt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">worst_psd_entry</span><span class="p">[</span><span class="s2">&quot;min_eigenvalue&quot;</span><span class="p">]):</span>
+                <span class="n">worst_psd_entry</span> <span class="o">=</span> <span class="n">entry</span>
+            <span class="k">if</span> <span class="n">violation</span> <span class="o">&gt;</span> <span class="n">largest_psd_violation</span><span class="p">:</span>
+                <span class="n">largest_psd_violation</span> <span class="o">=</span> <span class="n">violation</span>
+
+        <span class="n">equality_per_constraint</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">violating_equality_entries</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_equality_entries</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">largest_equality_violation</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">worst_equality_entry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">equality_tolerance</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+        <span class="k">if</span> <span class="n">algo</span><span class="o">.</span><span class="n">m_func</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">q_sequence</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Certificate is missing q_sequence while functional components are active.&quot;</span><span class="p">)</span>
+            <span class="n">m_bar_func</span> <span class="o">=</span> <span class="n">algo</span><span class="o">.</span><span class="n">m_bar_func</span>
+            <span class="n">m_func</span> <span class="o">=</span> <span class="n">algo</span><span class="o">.</span><span class="n">m_func</span>
+            <span class="n">theta0</span><span class="p">,</span> <span class="n">theta1</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_compute_thetas</span><span class="p">(</span><span class="n">algo</span><span class="p">)</span>
+
+            <span class="n">ws</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">ws</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">theta1</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">q_sequence</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">c_value</span> <span class="o">*</span> <span class="p">(</span><span class="n">theta0</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">q_sequence</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+                <span class="n">ws</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">theta1</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">q_sequence</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">theta0</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">q_sequence</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+            <span class="n">eq_constraint_sums</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ws</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+            <span class="p">}</span>
+
+            <span class="n">eq_multiplier_records</span> <span class="o">=</span> <span class="n">multipliers</span><span class="p">[</span><span class="s2">&quot;function_lambda&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">multipliers</span><span class="p">[</span><span class="s2">&quot;function_nu&quot;</span><span class="p">]</span>
+            <span class="n">lifted_F_basis_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">PairTuple</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">_get_lifted_F_basis</span><span class="p">(</span><span class="n">k_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pairs</span><span class="p">:</span> <span class="n">PairTuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+                <span class="n">cache_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">k_idx</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pairs</span><span class="p">)</span>
+                <span class="n">F_basis</span> <span class="o">=</span> <span class="n">lifted_F_basis_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">F_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">Fs_dict</span> <span class="o">=</span> <span class="n">algo</span><span class="o">.</span><span class="n">get_Fs</span><span class="p">(</span><span class="n">k_idx</span><span class="p">,</span> <span class="n">k_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">total_dim</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">m_bar_func</span> <span class="o">+</span> <span class="n">m_func</span>
+                    <span class="n">F_basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">total_dim</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">)))</span>
+                    <span class="k">for</span> <span class="n">col_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k_pair</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pairs</span><span class="p">):</span>
+                        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s2">&quot;star&quot;</span><span class="p">,</span> <span class="s2">&quot;star&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">==</span> <span class="s2">&quot;star&quot;</span> <span class="ow">and</span> <span class="n">k_pair</span> <span class="o">==</span> <span class="s2">&quot;star&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k_pair</span><span class="p">)</span>
+                        <span class="n">F_basis</span><span class="p">[:,</span> <span class="n">col_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">Fs_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">lifted_F_basis_cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_basis</span>
+                <span class="k">return</span> <span class="n">F_basis</span>
+
+            <span class="n">component_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">algo</span><span class="o">.</span><span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)}</span>
+            <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">eq_multiplier_records</span><span class="p">:</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;iteration&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">eq_constraint_sums</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;component&quot;</span><span class="p">])</span>
+                <span class="n">interpolation_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;interpolation_index&quot;</span><span class="p">])</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+                <span class="n">interpolation_data</span> <span class="o">=</span> <span class="n">component_data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">interpolation_index</span><span class="p">]</span>
+                <span class="n">a_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">interpolation_data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">a_vec</span><span class="p">):</span>
+                    <span class="k">continue</span>
+
+                <span class="n">pairs</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_pairs_from_readable</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;pairs&quot;</span><span class="p">])</span>
+                <span class="n">F_basis</span> <span class="o">=</span> <span class="n">_get_lifted_F_basis</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pairs</span><span class="p">)</span>
+                <span class="n">F_vector</span> <span class="o">=</span> <span class="p">(</span><span class="n">F_basis</span> <span class="o">@</span> <span class="n">a_vec</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">eq_constraint_sums</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">eq_constraint_sums</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">value</span> <span class="o">*</span> <span class="n">F_vector</span>
+
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+                <span class="n">residual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">eq_constraint_sums</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">max_abs</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)))</span> <span class="k">if</span> <span class="n">residual</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+                <span class="n">l2_norm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">residual</span><span class="p">))</span>
+                <span class="n">argmax_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)))</span> <span class="k">if</span> <span class="n">residual</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">signed_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">residual</span><span class="p">[</span><span class="n">argmax_index</span><span class="p">])</span> <span class="k">if</span> <span class="n">argmax_index</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+                <span class="n">violating_entries</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">equality_tolerance</span><span class="p">))</span>
+                <span class="n">violating_equality_entries</span> <span class="o">+=</span> <span class="n">violating_entries</span>
+                <span class="n">total_equality_entries</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">residual</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+                <span class="n">entry</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;iteration=</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;iteration&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+                    <span class="s2">&quot;dimension&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">residual</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+                    <span class="s2">&quot;max_abs_residual&quot;</span><span class="p">:</span> <span class="n">max_abs</span><span class="p">,</span>
+                    <span class="s2">&quot;l2_residual&quot;</span><span class="p">:</span> <span class="n">l2_norm</span><span class="p">,</span>
+                    <span class="s2">&quot;argmax_index&quot;</span><span class="p">:</span> <span class="n">argmax_index</span><span class="p">,</span>
+                    <span class="s2">&quot;signed_residual_at_argmax&quot;</span><span class="p">:</span> <span class="n">signed_value</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">equality_per_constraint</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">max_abs</span> <span class="o">&gt;</span> <span class="n">largest_equality_violation</span><span class="p">:</span>
+                    <span class="n">largest_equality_violation</span> <span class="o">=</span> <span class="n">max_abs</span>
+                    <span class="n">worst_equality_entry</span> <span class="o">=</span> <span class="n">entry</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;nonnegative&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;total_count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonnegative_records</span><span class="p">),</span>
+                <span class="s2">&quot;negative_count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">negative_nonnegative</span><span class="p">),</span>
+                <span class="s2">&quot;largest_violation&quot;</span><span class="p">:</span> <span class="n">largest_nonnegative_violation</span><span class="p">,</span>
+                <span class="s2">&quot;worst_label&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">worst_nonnegative</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">worst_nonnegative</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;worst_value&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">worst_nonnegative</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">worst_nonnegative</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s2">&quot;top_negative&quot;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">negative_nonnegative</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])[:</span><span class="mi">5</span><span class="p">],</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;psd&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;total_count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">psd_per_constraint</span><span class="p">),</span>
+                <span class="s2">&quot;negative_count&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">psd_per_constraint</span> <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;violation&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">),</span>
+                <span class="s2">&quot;largest_violation&quot;</span><span class="p">:</span> <span class="n">largest_psd_violation</span><span class="p">,</span>
+                <span class="s2">&quot;worst_label&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">worst_psd_entry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">worst_psd_entry</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;worst_min_eigenvalue&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">worst_psd_entry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">worst_psd_entry</span><span class="p">[</span><span class="s2">&quot;min_eigenvalue&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;per_constraint&quot;</span><span class="p">:</span> <span class="n">psd_per_constraint</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;equality&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;total_count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">equality_per_constraint</span><span class="p">),</span>
+                <span class="s2">&quot;total_entries&quot;</span><span class="p">:</span> <span class="n">total_equality_entries</span><span class="p">,</span>
+                <span class="s2">&quot;violating_entries&quot;</span><span class="p">:</span> <span class="n">violating_equality_entries</span><span class="p">,</span>
+                <span class="s2">&quot;tolerance&quot;</span><span class="p">:</span> <span class="n">equality_tolerance</span><span class="p">,</span>
+                <span class="s2">&quot;largest_violation&quot;</span><span class="p">:</span> <span class="n">largest_equality_violation</span><span class="p">,</span>
+                <span class="s2">&quot;worst_label&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">worst_equality_entry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">worst_equality_entry</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;worst_index&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">worst_equality_entry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">worst_equality_entry</span><span class="p">[</span><span class="s2">&quot;argmax_index&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;worst_signed_residual&quot;</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="kc">None</span> <span class="k">if</span> <span class="n">worst_equality_entry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">worst_equality_entry</span><span class="p">[</span><span class="s2">&quot;signed_residual_at_argmax&quot;</span><span class="p">]</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;per_constraint&quot;</span><span class="p">:</span> <span class="n">equality_per_constraint</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_print_iteration_dependent_diagnostics</span><span class="p">(</span>
+            <span class="n">diagnostics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span>
+            <span class="n">K</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">c_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">verbosity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Print user-facing diagnostics for iteration-dependent verification.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">nonnegative</span> <span class="o">=</span> <span class="n">diagnostics</span><span class="p">[</span><span class="s2">&quot;nonnegative&quot;</span><span class="p">]</span>
+        <span class="n">psd</span> <span class="o">=</span> <span class="n">diagnostics</span><span class="p">[</span><span class="s2">&quot;psd&quot;</span><span class="p">]</span>
+        <span class="n">equality</span> <span class="o">=</span> <span class="n">diagnostics</span><span class="p">[</span><span class="s2">&quot;equality&quot;</span><span class="p">]</span>
+
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Iteration-dependent SDP diagnostics &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;(backend=</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">, K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, c=</span><span class="si">{</span><span class="n">c_value</span><span class="si">:</span><span class="s2">.12g</span><span class="si">}</span><span class="s2">).&quot;</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Nonnegativity check: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">nonnegative</span><span class="p">[</span><span class="s1">&#39;negative_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">nonnegative</span><span class="p">[</span><span class="s1">&#39;total_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> constrained scalars are negative; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;largest violation=</span><span class="si">{</span><span class="n">nonnegative</span><span class="p">[</span><span class="s1">&#39;largest_violation&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">nonnegative</span><span class="p">[</span><span class="s2">&quot;worst_label&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">nonnegative</span><span class="p">[</span><span class="s2">&quot;negative_count&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Worst violating constrained scalar value: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">nonnegative</span><span class="p">[</span><span class="s1">&#39;worst_value&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">nonnegative</span><span class="p">[</span><span class="s1">&#39;worst_label&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Smallest constrained scalar value (nonnegative): &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">nonnegative</span><span class="p">[</span><span class="s1">&#39;worst_value&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">nonnegative</span><span class="p">[</span><span class="s1">&#39;worst_label&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] PSD check: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">psd</span><span class="p">[</span><span class="s1">&#39;negative_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">psd</span><span class="p">[</span><span class="s1">&#39;total_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> constrained matrices have a negative minimum eigenvalue; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;largest violation=</span><span class="si">{</span><span class="n">psd</span><span class="p">[</span><span class="s1">&#39;largest_violation&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">psd</span><span class="p">[</span><span class="s2">&quot;worst_label&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">psd</span><span class="p">[</span><span class="s2">&quot;negative_count&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Worst PSD minimum eigenvalue: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">psd</span><span class="p">[</span><span class="s1">&#39;worst_min_eigenvalue&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">psd</span><span class="p">[</span><span class="s1">&#39;worst_label&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Smallest PSD minimum eigenvalue (nonnegative): &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">psd</span><span class="p">[</span><span class="s1">&#39;worst_min_eigenvalue&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">psd</span><span class="p">[</span><span class="s1">&#39;worst_label&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">equality</span><span class="p">[</span><span class="s2">&quot;total_count&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[AutoLyap][INFO] Equality check: no active equality constraints.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Equality check: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">equality</span><span class="p">[</span><span class="s1">&#39;violating_entries&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">equality</span><span class="p">[</span><span class="s1">&#39;total_entries&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> entries exceed &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;tol=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">equality</span><span class="p">[</span><span class="s1">&#39;tolerance&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2">; &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;largest absolute residual=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">equality</span><span class="p">[</span><span class="s1">&#39;largest_violation&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">equality</span><span class="p">[</span><span class="s2">&quot;worst_label&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Worst equality residual: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">equality</span><span class="p">[</span><span class="s1">&#39;worst_signed_residual&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> at &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">equality</span><span class="p">[</span><span class="s1">&#39;worst_label&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">[index=</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">equality</span><span class="p">[</span><span class="s1">&#39;worst_index&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">].&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">psd</span><span class="p">[</span><span class="s2">&quot;per_constraint&quot;</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][DETAIL] </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;min_eigenvalue=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;min_eigenvalue&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;violation=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;violation&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">equality</span><span class="p">[</span><span class="s2">&quot;per_constraint&quot;</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][DETAIL] </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;max_abs_residual=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;max_abs_residual&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;l2_residual=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;l2_residual&#39;</span><span class="p">])</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">nonnegative</span><span class="p">[</span><span class="s2">&quot;top_negative&quot;</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][DETAIL] Negative constrained scalar: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;value=</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_validate_iteration_dependent_inputs</span><span class="p">(</span>
@@ -972,6 +1292,7 @@
             <span class="n">q_0</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">q_K</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">solver_options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SolverOptions</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">verbosity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Verify feasibility of iteration-dependent Lyapunov inequalities via an SDP.</span>
@@ -1049,6 +1370,8 @@
 <span class="sd">        - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):</span>
 <span class="sd">          Optional backend and parameter settings. Defaults to</span>
 <span class="sd">          `SolverOptions(backend=&quot;mosek_fusion&quot;)`.</span>
+<span class="sd">        - `verbosity` (:class:`int`): Nonnegative output level. `0` disables user-facing</span>
+<span class="sd">          diagnostics, `1` prints concise summaries, and `2` adds per-iteration detail.</span>
 
 <span class="sd">        **Returns**</span>
 
@@ -1126,6 +1449,7 @@
         <span class="n">K</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">m_func</span><span class="p">,</span> <span class="n">m_op</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">dim_Q</span><span class="p">,</span> <span class="n">dim_q</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_validate_iteration_dependent_inputs</span><span class="p">(</span>
             <span class="n">prob</span><span class="p">,</span> <span class="n">algo</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Q_0</span><span class="p">,</span> <span class="n">Q_K</span><span class="p">,</span> <span class="n">q_0</span><span class="p">,</span> <span class="n">q_K</span>
         <span class="p">)</span>
+        <span class="n">verbosity</span> <span class="o">=</span> <span class="n">ensure_integral</span><span class="p">(</span><span class="n">verbosity</span><span class="p">,</span> <span class="s2">&quot;verbosity&quot;</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">solver_options</span> <span class="o">=</span> <span class="n">normalize_solver_options</span><span class="p">(</span><span class="n">solver_options</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">solver_options</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;mosek_fusion&quot;</span><span class="p">:</span>
@@ -1146,12 +1470,37 @@
             <span class="p">)</span>
             <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_apply_mosek_solver_params</span><span class="p">(</span><span class="n">Mod</span><span class="p">,</span> <span class="n">solver_options</span><span class="p">)</span>
             <span class="n">c_var</span> <span class="o">=</span> <span class="n">solution_handles</span><span class="p">[</span><span class="s2">&quot;c_var&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Solving iteration-dependent SDP &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(backend=</span><span class="si">{</span><span class="n">solver_options</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2">, K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">).&quot;</span>
+                <span class="p">)</span>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">Mod</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
                 <span class="n">Mod</span><span class="o">.</span><span class="n">primalObjValue</span><span class="p">()</span>
                 <span class="n">c_val</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_extract_scalar_variable_value</span><span class="p">(</span><span class="n">c_var</span><span class="p">)</span>
                 <span class="n">certificate</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_extract_iteration_dependent_certificate</span><span class="p">(</span><span class="n">solution_handles</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">diagnostics</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_compute_iteration_dependent_diagnostics</span><span class="p">(</span>
+                            <span class="n">prob</span><span class="p">,</span>
+                            <span class="n">algo</span><span class="p">,</span>
+                            <span class="n">K</span><span class="p">,</span>
+                            <span class="n">c_val</span><span class="p">,</span>
+                            <span class="n">certificate</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_print_iteration_dependent_diagnostics</span><span class="p">(</span>
+                            <span class="n">diagnostics</span><span class="p">,</span>
+                            <span class="n">K</span><span class="p">,</span>
+                            <span class="n">c_val</span><span class="p">,</span>
+                            <span class="n">solver_options</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                            <span class="n">verbosity</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;[AutoLyap][WARN] Unable to compute diagnostic summary: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
                 <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">c_val</span><span class="p">,</span> <span class="s2">&quot;certificate&quot;</span><span class="p">:</span> <span class="n">certificate</span><span class="p">}</span>
             <span class="k">except</span> <span class="n">OptimizeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">licence_markers</span> <span class="o">=</span> <span class="p">(</span>
@@ -1161,8 +1510,16 @@
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">mark</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">mark</span> <span class="ow">in</span> <span class="n">licence_markers</span><span class="p">):</span>
                     <span class="k">raise</span>
+                <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Iteration-dependent SDP is infeasible or not solved for K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;certificate&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Iteration-dependent SDP is infeasible or not solved for K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;certificate&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
             <span class="k">finally</span><span class="p">:</span>
                 <span class="n">Mod</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span>
@@ -1184,16 +1541,49 @@
         <span class="p">)</span>
         <span class="n">solve_kwargs</span> <span class="o">=</span> <span class="n">get_cvxpy_solve_kwargs</span><span class="p">(</span><span class="n">solver_options</span><span class="p">)</span>
         <span class="n">accepted_statuses</span> <span class="o">=</span> <span class="n">get_cvxpy_accepted_statuses</span><span class="p">(</span><span class="n">cp</span><span class="p">,</span> <span class="n">solver_options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Solving iteration-dependent SDP &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(backend=</span><span class="si">{</span><span class="n">solver_options</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2">, K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="o">**</span><span class="n">solve_kwargs</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Iteration-dependent SDP solve failed for K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;certificate&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">accepted_statuses</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][INFO] Iteration-dependent SDP status=</span><span class="si">{</span><span class="n">problem</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">; no feasible certificate for K=</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;certificate&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 
         <span class="n">c_val</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_extract_scalar_variable_value</span><span class="p">(</span><span class="n">solution_handles</span><span class="p">[</span><span class="s2">&quot;c_var&quot;</span><span class="p">])</span>
         <span class="n">certificate</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_extract_iteration_dependent_certificate_cvxpy</span><span class="p">(</span><span class="n">solution_handles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">diagnostics</span> <span class="o">=</span> <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_compute_iteration_dependent_diagnostics</span><span class="p">(</span>
+                    <span class="n">prob</span><span class="p">,</span>
+                    <span class="n">algo</span><span class="p">,</span>
+                    <span class="n">K</span><span class="p">,</span>
+                    <span class="n">c_val</span><span class="p">,</span>
+                    <span class="n">certificate</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">IterationDependent</span><span class="o">.</span><span class="n">_print_iteration_dependent_diagnostics</span><span class="p">(</span>
+                    <span class="n">diagnostics</span><span class="p">,</span>
+                    <span class="n">K</span><span class="p">,</span>
+                    <span class="n">c_val</span><span class="p">,</span>
+                    <span class="n">solver_options</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">verbosity</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[AutoLyap][WARN] Unable to compute diagnostic summary: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">c_val</span><span class="p">,</span> <span class="s2">&quot;certificate&quot;</span><span class="p">:</span> <span class="n">certificate</span><span class="p">}</span></div>
 
 

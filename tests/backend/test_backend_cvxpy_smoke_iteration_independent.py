@@ -105,3 +105,103 @@ def test_iteration_independent_verify_with_cvxpy_operator_only_schema(
         assert certificate["s"] is None
         assert certificate["Q"].shape[0] == certificate["Q"].shape[1]
         assert certificate["S"].shape[0] == certificate["S"].shape[1]
+
+
+def test_iteration_independent_verify_verbosity_reports_equality_section(
+    tiny_functional_algorithm, cvxpy_open_source_solver_options, capsys
+):
+    problem = InclusionProblem([Convex()])
+    P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
+        tiny_functional_algorithm
+    )
+    result = IterationIndependent.verify_iteration_independent_Lyapunov(
+        problem,
+        tiny_functional_algorithm,
+        P,
+        T,
+        p=p,
+        t=t,
+        rho=1.0,
+        solver_options=cvxpy_open_source_solver_options,
+        verbosity=1,
+    )
+    captured = capsys.readouterr()
+    assert "Solving iteration-independent SDP" in captured.out
+    if result["success"]:
+        assert "Iteration-independent SDP diagnostics" in captured.out
+        assert "Nonnegativity check:" in captured.out
+        assert "PSD check:" in captured.out
+        assert "Equality check:" in captured.out
+    else:
+        assert (
+            "Iteration-independent SDP status="
+            in captured.out
+            or "Iteration-independent SDP solve failed"
+            in captured.out
+        )
+    assert set(result.keys()) == {"success", "rho", "certificate"}
+
+
+def test_iteration_independent_bisection_verbosity_reports_search_and_equality(
+    tiny_functional_algorithm, cvxpy_open_source_solver_options, capsys
+):
+    problem = InclusionProblem([Convex()])
+    P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
+        tiny_functional_algorithm
+    )
+    result = IterationIndependent.LinearConvergence.bisection_search_rho(
+        problem,
+        tiny_functional_algorithm,
+        P,
+        T,
+        p=p,
+        t=t,
+        lower_bound=1.0,
+        upper_bound=1.0,
+        tol=1e-8,
+        solver_options=cvxpy_open_source_solver_options,
+        verbosity=1,
+    )
+    captured = capsys.readouterr()
+    assert "Starting rho bisection" in captured.out
+    if result["success"]:
+        assert "Bisection succeeded" in captured.out
+        assert "Iteration-independent SDP diagnostics" in captured.out
+        assert "Equality check:" in captured.out
+    else:
+        assert (
+            "Bisection aborted" in captured.out
+            or "Bisection finished without a feasible terminal rho." in captured.out
+        )
+    assert set(result.keys()) == {"success", "rho", "certificate"}
+
+
+def test_iteration_independent_verify_operator_only_verbosity_reports_no_equalities(
+    tiny_operator_algorithm, cvxpy_open_source_solver_options, capsys
+):
+    problem = InclusionProblem([MaximallyMonotone()])
+    P, T = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
+        tiny_operator_algorithm
+    )
+    result = IterationIndependent.verify_iteration_independent_Lyapunov(
+        problem,
+        tiny_operator_algorithm,
+        P,
+        T,
+        rho=1.0,
+        solver_options=cvxpy_open_source_solver_options,
+        verbosity=1,
+    )
+    captured = capsys.readouterr()
+    assert "Solving iteration-independent SDP" in captured.out
+    if result["success"]:
+        assert "Iteration-independent SDP diagnostics" in captured.out
+        assert "Equality check: no active equality constraints." in captured.out
+    else:
+        assert (
+            "Iteration-independent SDP status="
+            in captured.out
+            or "Iteration-independent SDP solve failed"
+            in captured.out
+        )
+    assert set(result.keys()) == {"success", "rho", "certificate"}

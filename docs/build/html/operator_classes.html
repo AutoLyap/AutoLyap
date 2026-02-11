@@ -6,26 +6,100 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Operator classes &mdash; AutoLyap 0.2.0 documentation</title>
+<title>Operator classes</title>
+
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a6713d5d" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=880cbba3" />
 
   
-    <link rel="shortcut icon" href="_static/favicon.svg"/>
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-      <script src="_static/copybutton.js?v=36830154"></script>
-    <script src="_static/js/theme.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="canonical" href="https://autolyap.github.io/operator_classes.html" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script defer="defer" src="_static/copybutton.js?v=36830154"></script>
+    <script defer="defer" src="_static/perf.js?v=c85d9623"></script>
+    <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script defer="defer" src="_static/js/theme.js"></script>
+
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Algorithms" href="algorithms.html" />
-    <link rel="prev" title="Function classes" href="function_classes.html" /> 
+    <link rel="prev" title="Function classes" href="function_classes.html" />
+ 
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
+<link rel="icon" type="image/svg+xml" href="_static/favicon.svg"/>
+<link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="64x64" href="_static/favicon.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="_static/apple-touch-icon.png"/>
+<link rel="alternate" hreflang="en" href="https://autolyap.github.io/operator_classes.html"/>
+<link rel="alternate" hreflang="x-default" href="https://autolyap.github.io/operator_classes.html"/>
+<meta property="og:url" content="https://autolyap.github.io/operator_classes.html"/>
+<meta property="og:image" content="https://autolyap.github.io/_static/favicon.png"/>
+<meta property="og:image:alt" content="AutoLyap logo"/>
+<meta property="og:image:type" content="image/png"/>
+<meta property="og:locale" content="en_US"/>
+<meta name="twitter:image" content="https://autolyap.github.io/_static/favicon.png"/>
+<meta name="author" content="Manu Upadhyaya"/>
+<meta name="description" content="Operator interpolation classes in AutoLyap for monotone, Lipschitz, and cocoercive operator models."/>
+<meta name="keywords" content="AutoLyap operator classes, monotone operator analysis, cocoercive and Lipschitz operators"/>
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"/>
+<meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"/>
+<meta property="og:type" content="article"/>
+<meta property="og:site_name" content="AutoLyap"/>
+<meta property="og:title" content="Operator classes"/>
+<meta property="og:description" content="Operator interpolation classes in AutoLyap for monotone, Lipschitz, and cocoercive operator models."/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Operator classes"/>
+<meta name="twitter:description" content="Operator interpolation classes in AutoLyap for monotone, Lipschitz, and cocoercive operator models."/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://autolyap.github.io/#website",
+  "name": "AutoLyap",
+  "url": "https://autolyap.github.io/",
+  "description": "AutoLyap is a Python package for computer-assisted Lyapunov analyses of first-order optimization and inclusion methods.",
+  "inLanguage": "en-US",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://autolyap.github.io/search.html?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://autolyap.github.io/operator_classes.html#webpage",
+  "name": "AutoLyap",
+  "headline": "Operator classes",
+  "description": "Operator interpolation classes in AutoLyap for monotone, Lipschitz, and cocoercive operator models.",
+  "keywords": "AutoLyap operator classes, monotone operator analysis, cocoercive and Lipschitz operators",
+  "url": "https://autolyap.github.io/operator_classes.html",
+  "inLanguage": "en-US",
+  "mainEntityOfPage": "https://autolyap.github.io/operator_classes.html",
+  "isPartOf": {
+    "@type": "WebSite",
+    "@id": "https://autolyap.github.io/#website",
+    "name": "AutoLyap"
+  },
+  "about": {
+    "@type": "SoftwareSourceCode",
+    "name": "AutoLyap",
+    "codeRepository": "https://github.com/AutoLyap/AutoLyap",
+    "programmingLanguage": "Python",
+    "license": "https://spdx.org/licenses/MIT.html"
+  }
+}
+</script>
+
 </head>
 
 <body class="wy-body-for-nav"> 

@@ -191,6 +191,42 @@ f(x^K) - f(x^\star) = O\!\left(\frac{1}{\theta_K^2}\right) = O\!\left(\frac{1}{K
 - `rho` (iteration-independent) or `c` (iteration-dependent): the main scalar output.
 - `certificate`: Matrices and vectors that parameterize the Lyapunov certificate.
 
+## Verbosity diagnostics
+
+All three SDP entry points support a `verbosity` argument:
+
+- `IterationIndependent.verify_iteration_independent_Lyapunov(...)`
+- `IterationIndependent.LinearConvergence.bisection_search_rho(...)`
+- `IterationDependent.verify_iteration_dependent_Lyapunov(...)`
+
+Set:
+
+- `verbosity=0` for silent mode (default).
+- `verbosity=1` for concise diagnostic summaries.
+- `verbosity=2` for detailed per-constraint/per-iteration diagnostics.
+
+The diagnostic summary reports:
+
+- nonnegativity checks on constrained scalars,
+- PSD checks via minimum eigenvalues of constrained matrices,
+- equality-constraint residuals (`max_abs_residual` and `l2_residual`).
+
+Example:
+
+```python
+result = IterationIndependent.verify_iteration_independent_Lyapunov(
+    problem,
+    algorithm,
+    P,
+    T,
+    p=p,
+    t=t,
+    rho=1.0,
+    solver_options=solver_options,
+    verbosity=1,  # or 2 for detailed diagnostics
+)
+```
+
 ## Next
 
 - For more worked walkthroughs, see {doc}`examples`.
