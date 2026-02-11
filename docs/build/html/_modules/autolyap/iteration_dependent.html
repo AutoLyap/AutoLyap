@@ -5,15 +5,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>autolyap.iteration_dependent &mdash; AutoLyap 0.1.0 documentation</title>
+  <title>autolyap.iteration_dependent &mdash; AutoLyap 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=18baee69" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a6713d5d" />
 
   
+    <link rel="shortcut icon" href="../../_static/favicon.svg"/>
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../_static/copybutton.js?v=36830154"></script>
@@ -27,10 +28,10 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-<a href="../../index.html" class="icon icon-home">
+<a href="../../index.html">
   AutoLyap
 </a>
-<div class="sidebar-version">v0.1.0</div>
+<div class="sidebar-version">v0.2.0</div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -46,6 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api_reference.html">API reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../whats_new.html">What’s new</a></li>
 </ul>
 
         </div>
@@ -61,9 +63,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">autolyap.iteration_dependent</li>
+      <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+    <li class="breadcrumb-item active">autolyap.iteration_dependent</li>
+
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -191,7 +193,9 @@
 
 <span class="sd">    **Chained Lyapunov inequalities**</span>
 
-<span class="sd">    We search for a sequence :math:`(Q_{k},q_{k})_{k=0}^{K}` and a scalar :math:`c \ge 0` such that</span>
+<span class="sd">    We set the endpoint parameters :math:`(Q_0,q_0)` and :math:`(Q_K,q_K)` and</span>
+<span class="sd">    search for intermediate :math:`(Q_k,q_k)` for</span>
+<span class="sd">    :math:`k \in \llbracket 1, K-1 \rrbracket`, together with a scalar :math:`c \ge 0`, such that</span>
 
 <span class="sd">    .. math::</span>
 <span class="sd">        \mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c\,\mathcal{V}(0).</span>
@@ -991,7 +995,8 @@
 
 <span class="sd">        **User-specified targets**</span>
 
-<span class="sd">        The user specifies the endpoint parameters :math:`(Q_0,q_0)` and :math:`(Q_K,q_K)`.</span>
+<span class="sd">        The user sets the endpoint parameters :math:`(Q_0,q_0)` and :math:`(Q_K,q_K)`.</span>
+<span class="sd">        These endpoint parameters are fixed inputs to the SDP (not optimization variables).</span>
 <span class="sd">        The SDP then searches for intermediate :math:`(Q_k,q_k)` for</span>
 <span class="sd">        :math:`k \in \llbracket 1, K-1\rrbracket` and the minimum feasible :math:`c`.</span>
 <span class="sd">        When :math:`\NumFunc = 0`, the vectors :math:`q_k` (and inputs `q_0`, `q_K`) are omitted.</span>

@@ -2,11 +2,15 @@
 
 ## Problem setup
 
-We consider one functional component:
+Consider minimizing a {math}`\mu`-strongly convex function
+{math}`f : \calH \to \reals`, with {math}`\mu > 0`; for an initial point
+{math}`x^0 \in \calH` and step size {math}`\gamma \in \reals_{++}`, the proximal
+point method updates as
 
-- {math}`f` is {math}`\mu`-strongly convex, with {math}`\mu > 0`.
-- Problem class: {py:class}`autolyap.problemclass.InclusionProblem` with
-  {py:class}`autolyap.problemclass.StronglyConvex`.
+```{math}
+(\forall k \in \naturals)\quad
+x^{k+1} = \prox_{\gamma f}(x^k).
+```
 
 ## Run the iteration-independent analysis
 
@@ -47,16 +51,14 @@ print(f"rho (AutoLyap): {rho_autolyap:.8f}")
 print(f"rho (theory):   {rho_theory:.8f}")
 ```
 
-The theoretical rate expression for proximal point is classical; see {cite}`Rockafellar1976PPA`.
-
-Hence, for the distance-to-solution target, the method satisfies
+The computed value `rho (AutoLyap)` matches the theoretical rate expression given in {cite}`Rockafellar1976PPA`, i.e.,
 
 ```{math}
 \|x^k - x^\star\|^2 = O(\rho^k), \qquad
-\rho = \left(\frac{1}{1+\gamma\mu}\right)^2.
+\rho = \left(\frac{1}{1+\gamma\mu}\right)^2,
 ```
 
-Equivalently,
+or
 
 ```{math}
 \|x^k - x^\star\| = O\!\left(\left(\frac{1}{1+\gamma\mu}\right)^k\right).

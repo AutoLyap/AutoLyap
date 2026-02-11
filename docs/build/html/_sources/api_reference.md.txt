@@ -5,10 +5,14 @@ algorithms, Lyapunov analyses, and solver backends.
 
 ```{toctree}
 :maxdepth: 2
-:caption: Reference pages
 
 problem_class
 algorithms
 lyapunov_analyses
+```
+
+```{toctree}
+:maxdepth: 1
+
 solver_backends
 ```

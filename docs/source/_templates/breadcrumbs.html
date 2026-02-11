@@ -1,0 +1,11 @@
+{% extends "!breadcrumbs.html" %}
+
+{% block breadcrumbs %}
+  {%- set top_level_pages = ["index", "quick_start", "examples", "api_reference", "contributing"] %}
+  {%- if pagename not in top_level_pages %}
+    {%- for doc in parents %}
+      <li class="breadcrumb-item"><a href="{{ doc.link|e }}">{{ doc.title }}</a></li>
+    {%- endfor %}
+    <li class="breadcrumb-item active">{{ title }}</li>
+  {%- endif %}
+{% endblock %}

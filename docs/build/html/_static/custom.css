@@ -92,6 +92,12 @@ body.wy-body-for-nav {
   font-size: 0.88rem;
 }
 
+/* Keep breadcrumb separators between items, but remove the leading slash. */
+.wy-breadcrumbs .breadcrumb-item:first-child:before {
+  content: none;
+  padding: 0;
+}
+
 .wy-nav-top {
   background: #ffffff;
   border-bottom: 1px solid var(--nord-border);

@@ -22,7 +22,14 @@ Typical usage has four steps:
 3. Select Lyapunov targets with helper constructors (`get_parameters_*`).
 4. Solve the SDP and inspect `result["success"]`, the scalar (`rho` or `c`), and `result["certificate"]`.
 
-## Iteration-independent example
+## Iteration-independent example: The gradient method
+
+Consider minimizing a function {math}`f : \calH \to \reals` that is {math}`\mu`-strongly convex and {math}`L`-smooth; for an initial point {math}`x^0 \in \calH` and step size {math}`0 < \gamma < 2/L`, the gradient method updates as
+
+```{math}
+(\forall k \in \naturals)\quad
+x^{k+1} = x^k - \gamma \nabla f(x^k).
+```
 
 ```python
 from autolyap.algorithms import GradientMethod
@@ -38,9 +45,8 @@ problem = InclusionProblem([SmoothStronglyConvex(mu, L)])
 algorithm = GradientMethod(gamma=gamma)
 solver_options = SolverOptions(backend="mosek_fusion")
 
-# License-free options
+# License-free option
 #solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
-#solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="SCS")
 
 P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
     algorithm
@@ -70,9 +76,47 @@ print(f"rho (AutoLyap): {rho:.8f}")
 print(f"rho (theory):   {rho_theory:.8f}")
 ```
 
-## Iteration-dependent example
+The computed value `rho (AutoLyap)` matches the theoretical rate expression for gradient methods; see {cite}`quick-Polyak1963GradientUSSR`.
 
-For background on `OptimizedGradientMethod`, see {cite}`quick-kin2028ogm`.
+```{math}
+\|x^k - x^\star\|^2 = O(\rho^k), \qquad
+\rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2,
+```
+
+or
+
+```{math}
+\|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).
+```
+
+## Iteration-dependent example: The optimized gradient method
+
+For background on the optimized gradient method, see {cite}`quick-kin2028ogm`.
+
+Consider minimizing a convex and {math}`L`-smooth function {math}`f : \calH \to \reals`, with {math}`L > 0`; for initial points {math}`x^0, y^0 \in \calH`, smoothness constant {math}`L \in \reals_{++}`, and iteration budget {math}`K \in \naturals`, the optimized gradient method updates as
+
+```{math}
+(\forall k \in \llbracket 0, K-1 \rrbracket)\quad
+\left[
+\begin{aligned}
+    y^{k+1} &= x^k - \frac{1}{L}\nabla f(x^k), \\
+    x^{k+1} &= y^{k+1}
+    + \frac{\theta_k - 1}{\theta_{k+1}}(y^{k+1} - y^k)
+    + \frac{\theta_k}{\theta_{k+1}}(y^{k+1} - x^k).
+\end{aligned}
+\right.
+```
+
+```{math}
+\theta_k =
+\begin{cases}
+    1, & \text{if } k = 0, \\
+    \dfrac{1 + \sqrt{1 + 4\theta_{k-1}^2}}{2},
+    & \text{if } k \in \llbracket 1, K-1 \rrbracket, \\
+    \dfrac{1 + \sqrt{1 + 8\theta_{k-1}^2}}{2},
+    & \text{if } k = K.
+\end{cases}
+```
 
 ```python
 from autolyap.algorithms import OptimizedGradientMethod
@@ -87,9 +131,8 @@ problem = InclusionProblem([SmoothConvex(L)])
 algorithm = OptimizedGradientMethod(L=L, K=K)
 solver_options = SolverOptions(backend="mosek_fusion")
 
-# License-free options
+# License-free option
 #solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
-#solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="SCS")
 
 Q_0, q_0 = IterationDependent.get_parameters_distance_to_solution(
     algorithm,
@@ -127,6 +170,19 @@ c_theory = L / (2.0 * theta_K ** 2)
 
 print(f"c (AutoLyap): {c:.6e}")
 print(f"c (theory):   {c_theory:.6e}")
+```
+
+The computed value `c (AutoLyap)` matches the theoretical horizon-`K` expression
+
+```{math}
+f(x^K) - f(x^\star) \le c\,\|x^0 - x^\star\|^2, \qquad
+c = \frac{L}{2\theta_K^2}.
+```
+
+In particular,
+
+```{math}
+f(x^K) - f(x^\star) = O\!\left(\frac{1}{\theta_K^2}\right) = O\!\left(\frac{1}{K^2}\right).
 ```
 
 ## What to inspect

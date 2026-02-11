@@ -114,7 +114,9 @@ class IterationDependent:
 
     **Chained Lyapunov inequalities**
 
-    We search for a sequence :math:`(Q_{k},q_{k})_{k=0}^{K}` and a scalar :math:`c \ge 0` such that
+    We set the endpoint parameters :math:`(Q_0,q_0)` and :math:`(Q_K,q_K)` and
+    search for intermediate :math:`(Q_k,q_k)` for
+    :math:`k \in \llbracket 1, K-1 \rrbracket`, together with a scalar :math:`c \ge 0`, such that
 
     .. math::
         \mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c\,\mathcal{V}(0).
@@ -912,7 +914,8 @@ class IterationDependent:
 
         **User-specified targets**
 
-        The user specifies the endpoint parameters :math:`(Q_0,q_0)` and :math:`(Q_K,q_K)`.
+        The user sets the endpoint parameters :math:`(Q_0,q_0)` and :math:`(Q_K,q_K)`.
+        These endpoint parameters are fixed inputs to the SDP (not optimization variables).
         The SDP then searches for intermediate :math:`(Q_k,q_k)` for
         :math:`k \in \llbracket 1, K-1\rrbracket` and the minimum feasible :math:`c`.
         When :math:`\NumFunc = 0`, the vectors :math:`q_k` (and inputs `q_0`, `q_K`) are omitted.
