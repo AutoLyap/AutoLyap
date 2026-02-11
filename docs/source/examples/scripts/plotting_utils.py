@@ -130,6 +130,8 @@ def _latex_to_svg_label(text: str) -> tuple[str, bool]:
     """
     stripped = text.strip()
     is_math = False
+    if "$" in stripped:
+        is_math = True
     if stripped.startswith("$") and stripped.endswith("$") and len(stripped) >= 2:
         stripped = stripped[1:-1].strip()
         is_math = True
@@ -144,6 +146,7 @@ def _latex_to_svg_label(text: str) -> tuple[str, bool]:
     converted = (
         converted.replace("{", "")
         .replace("}", "")
+        .replace("$", "")
         .replace(r"\,", " ")
         .replace(r"\ ", " ")
         .strip()
@@ -187,6 +190,49 @@ def _svg_math_label_markup(label: str, is_math: bool) -> str:
         f"{base_text}"
         f'<tspan baseline-shift="sub" font-size="65%">{sub_text}</tspan>'
     )
+
+
+def _svg_inline_math_markup(label: str, is_math: bool) -> str:
+    """Render inline lightweight math with simple sub/superscripts.
+
+    Supports ``_x``, ``_{...}``, ``^x``, and ``^{...}`` patterns inside labels.
+    """
+    label = label.strip()
+    if not label:
+        return ""
+    if not is_math:
+        return xml_escape(label)
+
+    parts: list[str] = []
+    i = 0
+    while i < len(label):
+        ch = label[i]
+        if ch in "_^" and (i + 1) < len(label):
+            shift = "sub" if ch == "_" else "super"
+            token: str | None = None
+
+            if label[i + 1] == "{":
+                close_brace = label.find("}", i + 2)
+                if close_brace != -1:
+                    token = label[i + 2 : close_brace]
+                    i = close_brace + 1
+                else:
+                    token = label[i + 1]
+                    i += 2
+            else:
+                token = label[i + 1]
+                i += 2
+
+            if token is not None and token != "":
+                parts.append(
+                    f'<tspan baseline-shift="{shift}" font-size="65%">{xml_escape(token)}</tspan>'
+                )
+                continue
+
+        parts.append(xml_escape(ch))
+        i += 1
+
+    return "".join(parts)
 
 
 def write_csv_rows(path: Path, header: str, rows: Iterable[str]) -> None:
@@ -533,12 +579,16 @@ def render_cartesian_svg(
                     f"'line+marker'; got {item.kind!r}."
                 )
 
-            legend_label_text, _ = _latex_to_svg_label(item.label)
+            legend_label_text, legend_label_is_math = _latex_to_svg_label(item.label)
+            legend_label_markup = _svg_inline_math_markup(
+                legend_label_text,
+                legend_label_is_math,
+            )
             svg_lines.append(
                 f'  <text x="{swatch_right + legend_text_gap:.3f}" '
                 f'y="{y_center + 7.0:.3f}" text-anchor="start" '
                 f'fill="{style.label_color}" font-family="{style.font_family}" '
-                f'font-size="{legend_font_size:.1f}">{xml_escape(legend_label_text)}</text>'
+                f'font-size="{legend_font_size:.1f}">{legend_label_markup}</text>'
             )
 
     tick_length_px = 8.0

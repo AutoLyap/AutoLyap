@@ -2,8 +2,8 @@
 
 ## Problem setup
 
-We consider the unconstrained minimization of a convex,
-{math}`L`-smooth function {math}`f : \calH \to \reals`, with {math}`L > 0`.
+We consider the unconstrained minimization of a convex and {math}`L`-smooth
+function {math}`f : \calH \to \reals`, with {math}`L > 0`.
 
 Given initial points {math}`x^{-1}, x^0 \in \calH`, momentum
 {math}`\delta \in \reals`, and step size {math}`\gamma \in \reals_{++}`,
@@ -34,7 +34,7 @@ delta = 0.4
 problem = InclusionProblem([SmoothConvex(L)])
 algorithm = HeavyBallMethod(gamma=gamma, delta=delta)
 
-# V(P,p,k) = 0 and R(T,t,k) = f(x^k) - f(x^*)
+# V(P,p,k) = 0 and R(T,t,k) = function-value suboptimality
 P, p, T, t = IterationIndependent.SublinearConvergence.get_parameters_function_value_suboptimality(
     algorithm,
     tau=0,
@@ -63,7 +63,9 @@ When the certificate is feasible, the certified function-value convergence is
 f(x^k) - f(x^\star) = o\!\left(\frac{1}{k}\right),
 ```
 
-or equivalently
+where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
+
+Equivalently,
 
 ```{math}
 \lim_{k \to \infty} k\bigl(f(x^k)-f(x^\star)\bigr)=0.

@@ -183,7 +183,7 @@
 <li><p>Build an <code class="docutils literal notranslate"><span class="pre">InclusionProblem</span></code> from function and operator classes.</p></li>
 <li><p>Pick an algorithm or your own subclass of <code class="docutils literal notranslate"><span class="pre">Algorithm</span></code>.</p></li>
 <li><p>Select Lyapunov targets with helper constructors (<code class="docutils literal notranslate"><span class="pre">get_parameters_*</span></code>).</p></li>
-<li><p>Solve the SDP and inspect <code class="docutils literal notranslate"><span class="pre">result[&quot;success&quot;]</span></code>, the scalar (<code class="docutils literal notranslate"><span class="pre">rho</span></code> or <code class="docutils literal notranslate"><span class="pre">c</span></code>), and <code class="docutils literal notranslate"><span class="pre">result[&quot;certificate&quot;]</span></code>.</p></li>
+<li><p>Solve the SDP and inspect <code class="docutils literal notranslate"><span class="pre">result[&quot;success&quot;]</span></code>, the scalar (<code class="docutils literal notranslate"><span class="pre">rho</span></code> or <code class="docutils literal notranslate"><span class="pre">c_K</span></code>), and <code class="docutils literal notranslate"><span class="pre">result[&quot;certificate&quot;]</span></code>.</p></li>
 </ol>
 </section>
 <section id="iteration-independent-example-the-gradient-method">
@@ -236,11 +236,13 @@ x^{k+1} = x^k - \gamma \nabla f(x^k).\]</div>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rho (theory):   </span><span class="si">{</span><span class="n">rho_theory</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The computed value <code class="docutils literal notranslate"><span class="pre">rho</span> <span class="pre">(AutoLyap)</span></code> matches the theoretical rate expression for gradient methods; see <span id="id1">[<a class="reference internal" href="#id8" title="B. T. Polyak. Gradient methods for the minimisation of functionals. USSR Computational Mathematics and Mathematical Physics, 3(4):864–878, 1963. doi:10.1016/0041-5553(63)90382-3.">Pol63</a>]</span>.</p>
+<p>The computed value <code class="docutils literal notranslate"><span class="pre">rho</span> <span class="pre">(AutoLyap)</span></code> matches the theoretical rate expression for
+gradient methods; see <span id="id1">[<a class="reference internal" href="#id8" title="B. T. Polyak. Gradient methods for the minimisation of functionals. USSR Computational Mathematics and Mathematical Physics, 3(4):864–878, 1963. doi:10.1016/0041-5553(63)90382-3.">Pol63</a>]</span>:</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\|^2 = O(\rho^k), \qquad
 \rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2,\]</div>
-<p>or</p>
+<p>where <span class="math notranslate nohighlight">\(x^\star \in \Argmin_{x \in \calH} f(x)\)</span>.</p>
+<p>Equivalently,</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).\]</div>
 <p>Sweeping over 100 values of <span class="math notranslate nohighlight">\(\gamma\)</span> on <span class="math notranslate nohighlight">\(0 &lt; \gamma \le 2/L\)</span> gives
@@ -312,36 +314,38 @@ as blue dots.</p>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]:</span>
     <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No feasible chained Lyapunov certificate for this setup.&quot;</span><span class="p">)</span>
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span>
+<span class="n">c_K</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;c_K&quot;</span><span class="p">]</span>
 <span class="n">certificate</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;certificate&quot;</span><span class="p">]</span>
 
 <span class="n">Q_sequence</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;Q_sequence&quot;</span><span class="p">]</span>  <span class="c1"># [Q_0, Q_1, ..., Q_K]</span>
 <span class="n">q_sequence</span> <span class="o">=</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;q_sequence&quot;</span><span class="p">]</span>  <span class="c1"># [q_0, q_1, ..., q_K] or None</span>
 
 <span class="n">theta_K</span> <span class="o">=</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">_compute_theta</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
-<span class="n">c_theory</span> <span class="o">=</span> <span class="n">L</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">theta_K</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">c_K_theory</span> <span class="o">=</span> <span class="n">L</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">theta_K</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;c (AutoLyap): </span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;c (theory):   </span><span class="si">{</span><span class="n">c_theory</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;c_K (AutoLyap): </span><span class="si">{</span><span class="n">c_K</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;c_K (theory):   </span><span class="si">{</span><span class="n">c_K_theory</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The computed value <code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">(AutoLyap)</span></code> matches the theoretical horizon-<code class="docutils literal notranslate"><span class="pre">K</span></code> expression</p>
+<p>The computed value <code class="docutils literal notranslate"><span class="pre">c_K</span> <span class="pre">(AutoLyap)</span></code> matches the theoretical horizon-<code class="docutils literal notranslate"><span class="pre">K</span></code>
+expression:</p>
 <div class="math notranslate nohighlight">
-\[f(x^K) - f(x^\star) \le c\,\|x^0 - x^\star\|^2, \qquad
-c = \frac{L}{2\theta_K^2}.\]</div>
+\[f(x^K) - f(x^\star) \le c_K\,\|x^0 - x^\star\|^2, \qquad
+c_K = \frac{L}{2\theta_K^2}.\]</div>
+<p>where <span class="math notranslate nohighlight">\(x^\star \in \Argmin_{x \in \calH} f(x)\)</span>.</p>
 <p>In particular,</p>
 <div class="math notranslate nohighlight">
 \[f(x^K) - f(x^\star) = O\!\left(\frac{1}{\theta_K^2}\right) = O\!\left(\frac{1}{K^2}\right).\]</div>
 <p>Sweeping over <span class="math notranslate nohighlight">\(K \in \llbracket 1, 100\rrbracket\)</span> gives the log-log plot below, with
 the theoretical bound in black and AutoLyap certificates as blue dots.</p>
-<a class="reference internal image-reference" href="_images/optimized_gradient_method_c_vs_K_loglog.svg"><img alt="Optimized-gradient c versus K in log-log scale with theoretical line and AutoLyap points." class="align-center" src="_images/optimized_gradient_method_c_vs_K_loglog.svg" style="width: 100%;" />
+<a class="reference internal image-reference" href="_images/optimized_gradient_method_c_vs_K_loglog.svg"><img alt="Optimized-gradient c_K versus K in log-log scale with theoretical line and AutoLyap points." class="align-center" src="_images/optimized_gradient_method_c_vs_K_loglog.svg" style="width: 100%;" />
 </a>
 </section>
 <section id="what-to-inspect">
 <h2>What to inspect<a class="headerlink" href="#what-to-inspect" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">success</span></code>: whether the selected backend found a feasible certificate.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rho</span></code> (iteration-independent) or <code class="docutils literal notranslate"><span class="pre">c</span></code> (iteration-dependent): the main scalar output.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rho</span></code> (iteration-independent) or <code class="docutils literal notranslate"><span class="pre">c_K</span></code> (iteration-dependent): the main scalar output.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">certificate</span></code>: Matrices and vectors that parameterize the Lyapunov certificate.</p></li>
 </ul>
 </section>

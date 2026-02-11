@@ -124,8 +124,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick start</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="douglas_rachford_operator_giselsson.html">The Douglas–Rachford method (operator form)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="douglas_rachford_operator_giselsson.html">The Douglas–Rachford method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="heavy_ball.html">The heavy-ball method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nesterov_fast_gradient.html">Nesterov’s fast gradient method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="proximal_gradient.html">Define your own algorithm: The proximal gradient method</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">The proximal point method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#problem-setup">Problem setup</a></li>
@@ -215,11 +216,13 @@ x^{k+1} = \prox_{\gamma f}(x^k).\]</div>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rho (theory):   </span><span class="si">{</span><span class="n">rho_theory</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The computed value <code class="docutils literal notranslate"><span class="pre">rho</span> <span class="pre">(AutoLyap)</span></code> matches the theoretical rate expression given in <span id="id1">[<a class="reference internal" href="#id5" title="R. Tyrrell Rockafellar. Monotone operators and the proximal point algorithm. SIAM Journal on Control and Optimization, 14(5):877–898, 1976. doi:10.1137/0314056.">Roc76</a>]</span>, i.e.,</p>
+<p>The computed value <code class="docutils literal notranslate"><span class="pre">rho</span> <span class="pre">(AutoLyap)</span></code> matches the theoretical rate expression
+given in <span id="id1">[<a class="reference internal" href="#id5" title="R. Tyrrell Rockafellar. Monotone operators and the proximal point algorithm. SIAM Journal on Control and Optimization, 14(5):877–898, 1976. doi:10.1137/0314056.">Roc76</a>]</span>, i.e.,</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\|^2 = O(\rho^k), \qquad
 \rho = \left(\frac{1}{1+\gamma\mu}\right)^2,\]</div>
-<p>or</p>
+<p>where <span class="math notranslate nohighlight">\(x^\star \in \Argmin_{x \in \calH} f(x)\)</span>.</p>
+<p>Equivalently,</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\| = O\!\left(\left(\frac{1}{1+\gamma\mu}\right)^k\right).\]</div>
 <p>Sweeping over 100 values of <span class="math notranslate nohighlight">\(\gamma\)</span> on <span class="math notranslate nohighlight">\(0 &lt; \gamma \le 5\)</span> gives
