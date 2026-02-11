@@ -25,6 +25,8 @@ Thumbs.db
 *.egg
 *.egg-info
 .eggs/
+build/
+dist/
 
 # PyInstaller
 *.manifest
