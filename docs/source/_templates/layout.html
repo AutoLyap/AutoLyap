@@ -1,5 +1,135 @@
 {% extends "!layout.html" %}
 
+{% block htmltitle %}
+<title>{{ title | striptags | e }}</title>
+{% endblock %}
+
+{% block scripts %}
+{%- if not embedded %}
+  {%- for scriptfile in script_files %}
+    {{ js_tag(scriptfile) }}
+  {%- endfor %}
+  <script defer="defer" src="{{ pathto('_static/js/theme.js', 1) }}"></script>
+
+  {%- if READTHEDOCS or DEBUG %}
+  <script defer="defer" src="{{ pathto('_static/js/versions.js', 1) }}"></script>
+  {%- endif %}
+
+  {%- if use_opensearch %}
+  <link rel="search" type="application/opensearchdescription+xml"
+        title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
+        href="{{ pathto('_static/opensearch.xml', 1) }}"/>
+  {%- endif %}
+{%- endif %}
+{% endblock %}
+
+{% block extrahead %}
+{{ super() }}
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
+<link rel="icon" type="image/svg+xml" href="{{ pathto('_static/favicon.svg', 1) }}"/>
+<link rel="icon" type="image/png" sizes="32x32" href="{{ pathto('_static/favicon-32.png', 1) }}"/>
+<link rel="icon" type="image/png" sizes="64x64" href="{{ pathto('_static/favicon.png', 1) }}"/>
+<link rel="apple-touch-icon" sizes="180x180" href="{{ pathto('_static/apple-touch-icon.png', 1) }}"/>
+{%- set _seo_baseurl = (seo_baseurl | default("")).rstrip("/") %}
+{%- set _seo_site_name = seo_site_name | default(project) %}
+{%- set _seo_default_description = seo_site_description | default("AutoLyap documentation.") %}
+{%- set _seo_default_keywords = seo_default_keywords | default(["AutoLyap"]) %}
+{%- set _seo_pages = seo_pages | default({}) %}
+{%- set _seo_page = _seo_pages.get(pagename, {}) %}
+{%- set _seo_description = _seo_page.get("description", _seo_default_description) %}
+{%- set _seo_keywords = _seo_page.get("keywords", _seo_default_keywords) %}
+{%- set _seo_repo_url = seo_repo_url | default("https://github.com/AutoLyap/AutoLyap") %}
+{%- set _seo_author = seo_author | default(author, true) | default("AutoLyap contributors", true) %}
+{%- set _seo_in_language = seo_in_language | default("en-US") %}
+{%- set _root_doc = root_doc | default(master_doc) %}
+{%- set _page_url = seo_page_url | default(pageurl, true) | default("", true) %}
+{%- if not _page_url and _seo_baseurl %}
+  {%- if pagename == _root_doc %}
+    {%- set _page_url = _seo_baseurl ~ "/" %}
+  {%- else %}
+    {%- set _page_url = _seo_baseurl ~ "/" ~ pagename ~ ".html" %}
+  {%- endif %}
+{%- endif %}
+{%- set _is_noindex = seo_is_noindex | default(false) %}
+{%- if not _is_noindex %}
+  {%- set _noindex_pages = ["search", "genindex", "py-modindex", "modindex"] %}
+  {%- set _is_noindex = pagename in _noindex_pages or "genindex" in pagename or pagename.startswith("_modules/") or pagename.startswith("_sources/") %}
+{%- endif %}
+{%- set _robots_value = "noindex,follow" if _is_noindex else "index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" %}
+{%- set _og_type = "website" if pagename == _root_doc else "article" %}
+{%- if _page_url %}
+<link rel="alternate" hreflang="en" href="{{ _page_url }}"/>
+<link rel="alternate" hreflang="x-default" href="{{ _page_url }}"/>
+<meta property="og:url" content="{{ _page_url }}"/>
+{%- endif %}
+{%- if _seo_baseurl %}
+<meta property="og:image" content="{{ _seo_baseurl }}/_static/favicon.png"/>
+<meta property="og:image:alt" content="{{ _seo_site_name | e }} logo"/>
+<meta property="og:image:type" content="image/png"/>
+<meta property="og:locale" content="en_US"/>
+<meta name="twitter:image" content="{{ _seo_baseurl }}/_static/favicon.png"/>
+{%- endif %}
+<meta name="author" content="{{ _seo_author | e }}"/>
+<meta name="description" content="{{ _seo_description | e }}"/>
+<meta name="keywords" content="{{ _seo_keywords | join(', ') | e }}"/>
+<meta name="robots" content="{{ _robots_value }}"/>
+<meta name="googlebot" content="{{ _robots_value }}"/>
+<meta property="og:type" content="{{ _og_type }}"/>
+<meta property="og:site_name" content="{{ _seo_site_name | e }}"/>
+<meta property="og:title" content="{{ title | striptags | e }}"/>
+<meta property="og:description" content="{{ _seo_description | e }}"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="{{ title | striptags | e }}"/>
+<meta name="twitter:description" content="{{ _seo_description | e }}"/>
+{%- if _seo_baseurl %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "{{ _seo_baseurl }}/#website",
+  "name": "{{ _seo_site_name | e }}",
+  "url": "{{ _seo_baseurl }}/",
+  "description": "{{ _seo_default_description | e }}",
+  "inLanguage": "{{ _seo_in_language }}",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ _seo_baseurl }}/search.html?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+{%- endif %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "{{ _page_url if _page_url else '' }}#webpage",
+  "name": "{{ _seo_site_name | e }}",
+  "headline": "{{ title | striptags | e }}",
+  "description": "{{ _seo_description | e }}",
+  "keywords": "{{ _seo_keywords | join(', ') | e }}",
+  "url": "{{ _page_url if _page_url else '' }}",
+  "inLanguage": "{{ _seo_in_language }}",
+  "mainEntityOfPage": "{{ _page_url if _page_url else '' }}",
+  "isPartOf": {
+    "@type": "WebSite",
+    {%- if _seo_baseurl %}
+    "@id": "{{ _seo_baseurl }}/#website",
+    {%- endif %}
+    "name": "{{ _seo_site_name | e }}"
+  },
+  "about": {
+    "@type": "SoftwareSourceCode",
+    "name": "{{ _seo_site_name | e }}",
+    "codeRepository": "{{ _seo_repo_url }}",
+    "programmingLanguage": "Python",
+    "license": "https://spdx.org/licenses/MIT.html"
+  }
+}
+</script>
+{% endblock %}
+
 {% block sidebartitle %}
 {%- set _logo_url = logo_url|default(pathto('_static/' + (logo or ""), 1)) %}
 {%- set _root_doc = root_doc|default(master_doc) %}
@@ -10,7 +140,11 @@
   {%- endif %}
 </a>
 {%- if release %}
-<div class="sidebar-version">v{{ release }}</div>
+{%- set _release_text = release|string %}
+{%- if _release_text[:1]|lower == "v" %}
+  {%- set _release_text = _release_text[1:] %}
+{%- endif %}
+<div class="sidebar-version">v{{ _release_text }}</div>
 {%- endif %}
 
 {%- if READTHEDOCS or DEBUG %}

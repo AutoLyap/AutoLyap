@@ -6,26 +6,100 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick start &mdash; AutoLyap 0.2.0 documentation</title>
+<title>Quick start</title>
+
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a6713d5d" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=880cbba3" />
 
   
-    <link rel="shortcut icon" href="_static/favicon.svg"/>
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=938c9ccc"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-      <script src="_static/copybutton.js?v=36830154"></script>
-    <script src="_static/js/theme.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="canonical" href="https://autolyap.github.io/quick_start.html" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script defer="defer" src="_static/copybutton.js?v=36830154"></script>
+    <script defer="defer" src="_static/perf.js?v=c85d9623"></script>
+    <script>window.MathJax = {"tex": {"macros": {"abs": ["\\left\\lvert #1 \\right\\rvert", 1], "Bignorm": ["\\left\\lVert #1 \\right\\rVert", 1], "norm": ["\\lVert #1 \\rVert", 1], "Biginner": ["\\left\\langle #1, #2 \\right\\rangle", 2], "calH": "\\mathcal{H}", "IndexFunc": "\\mathcal{I}_{\\textup{func}}", "IndexOp": "\\mathcal{I}_{\\textup{op}}", "NumEval": "\\bar{m}", "NumEvalFunc": "\\bar{m}_{\\textup{func}}", "NumEvalOp": "\\bar{m}_{\\textup{op}}", "NumFunc": "m_{\\textup{func}}", "NumOp": "m_{\\textup{op}}", "reals": "\\mathbb{R}", "prox": "{\\rm{prox}}", "Prox": "\\operatorname{Prox}", "Id": "\\mathrm{Id}", "kron": "\\otimes", "inner": ["\\langle #1, #2 \\rangle", 2], "minimize": "\\operatorname*{minimize}", "maximize": "\\operatorname*{maximize}", "argmin": "\\operatorname*{argmin}", "argmax": "\\operatorname*{argmax}", "Argmin": "\\operatorname*{Argmin}", "gra": "\\operatorname*{gra}", "ran": "\\operatorname*{ran}", "zer": "\\operatorname*{zer}", "dom": "\\operatorname*{dom}", "Fix": "\\operatorname{fix}", "sym": "\\mathbb{S}", "bx": "\\mathbf{x}", "bu": "\\mathbf{u}", "by": "\\mathbf{y}", "bfcn": "\\mathbf{f}", "bFcn": "\\mathbf{F}", "bm": ["\\boldsymbol{#1}", 1], "llbracket": "\\left[\\!\\left[", "rrbracket": "\\right]\\!\\right]", "naturals": "\\mathbb{N}_{0}"}}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script defer="defer" src="_static/js/theme.js"></script>
+
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Examples" href="examples.html" />
-    <link rel="prev" title="AutoLyap" href="index.html" /> 
+    <link rel="prev" title="AutoLyap" href="index.html" />
+ 
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
+<link rel="icon" type="image/svg+xml" href="_static/favicon.svg"/>
+<link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="64x64" href="_static/favicon.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="_static/apple-touch-icon.png"/>
+<link rel="alternate" hreflang="en" href="https://autolyap.github.io/quick_start.html"/>
+<link rel="alternate" hreflang="x-default" href="https://autolyap.github.io/quick_start.html"/>
+<meta property="og:url" content="https://autolyap.github.io/quick_start.html"/>
+<meta property="og:image" content="https://autolyap.github.io/_static/favicon.png"/>
+<meta property="og:image:alt" content="AutoLyap logo"/>
+<meta property="og:image:type" content="image/png"/>
+<meta property="og:locale" content="en_US"/>
+<meta name="twitter:image" content="https://autolyap.github.io/_static/favicon.png"/>
+<meta name="author" content="Manu Upadhyaya"/>
+<meta name="description" content="Quick start guide for AutoLyap with iteration-independent and iteration-dependent Lyapunov analysis workflows."/>
+<meta name="keywords" content="AutoLyap quick start, iteration-independent Lyapunov analysis, iteration-dependent Lyapunov analysis, bisection search rho"/>
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"/>
+<meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"/>
+<meta property="og:type" content="article"/>
+<meta property="og:site_name" content="AutoLyap"/>
+<meta property="og:title" content="Quick start"/>
+<meta property="og:description" content="Quick start guide for AutoLyap with iteration-independent and iteration-dependent Lyapunov analysis workflows."/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Quick start"/>
+<meta name="twitter:description" content="Quick start guide for AutoLyap with iteration-independent and iteration-dependent Lyapunov analysis workflows."/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://autolyap.github.io/#website",
+  "name": "AutoLyap",
+  "url": "https://autolyap.github.io/",
+  "description": "AutoLyap is a Python package for computer-assisted Lyapunov analyses of first-order optimization and inclusion methods.",
+  "inLanguage": "en-US",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://autolyap.github.io/search.html?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://autolyap.github.io/quick_start.html#webpage",
+  "name": "AutoLyap",
+  "headline": "Quick start",
+  "description": "Quick start guide for AutoLyap with iteration-independent and iteration-dependent Lyapunov analysis workflows.",
+  "keywords": "AutoLyap quick start, iteration-independent Lyapunov analysis, iteration-dependent Lyapunov analysis, bisection search rho",
+  "url": "https://autolyap.github.io/quick_start.html",
+  "inLanguage": "en-US",
+  "mainEntityOfPage": "https://autolyap.github.io/quick_start.html",
+  "isPartOf": {
+    "@type": "WebSite",
+    "@id": "https://autolyap.github.io/#website",
+    "name": "AutoLyap"
+  },
+  "about": {
+    "@type": "SoftwareSourceCode",
+    "name": "AutoLyap",
+    "codeRepository": "https://github.com/AutoLyap/AutoLyap",
+    "programmingLanguage": "Python",
+    "license": "https://spdx.org/licenses/MIT.html"
+  }
+}
+</script>
+
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -54,6 +128,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#iteration-independent-example-the-gradient-method">Iteration-independent example: The gradient method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#iteration-dependent-example-the-optimized-gradient-method">Iteration-dependent example: The optimized gradient method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#what-to-inspect">What to inspect</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#verbosity-diagnostics">Verbosity diagnostics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#next">Next</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
 </ul>
@@ -260,6 +335,41 @@ c = \frac{L}{2\theta_K^2}.\]</div>
 <li><p><code class="docutils literal notranslate"><span class="pre">rho</span></code> (iteration-independent) or <code class="docutils literal notranslate"><span class="pre">c</span></code> (iteration-dependent): the main scalar output.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">certificate</span></code>: Matrices and vectors that parameterize the Lyapunov certificate.</p></li>
 </ul>
+</section>
+<section id="verbosity-diagnostics">
+<h2>Verbosity diagnostics<a class="headerlink" href="#verbosity-diagnostics" title="Link to this heading"></a></h2>
+<p>All three SDP entry points support a <code class="docutils literal notranslate"><span class="pre">verbosity</span></code> argument:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">IterationIndependent.verify_iteration_independent_Lyapunov(...)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IterationIndependent.LinearConvergence.bisection_search_rho(...)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IterationDependent.verify_iteration_dependent_Lyapunov(...)</span></code></p></li>
+</ul>
+<p>Set:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">verbosity=0</span></code> for silent mode (default).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verbosity=1</span></code> for concise diagnostic summaries.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verbosity=2</span></code> for detailed per-constraint/per-iteration diagnostics.</p></li>
+</ul>
+<p>The diagnostic summary reports:</p>
+<ul class="simple">
+<li><p>nonnegativity checks on constrained scalars,</p></li>
+<li><p>PSD checks via minimum eigenvalues of constrained matrices,</p></li>
+<li><p>equality-constraint residuals (<code class="docutils literal notranslate"><span class="pre">max_abs_residual</span></code> and <code class="docutils literal notranslate"><span class="pre">l2_residual</span></code>).</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">IterationIndependent</span><span class="o">.</span><span class="n">verify_iteration_independent_Lyapunov</span><span class="p">(</span>
+    <span class="n">problem</span><span class="p">,</span>
+    <span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">P</span><span class="p">,</span>
+    <span class="n">T</span><span class="p">,</span>
+    <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+    <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+    <span class="n">rho</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">solver_options</span><span class="o">=</span><span class="n">solver_options</span><span class="p">,</span>
+    <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># or 2 for detailed diagnostics</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="next">
 <h2>Next<a class="headerlink" href="#next" title="Link to this heading"></a></h2>

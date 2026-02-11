@@ -329,6 +329,7 @@ class LinearConvergence:
             upper_bound: float = 1.0,
             tol: float = 1e-12,
             solver_options: Optional[SolverOptions] = None,
+            verbosity: int = 0,
         ) -> Dict[str, object]:
         r"""
         Perform a bisection search to find the minimum contraction parameter :math:`\rho`.
@@ -372,6 +373,8 @@ class LinearConvergence:
         - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
           Optional backend and parameter settings. Defaults to
           `SolverOptions(backend="mosek_fusion")`.
+        - `verbosity` (:class:`int`): Nonnegative output level. `0` disables user-facing
+          diagnostics, `1` prints concise summaries, and `2` adds per-constraint detail.
 
         **Returns**
 
@@ -404,10 +407,16 @@ class LinearConvergence:
         tol = ensure_real_number(tol, "tol", finite=True, minimum=0.0)
         if tol <= 0:
             raise ValueError("tol must be > 0.")
+        verbosity = ensure_integral(verbosity, "verbosity", minimum=0)
         h, alpha, _, _, _, _, _, _, _ = IterationIndependent._validate_iteration_independent_inputs(
             prob, algo, P, T, p, t, h, alpha
         )
         solver_options = normalize_solver_options(solver_options)
+        if verbosity > 0:
+            print(
+                f"[AutoLyap][INFO] Starting rho bisection "
+                f"(backend={solver_options.backend}, interval=[{lower_bound:.12g}, {upper_bound:.12g}], tol={tol:.3e})."
+            )
 
         if solver_options.backend == "mosek_fusion":
             Mod = Model()
@@ -439,8 +448,11 @@ class LinearConvergence:
                 "err_license_server",      # 1015 – server unreachable / down
                 "err_missing_license_file" # 1008 – no licence file / server path
             )
+            feasibility_checks = 0
 
             def _check_rho(rho_value: float) -> bool:
+                nonlocal feasibility_checks
+                feasibility_checks += 1
                 rho_param.setValue([rho_value])
                 try:
                     Mod.solve()
@@ -448,27 +460,88 @@ class LinearConvergence:
                 except OptimizeError as e:
                     if any(mark in str(e) for mark in licence_markers):
                         raise
+                    if verbosity >= 2:
+                        print(
+                            f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
+                            f"rho={rho_value:.12g} -> infeasible."
+                        )
                     return False
                 except Exception:
+                    if verbosity >= 2:
+                        print(
+                            f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
+                            f"rho={rho_value:.12g} -> infeasible."
+                        )
                     return False
+                if verbosity >= 2:
+                    print(
+                        f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
+                        f"rho={rho_value:.12g} -> feasible."
+                    )
                 return True
 
             try:
                 if not _check_rho(upper_bound):
+                    if verbosity > 0:
+                        print(
+                            f"[AutoLyap][INFO] Bisection aborted: upper_bound={upper_bound:.12g} is infeasible."
+                        )
                     return {"success": False, "rho": None, "certificate": None}
 
                 l = lower_bound
                 u = upper_bound
+                iterations = 0
                 while (u - l) > tol:
+                    iterations += 1
                     mid = (l + u) / 2.0
                     if _check_rho(mid):
                         u = mid
                     else:
                         l = mid
+                    if verbosity >= 2:
+                        print(
+                            f"[AutoLyap][DETAIL] Bisection iteration {iterations}: "
+                            f"interval=[{l:.12g}, {u:.12g}] (width={u - l:.3e})."
+                        )
                 if not _check_rho(u):
+                    if verbosity > 0:
+                        print(
+                            f"[AutoLyap][INFO] Bisection finished without a feasible terminal rho."
+                        )
                     return {"success": False, "rho": None, "certificate": None}
 
                 certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
+                if verbosity > 0:
+                    print(
+                        f"[AutoLyap][INFO] Bisection succeeded in {iterations} iterations "
+                        f"with {feasibility_checks} feasibility checks. Final rho={u:.12g}."
+                    )
+                    try:
+                        diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(
+                            prob,
+                            algo,
+                            P,
+                            T,
+                            p,
+                            t,
+                            float(u),
+                            h,
+                            alpha,
+                            remove_C2,
+                            remove_C3,
+                            remove_C4,
+                            certificate,
+                        )
+                        IterationIndependent._print_iteration_independent_diagnostics(
+                            diagnostics,
+                            float(u),
+                            solver_options.backend,
+                            verbosity,
+                        )
+                    except Exception as exc:
+                        print(
+                            f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
+                        )
                 return {"success": True, "rho": float(u), "certificate": certificate}
             finally:
                 Mod.dispose()
@@ -496,30 +569,91 @@ class LinearConvergence:
         )
         solve_kwargs = get_cvxpy_solve_kwargs(solver_options)
         accepted_statuses = get_cvxpy_accepted_statuses(cp, solver_options)
+        feasibility_checks = 0
 
         def _check_rho_cvxpy(rho_value: float) -> bool:
+            nonlocal feasibility_checks
+            feasibility_checks += 1
             rho_param.value = rho_value
             try:
                 problem.solve(**solve_kwargs)
             except Exception:
+                if verbosity >= 2:
+                    print(
+                        f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
+                        f"rho={rho_value:.12g} -> infeasible."
+                    )
                 return False
-            return problem.status in accepted_statuses
+            feasible = problem.status in accepted_statuses
+            if verbosity >= 2:
+                status_text = "feasible" if feasible else f"infeasible (status={problem.status})"
+                print(
+                    f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
+                    f"rho={rho_value:.12g} -> {status_text}."
+                )
+            return feasible
 
         if not _check_rho_cvxpy(upper_bound):
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Bisection aborted: upper_bound={upper_bound:.12g} is infeasible."
+                )
             return {"success": False, "rho": None, "certificate": None}
 
         l = lower_bound
         u = upper_bound
+        iterations = 0
         while (u - l) > tol:
+            iterations += 1
             mid = (l + u) / 2.0
             if _check_rho_cvxpy(mid):
                 u = mid
             else:
                 l = mid
+            if verbosity >= 2:
+                print(
+                    f"[AutoLyap][DETAIL] Bisection iteration {iterations}: "
+                    f"interval=[{l:.12g}, {u:.12g}] (width={u - l:.3e})."
+                )
         if not _check_rho_cvxpy(u):
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Bisection finished without a feasible terminal rho."
+                )
             return {"success": False, "rho": None, "certificate": None}
 
         certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(solution_handles)
+        if verbosity > 0:
+            print(
+                f"[AutoLyap][INFO] Bisection succeeded in {iterations} iterations "
+                f"with {feasibility_checks} feasibility checks. Final rho={u:.12g}."
+            )
+            try:
+                diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(
+                    prob,
+                    algo,
+                    P,
+                    T,
+                    p,
+                    t,
+                    float(u),
+                    h,
+                    alpha,
+                    remove_C2,
+                    remove_C3,
+                    remove_C4,
+                    certificate,
+                )
+                IterationIndependent._print_iteration_independent_diagnostics(
+                    diagnostics,
+                    float(u),
+                    solver_options.backend,
+                    verbosity,
+                )
+            except Exception as exc:
+                print(
+                    f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
+                )
         return {"success": True, "rho": float(u), "certificate": certificate}
 
 class SublinearConvergence:
@@ -1324,6 +1458,349 @@ class IterationIndependent:
         else:
             raise ValueError("Unsupported scalar variable handle type.")
         return float(value_arr[0]) if value_arr.size > 0 else 0.0
+
+    @staticmethod
+    def _pairs_from_readable(pairs_readable: List[Dict[str, Union[int, str]]]) -> PairTuple:
+        r"""Convert readable pair dictionaries back into internal tuple form."""
+        pairs: List[Pair] = []
+        for pair in pairs_readable:
+            j_val = pair["j"]
+            k_val = pair["k"]
+            if j_val == "star" or k_val == "star":
+                pairs.append(("star", "star"))
+            else:
+                pairs.append((int(j_val), int(k_val)))
+        return tuple(pairs)
+
+    @staticmethod
+    def _min_symmetric_eigenvalue(matrix: np.ndarray) -> float:
+        r"""Return the smallest eigenvalue of a symmetrized matrix."""
+        symmetric_matrix = 0.5 * (matrix + matrix.T)
+        try:
+            eigvals = np.linalg.eigvalsh(symmetric_matrix)
+            return float(np.min(eigvals))
+        except np.linalg.LinAlgError:
+            eigvals = np.linalg.eigvals(symmetric_matrix)
+            return float(np.min(np.real(eigvals)))
+
+    @staticmethod
+    def _compute_iteration_independent_diagnostics(
+            prob: Type[InclusionProblem],
+            algo: Type[Algorithm],
+            P: np.ndarray,
+            T: np.ndarray,
+            p: Optional[np.ndarray],
+            t: Optional[np.ndarray],
+            rho: float,
+            h: int,
+            alpha: int,
+            remove_C2: bool,
+            remove_C3: bool,
+            remove_C4: bool,
+            certificate: Dict[str, object],
+    ) -> Dict[str, object]:
+        r"""Compute post-solve diagnostics for nonnegativity, PSD, and equality constraints."""
+        Q_mat = np.asarray(certificate["Q"], dtype=float)
+        S_mat = np.asarray(certificate["S"], dtype=float)
+        q_vec = None if certificate["q"] is None else np.asarray(certificate["q"], dtype=float).reshape(-1)
+        s_vec = None if certificate["s"] is None else np.asarray(certificate["s"], dtype=float).reshape(-1)
+        multipliers = certificate["multipliers"]
+
+        # Scalars constrained to be nonnegative.
+        nonnegative_records: List[Tuple[str, float]] = []
+        for multiplier_name in ("operator_lambda", "function_lambda"):
+            for record in multipliers[multiplier_name]:
+                label = (
+                    f"{multiplier_name}(condition={record['condition']},"
+                    f" component={record['component']},"
+                    f" interpolation_index={record['interpolation_index']})"
+                )
+                nonnegative_records.append((label, float(record["value"])))
+
+        negative_nonnegative = [(label, value) for label, value in nonnegative_records if value < 0.0]
+        largest_nonnegative_violation = max((-value for _, value in negative_nonnegative), default=0.0)
+        worst_nonnegative = min(nonnegative_records, key=lambda item: item[1], default=None)
+
+        conds = ["C1"]
+        k_maxs: Dict[str, int] = {"C1": h + alpha + 1}
+        Ws: Dict[str, np.ndarray] = {}
+        Theta0_C1, Theta1_C1 = IterationIndependent._compute_Thetas(algo, h, alpha, condition="C1")
+        Ws["C1"] = Theta1_C1.T @ Q_mat @ Theta1_C1 - rho * (Theta0_C1.T @ Q_mat @ Theta0_C1) + S_mat
+
+        if not remove_C2:
+            conds.append("C2")
+            k_maxs["C2"] = h
+            Ws["C2"] = P - Q_mat
+
+        if not remove_C3:
+            conds.append("C3")
+            k_maxs["C3"] = h + alpha + 1
+            Ws["C3"] = T - S_mat
+
+        if not remove_C4:
+            conds.append("C4")
+            k_maxs["C4"] = h + alpha + 2
+            Theta0_C4, Theta1_C4 = IterationIndependent._compute_Thetas(algo, h, alpha, condition="C4")
+            Ws["C4"] = Theta1_C4.T @ S_mat @ Theta1_C4 - Theta0_C4.T @ S_mat @ Theta0_C4
+
+        psd_constraint_sums: Dict[str, np.ndarray] = {cond: -np.asarray(Ws[cond], dtype=float) for cond in conds}
+
+        all_psd_multiplier_records = (
+            multipliers["operator_lambda"]
+            + multipliers["function_lambda"]
+            + multipliers["function_nu"]
+        )
+        component_data = {i: prob.get_component_data(i) for i in range(1, algo.m + 1)}
+
+        for record in all_psd_multiplier_records:
+            cond = str(record["condition"])
+            if cond not in psd_constraint_sums:
+                continue
+
+            i = int(record["component"])
+            interpolation_index = int(record["interpolation_index"])
+            value = float(record["value"])
+            interpolation_data = component_data[i][interpolation_index]
+            M = np.asarray(interpolation_data[0], dtype=float)
+            if not np.any(M):
+                continue
+
+            pairs = IterationIndependent._pairs_from_readable(record["pairs"])
+            E_matrix = algo.compute_E(i, list(pairs), 0, k_maxs[cond], validate=False)
+            W_matrix = E_matrix.T @ M @ E_matrix
+            psd_constraint_sums[cond] = psd_constraint_sums[cond] + value * W_matrix
+
+        psd_per_constraint: List[Dict[str, object]] = []
+        largest_psd_violation = 0.0
+        worst_psd_entry: Optional[Dict[str, object]] = None
+
+        for cond in conds:
+            min_eigenvalue = IterationIndependent._min_symmetric_eigenvalue(psd_constraint_sums[cond])
+            violation = max(0.0, -min_eigenvalue)
+            entry = {
+                "label": f"condition={cond}",
+                "condition": cond,
+                "min_eigenvalue": min_eigenvalue,
+                "violation": violation,
+            }
+            psd_per_constraint.append(entry)
+            if worst_psd_entry is None or min_eigenvalue < float(worst_psd_entry["min_eigenvalue"]):
+                worst_psd_entry = entry
+            if violation > largest_psd_violation:
+                largest_psd_violation = violation
+
+        equality_per_constraint: List[Dict[str, object]] = []
+        violating_equality_entries = 0
+        total_equality_entries = 0
+        largest_equality_violation = 0.0
+        worst_equality_entry: Optional[Dict[str, object]] = None
+        equality_tolerance = 1e-9
+
+        if algo.m_func > 0:
+            if q_vec is None or s_vec is None:
+                raise ValueError("Certificate is missing q/s vectors while functional components are active.")
+            if p is None or t is None:
+                raise ValueError("Diagnostics require p/t when functional components are active.")
+
+            p_vec = np.asarray(p, dtype=float).reshape(-1)
+            t_vec = np.asarray(t, dtype=float).reshape(-1)
+            m_bar_func = algo.m_bar_func
+            m_func = algo.m_func
+
+            ws: Dict[str, np.ndarray] = {}
+            theta0_C1, theta1_C1 = IterationIndependent._compute_thetas(algo, h, alpha, condition="C1")
+            ws["C1"] = theta1_C1.T @ q_vec - rho * (theta0_C1.T @ q_vec) + s_vec
+
+            if not remove_C2:
+                ws["C2"] = p_vec - q_vec
+            if not remove_C3:
+                ws["C3"] = t_vec - s_vec
+            if not remove_C4:
+                theta0_C4, theta1_C4 = IterationIndependent._compute_thetas(algo, h, alpha, condition="C4")
+                ws["C4"] = (theta1_C4.T - theta0_C4.T) @ s_vec
+
+            eq_constraint_sums: Dict[str, np.ndarray] = {
+                cond: -np.asarray(ws[cond], dtype=float).reshape(-1) for cond in conds
+            }
+
+            eq_multiplier_records = multipliers["function_lambda"] + multipliers["function_nu"]
+            lifted_F_basis_cache: Dict[Tuple[str, int, PairTuple], np.ndarray] = {}
+
+            def _get_lifted_F_basis(cond_key: str, i: int, pairs: PairTuple) -> np.ndarray:
+                cache_key = (cond_key, i, pairs)
+                F_basis = lifted_F_basis_cache.get(cache_key)
+                if F_basis is None:
+                    Fs_dict = algo.get_Fs(0, k_maxs[cond_key])
+                    total_dim = (k_maxs[cond_key] + 1) * m_bar_func + m_func
+                    F_basis = np.empty((total_dim, len(pairs)))
+                    for col_idx, (j, k_idx) in enumerate(pairs):
+                        key = (i, "star", "star") if (j == "star" and k_idx == "star") else (i, j, k_idx)
+                        F_basis[:, col_idx] = Fs_dict[key].reshape(-1)
+                    lifted_F_basis_cache[cache_key] = F_basis
+                return F_basis
+
+            for record in eq_multiplier_records:
+                cond = str(record["condition"])
+                if cond not in eq_constraint_sums:
+                    continue
+
+                i = int(record["component"])
+                interpolation_index = int(record["interpolation_index"])
+                value = float(record["value"])
+                interpolation_data = component_data[i][interpolation_index]
+                a_vec = np.asarray(interpolation_data[1], dtype=float).reshape(-1)
+                if not np.any(a_vec):
+                    continue
+
+                pairs = IterationIndependent._pairs_from_readable(record["pairs"])
+                F_basis = _get_lifted_F_basis(cond, i, pairs)
+                F_vector = (F_basis @ a_vec).reshape(-1)
+                eq_constraint_sums[cond] = eq_constraint_sums[cond] + value * F_vector
+
+            for cond in conds:
+                residual = np.asarray(eq_constraint_sums[cond], dtype=float).reshape(-1)
+                max_abs = float(np.max(np.abs(residual))) if residual.size > 0 else 0.0
+                l2_norm = float(np.linalg.norm(residual))
+                argmax_index = int(np.argmax(np.abs(residual))) if residual.size > 0 else -1
+                signed_value = float(residual[argmax_index]) if argmax_index >= 0 else 0.0
+                violating_entries = int(np.sum(np.abs(residual) > equality_tolerance))
+                violating_equality_entries += violating_entries
+                total_equality_entries += int(residual.size)
+
+                entry = {
+                    "label": f"condition={cond}",
+                    "condition": cond,
+                    "dimension": int(residual.size),
+                    "max_abs_residual": max_abs,
+                    "l2_residual": l2_norm,
+                    "argmax_index": argmax_index,
+                    "signed_residual_at_argmax": signed_value,
+                }
+                equality_per_constraint.append(entry)
+
+                if max_abs > largest_equality_violation:
+                    largest_equality_violation = max_abs
+                    worst_equality_entry = entry
+
+        return {
+            "nonnegative": {
+                "total_count": len(nonnegative_records),
+                "negative_count": len(negative_nonnegative),
+                "largest_violation": largest_nonnegative_violation,
+                "worst_label": None if worst_nonnegative is None else worst_nonnegative[0],
+                "worst_value": None if worst_nonnegative is None else worst_nonnegative[1],
+                "top_negative": sorted(negative_nonnegative, key=lambda item: item[1])[:5],
+            },
+            "psd": {
+                "total_count": len(psd_per_constraint),
+                "negative_count": sum(1 for entry in psd_per_constraint if float(entry["violation"]) > 0.0),
+                "largest_violation": largest_psd_violation,
+                "worst_label": None if worst_psd_entry is None else worst_psd_entry["label"],
+                "worst_min_eigenvalue": None if worst_psd_entry is None else worst_psd_entry["min_eigenvalue"],
+                "per_constraint": psd_per_constraint,
+            },
+            "equality": {
+                "total_count": len(equality_per_constraint),
+                "total_entries": total_equality_entries,
+                "violating_entries": violating_equality_entries,
+                "tolerance": equality_tolerance,
+                "largest_violation": largest_equality_violation,
+                "worst_label": None if worst_equality_entry is None else worst_equality_entry["label"],
+                "worst_index": None if worst_equality_entry is None else worst_equality_entry["argmax_index"],
+                "worst_signed_residual": (
+                    None if worst_equality_entry is None else worst_equality_entry["signed_residual_at_argmax"]
+                ),
+                "per_constraint": equality_per_constraint,
+            },
+        }
+
+    @staticmethod
+    def _print_iteration_independent_diagnostics(
+            diagnostics: Dict[str, object],
+            rho: float,
+            backend: str,
+            verbosity: int,
+    ) -> None:
+        r"""Print user-facing diagnostics for iteration-independent verification."""
+        if verbosity <= 0:
+            return
+
+        nonnegative = diagnostics["nonnegative"]
+        psd = diagnostics["psd"]
+        equality = diagnostics["equality"]
+
+        print(
+            f"[AutoLyap][INFO] Iteration-independent SDP diagnostics "
+            f"(backend={backend}, rho={rho:.12g})."
+        )
+        print(
+            f"[AutoLyap][INFO] Nonnegativity check: "
+            f"{nonnegative['negative_count']}/{nonnegative['total_count']} constrained scalars are negative; "
+            f"largest violation={nonnegative['largest_violation']:.3e}."
+        )
+        if nonnegative["worst_label"] is not None:
+            if int(nonnegative["negative_count"]) > 0:
+                print(
+                    f"[AutoLyap][INFO] Worst violating constrained scalar value: "
+                    f"{float(nonnegative['worst_value']):.3e} at {nonnegative['worst_label']}."
+                )
+            else:
+                print(
+                    f"[AutoLyap][INFO] Smallest constrained scalar value (nonnegative): "
+                    f"{float(nonnegative['worst_value']):.3e} at {nonnegative['worst_label']}."
+                )
+
+        print(
+            f"[AutoLyap][INFO] PSD check: "
+            f"{psd['negative_count']}/{psd['total_count']} constrained matrices have a negative minimum eigenvalue; "
+            f"largest violation={psd['largest_violation']:.3e}."
+        )
+        if psd["worst_label"] is not None:
+            if int(psd["negative_count"]) > 0:
+                print(
+                    f"[AutoLyap][INFO] Worst PSD minimum eigenvalue: "
+                    f"{float(psd['worst_min_eigenvalue']):.3e} at {psd['worst_label']}."
+                )
+            else:
+                print(
+                    f"[AutoLyap][INFO] Smallest PSD minimum eigenvalue (nonnegative): "
+                    f"{float(psd['worst_min_eigenvalue']):.3e} at {psd['worst_label']}."
+                )
+
+        if equality["total_count"] == 0:
+            print("[AutoLyap][INFO] Equality check: no active equality constraints.")
+        else:
+            print(
+                f"[AutoLyap][INFO] Equality check: "
+                f"{equality['violating_entries']}/{equality['total_entries']} entries exceed "
+                f"tol={float(equality['tolerance']):.1e}; "
+                f"largest absolute residual={float(equality['largest_violation']):.3e}."
+            )
+            if equality["worst_label"] is not None:
+                print(
+                    f"[AutoLyap][INFO] Worst equality residual: "
+                    f"{float(equality['worst_signed_residual']):.3e} at "
+                    f"{equality['worst_label']}[index={int(equality['worst_index'])}]."
+                )
+
+        if verbosity >= 2:
+            for entry in psd["per_constraint"]:
+                print(
+                    f"[AutoLyap][DETAIL] {entry['label']}: "
+                    f"min_eigenvalue={float(entry['min_eigenvalue']):.3e}, "
+                    f"violation={float(entry['violation']):.3e}."
+                )
+            for entry in equality["per_constraint"]:
+                print(
+                    f"[AutoLyap][DETAIL] {entry['label']}: "
+                    f"max_abs_residual={float(entry['max_abs_residual']):.3e}, "
+                    f"l2_residual={float(entry['l2_residual']):.3e}."
+                )
+            for label, value in nonnegative["top_negative"]:
+                print(
+                    f"[AutoLyap][DETAIL] Negative constrained scalar: "
+                    f"value={value:.3e} at {label}."
+                )
 
     @staticmethod
     def _validate_iteration_independent_inputs(
@@ -2263,6 +2740,7 @@ class IterationIndependent:
             remove_C3: bool = False,
             remove_C4: bool = True,
             solver_options: Optional[SolverOptions] = None,
+            verbosity: int = 0,
     ) -> Dict[str, object]:
         r"""
         Verify feasibility of an iteration-independent Lyapunov inequality via an SDP.
@@ -2324,6 +2802,8 @@ class IterationIndependent:
         - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
           Optional backend and parameter settings. Defaults to
           `SolverOptions(backend="mosek_fusion")`.
+        - `verbosity` (:class:`int`): Nonnegative output level. `0` disables user-facing
+          diagnostics, `1` prints concise summaries, and `2` adds per-constraint detail.
 
         **Returns**
 
@@ -2414,6 +2894,7 @@ class IterationIndependent:
             prob, algo, P, T, p, t, h, alpha
         )
         rho = ensure_real_number(rho, "rho", finite=True, minimum=0.0)
+        verbosity = ensure_integral(verbosity, "verbosity", minimum=0)
         solver_options = normalize_solver_options(solver_options)
 
         if solver_options.backend == "mosek_fusion":
@@ -2436,6 +2917,11 @@ class IterationIndependent:
                 rho_term=rho,
             )
             IterationIndependent._apply_mosek_solver_params(Mod, solver_options)
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Solving iteration-independent SDP "
+                    f"(backend={solver_options.backend}, rho={rho:.12g})."
+                )
 
             licence_markers = (
                 "err_license_max",         # 1016 – all floating tokens in use
@@ -2446,12 +2932,47 @@ class IterationIndependent:
                 Mod.solve()
                 Mod.primalObjValue()
                 certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
+                if verbosity > 0:
+                    try:
+                        diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(
+                            prob,
+                            algo,
+                            P,
+                            T,
+                            p,
+                            t,
+                            float(rho),
+                            h,
+                            alpha,
+                            remove_C2,
+                            remove_C3,
+                            remove_C4,
+                            certificate,
+                        )
+                        IterationIndependent._print_iteration_independent_diagnostics(
+                            diagnostics,
+                            float(rho),
+                            solver_options.backend,
+                            verbosity,
+                        )
+                    except Exception as exc:
+                        print(
+                            f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
+                        )
                 return {"success": True, "rho": float(rho), "certificate": certificate}
             except OptimizeError as e:
                 if any(mark in str(e) for mark in licence_markers):
                     raise
+                if verbosity > 0:
+                    print(
+                        f"[AutoLyap][INFO] Iteration-independent SDP is infeasible or not solved at rho={rho:.12g}."
+                    )
                 return {"success": False, "rho": float(rho), "certificate": None}
             except Exception:
+                if verbosity > 0:
+                    print(
+                        f"[AutoLyap][INFO] Iteration-independent SDP is infeasible or not solved at rho={rho:.12g}."
+                    )
                 return {"success": False, "rho": float(rho), "certificate": None}
             finally:
                 Mod.dispose()
@@ -2478,15 +2999,55 @@ class IterationIndependent:
         )
         solve_kwargs = get_cvxpy_solve_kwargs(solver_options)
         accepted_statuses = get_cvxpy_accepted_statuses(cp, solver_options)
+        if verbosity > 0:
+            print(
+                f"[AutoLyap][INFO] Solving iteration-independent SDP "
+                f"(backend={solver_options.backend}, rho={rho:.12g})."
+            )
         try:
             problem.solve(**solve_kwargs)
         except Exception:
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Iteration-independent SDP solve failed at rho={rho:.12g}."
+                )
             return {"success": False, "rho": float(rho), "certificate": None}
 
         if problem.status not in accepted_statuses:
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Iteration-independent SDP status={problem.status}; no feasible certificate at rho={rho:.12g}."
+                )
             return {"success": False, "rho": float(rho), "certificate": None}
 
         certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(solution_handles)
+        if verbosity > 0:
+            try:
+                diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(
+                    prob,
+                    algo,
+                    P,
+                    T,
+                    p,
+                    t,
+                    float(rho),
+                    h,
+                    alpha,
+                    remove_C2,
+                    remove_C3,
+                    remove_C4,
+                    certificate,
+                )
+                IterationIndependent._print_iteration_independent_diagnostics(
+                    diagnostics,
+                    float(rho),
+                    solver_options.backend,
+                    verbosity,
+                )
+            except Exception as exc:
+                print(
+                    f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
+                )
         return {"success": True, "rho": float(rho), "certificate": certificate}
     
     @staticmethod

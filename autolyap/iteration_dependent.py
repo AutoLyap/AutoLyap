@@ -165,6 +165,317 @@ class IterationDependent:
         return float(value_arr[0]) if value_arr.size > 0 else 0.0
 
     @staticmethod
+    def _pairs_from_readable(pairs_readable: List[Dict[str, Union[int, str]]]) -> PairTuple:
+        r"""Convert readable pair dictionaries back into internal tuple form."""
+        pairs: List[Pair] = []
+        for pair in pairs_readable:
+            j_val = pair["j"]
+            k_val = pair["k"]
+            if j_val == "star" or k_val == "star":
+                pairs.append(("star", "star"))
+            else:
+                pairs.append((int(j_val), int(k_val)))
+        return tuple(pairs)
+
+    @staticmethod
+    def _min_symmetric_eigenvalue(matrix: np.ndarray) -> float:
+        r"""Return the smallest eigenvalue of a symmetrized matrix."""
+        symmetric_matrix = 0.5 * (matrix + matrix.T)
+        try:
+            eigvals = np.linalg.eigvalsh(symmetric_matrix)
+            return float(np.min(eigvals))
+        except np.linalg.LinAlgError:
+            eigvals = np.linalg.eigvals(symmetric_matrix)
+            return float(np.min(np.real(eigvals)))
+
+    @staticmethod
+    def _compute_iteration_dependent_diagnostics(
+            prob: Type[InclusionProblem],
+            algo: Type[Algorithm],
+            K: int,
+            c_value: float,
+            certificate: Dict[str, object],
+    ) -> Dict[str, object]:
+        r"""Compute post-solve diagnostics for nonnegativity, PSD, and equality constraints."""
+        Q_sequence = [np.asarray(Q_k, dtype=float) for Q_k in certificate["Q_sequence"]]
+        q_sequence_raw = certificate["q_sequence"]
+        q_sequence = None
+        if q_sequence_raw is not None:
+            q_sequence = [np.asarray(q_k, dtype=float).reshape(-1) for q_k in q_sequence_raw]
+        multipliers = certificate["multipliers"]
+
+        nonnegative_records: List[Tuple[str, float]] = [("c", float(c_value))]
+        for multiplier_name in ("operator_lambda", "function_lambda"):
+            for record in multipliers[multiplier_name]:
+                label = (
+                    f"{multiplier_name}(iteration={record['iteration']},"
+                    f" component={record['component']},"
+                    f" interpolation_index={record['interpolation_index']})"
+                )
+                nonnegative_records.append((label, float(record["value"])))
+
+        negative_nonnegative = [(label, value) for label, value in nonnegative_records if value < 0.0]
+        largest_nonnegative_violation = max((-value for _, value in negative_nonnegative), default=0.0)
+        worst_nonnegative = min(nonnegative_records, key=lambda item: item[1], default=None)
+
+        Ws: Dict[int, np.ndarray] = {}
+        Theta0_0, Theta1_0 = IterationDependent._compute_Thetas(algo, 0)
+        Ws[0] = Theta1_0.T @ Q_sequence[1] @ Theta1_0 - c_value * (Theta0_0.T @ Q_sequence[0] @ Theta0_0)
+        for k in range(1, K):
+            Theta0_k, Theta1_k = IterationDependent._compute_Thetas(algo, k)
+            Ws[k] = Theta1_k.T @ Q_sequence[k + 1] @ Theta1_k - Theta0_k.T @ Q_sequence[k] @ Theta0_k
+
+        psd_constraint_sums: Dict[int, np.ndarray] = {k: -np.asarray(Ws[k], dtype=float) for k in range(0, K)}
+
+        all_psd_multiplier_records = (
+            multipliers["operator_lambda"]
+            + multipliers["function_lambda"]
+            + multipliers["function_nu"]
+        )
+        component_data = {i: prob.get_component_data(i) for i in range(1, algo.m + 1)}
+
+        for record in all_psd_multiplier_records:
+            k = int(record["iteration"])
+            if k not in psd_constraint_sums:
+                continue
+
+            i = int(record["component"])
+            interpolation_index = int(record["interpolation_index"])
+            value = float(record["value"])
+            interpolation_data = component_data[i][interpolation_index]
+            M = np.asarray(interpolation_data[0], dtype=float)
+            if not np.any(M):
+                continue
+
+            pairs = IterationDependent._pairs_from_readable(record["pairs"])
+            E_matrix = algo.compute_E(i, list(pairs), k, k + 1, validate=False)
+            W_matrix = E_matrix.T @ M @ E_matrix
+            psd_constraint_sums[k] = psd_constraint_sums[k] + value * W_matrix
+
+        psd_per_constraint: List[Dict[str, object]] = []
+        largest_psd_violation = 0.0
+        worst_psd_entry: Optional[Dict[str, object]] = None
+
+        for k in range(0, K):
+            min_eigenvalue = IterationDependent._min_symmetric_eigenvalue(psd_constraint_sums[k])
+            violation = max(0.0, -min_eigenvalue)
+            entry = {
+                "label": f"iteration={k}",
+                "iteration": k,
+                "min_eigenvalue": min_eigenvalue,
+                "violation": violation,
+            }
+            psd_per_constraint.append(entry)
+            if worst_psd_entry is None or min_eigenvalue < float(worst_psd_entry["min_eigenvalue"]):
+                worst_psd_entry = entry
+            if violation > largest_psd_violation:
+                largest_psd_violation = violation
+
+        equality_per_constraint: List[Dict[str, object]] = []
+        violating_equality_entries = 0
+        total_equality_entries = 0
+        largest_equality_violation = 0.0
+        worst_equality_entry: Optional[Dict[str, object]] = None
+        equality_tolerance = 1e-9
+
+        if algo.m_func > 0:
+            if q_sequence is None:
+                raise ValueError("Certificate is missing q_sequence while functional components are active.")
+            m_bar_func = algo.m_bar_func
+            m_func = algo.m_func
+            theta0, theta1 = IterationDependent._compute_thetas(algo)
+
+            ws: Dict[int, np.ndarray] = {}
+            ws[0] = theta1.T @ q_sequence[1] - c_value * (theta0.T @ q_sequence[0])
+            for k in range(1, K):
+                ws[k] = theta1.T @ q_sequence[k + 1] - theta0.T @ q_sequence[k]
+
+            eq_constraint_sums: Dict[int, np.ndarray] = {
+                k: -np.asarray(ws[k], dtype=float).reshape(-1) for k in range(0, K)
+            }
+
+            eq_multiplier_records = multipliers["function_lambda"] + multipliers["function_nu"]
+            lifted_F_basis_cache: Dict[Tuple[int, int, PairTuple], np.ndarray] = {}
+
+            def _get_lifted_F_basis(k_idx: int, i: int, pairs: PairTuple) -> np.ndarray:
+                cache_key = (k_idx, i, pairs)
+                F_basis = lifted_F_basis_cache.get(cache_key)
+                if F_basis is None:
+                    Fs_dict = algo.get_Fs(k_idx, k_idx + 1)
+                    total_dim = 2 * m_bar_func + m_func
+                    F_basis = np.empty((total_dim, len(pairs)))
+                    for col_idx, (j, k_pair) in enumerate(pairs):
+                        key = (i, "star", "star") if (j == "star" and k_pair == "star") else (i, j, k_pair)
+                        F_basis[:, col_idx] = Fs_dict[key].reshape(-1)
+                    lifted_F_basis_cache[cache_key] = F_basis
+                return F_basis
+
+            component_data = {i: prob.get_component_data(i) for i in range(1, algo.m + 1)}
+            for record in eq_multiplier_records:
+                k = int(record["iteration"])
+                if k not in eq_constraint_sums:
+                    continue
+
+                i = int(record["component"])
+                interpolation_index = int(record["interpolation_index"])
+                value = float(record["value"])
+                interpolation_data = component_data[i][interpolation_index]
+                a_vec = np.asarray(interpolation_data[1], dtype=float).reshape(-1)
+                if not np.any(a_vec):
+                    continue
+
+                pairs = IterationDependent._pairs_from_readable(record["pairs"])
+                F_basis = _get_lifted_F_basis(k, i, pairs)
+                F_vector = (F_basis @ a_vec).reshape(-1)
+                eq_constraint_sums[k] = eq_constraint_sums[k] + value * F_vector
+
+            for k in range(0, K):
+                residual = np.asarray(eq_constraint_sums[k], dtype=float).reshape(-1)
+                max_abs = float(np.max(np.abs(residual))) if residual.size > 0 else 0.0
+                l2_norm = float(np.linalg.norm(residual))
+                argmax_index = int(np.argmax(np.abs(residual))) if residual.size > 0 else -1
+                signed_value = float(residual[argmax_index]) if argmax_index >= 0 else 0.0
+                violating_entries = int(np.sum(np.abs(residual) > equality_tolerance))
+                violating_equality_entries += violating_entries
+                total_equality_entries += int(residual.size)
+
+                entry = {
+                    "label": f"iteration={k}",
+                    "iteration": k,
+                    "dimension": int(residual.size),
+                    "max_abs_residual": max_abs,
+                    "l2_residual": l2_norm,
+                    "argmax_index": argmax_index,
+                    "signed_residual_at_argmax": signed_value,
+                }
+                equality_per_constraint.append(entry)
+
+                if max_abs > largest_equality_violation:
+                    largest_equality_violation = max_abs
+                    worst_equality_entry = entry
+
+        return {
+            "nonnegative": {
+                "total_count": len(nonnegative_records),
+                "negative_count": len(negative_nonnegative),
+                "largest_violation": largest_nonnegative_violation,
+                "worst_label": None if worst_nonnegative is None else worst_nonnegative[0],
+                "worst_value": None if worst_nonnegative is None else worst_nonnegative[1],
+                "top_negative": sorted(negative_nonnegative, key=lambda item: item[1])[:5],
+            },
+            "psd": {
+                "total_count": len(psd_per_constraint),
+                "negative_count": sum(1 for entry in psd_per_constraint if float(entry["violation"]) > 0.0),
+                "largest_violation": largest_psd_violation,
+                "worst_label": None if worst_psd_entry is None else worst_psd_entry["label"],
+                "worst_min_eigenvalue": None if worst_psd_entry is None else worst_psd_entry["min_eigenvalue"],
+                "per_constraint": psd_per_constraint,
+            },
+            "equality": {
+                "total_count": len(equality_per_constraint),
+                "total_entries": total_equality_entries,
+                "violating_entries": violating_equality_entries,
+                "tolerance": equality_tolerance,
+                "largest_violation": largest_equality_violation,
+                "worst_label": None if worst_equality_entry is None else worst_equality_entry["label"],
+                "worst_index": None if worst_equality_entry is None else worst_equality_entry["argmax_index"],
+                "worst_signed_residual": (
+                    None if worst_equality_entry is None else worst_equality_entry["signed_residual_at_argmax"]
+                ),
+                "per_constraint": equality_per_constraint,
+            },
+        }
+
+    @staticmethod
+    def _print_iteration_dependent_diagnostics(
+            diagnostics: Dict[str, object],
+            K: int,
+            c_value: float,
+            backend: str,
+            verbosity: int,
+    ) -> None:
+        r"""Print user-facing diagnostics for iteration-dependent verification."""
+        if verbosity <= 0:
+            return
+
+        nonnegative = diagnostics["nonnegative"]
+        psd = diagnostics["psd"]
+        equality = diagnostics["equality"]
+
+        print(
+            f"[AutoLyap][INFO] Iteration-dependent SDP diagnostics "
+            f"(backend={backend}, K={K}, c={c_value:.12g})."
+        )
+        print(
+            f"[AutoLyap][INFO] Nonnegativity check: "
+            f"{nonnegative['negative_count']}/{nonnegative['total_count']} constrained scalars are negative; "
+            f"largest violation={nonnegative['largest_violation']:.3e}."
+        )
+        if nonnegative["worst_label"] is not None:
+            if int(nonnegative["negative_count"]) > 0:
+                print(
+                    f"[AutoLyap][INFO] Worst violating constrained scalar value: "
+                    f"{float(nonnegative['worst_value']):.3e} at {nonnegative['worst_label']}."
+                )
+            else:
+                print(
+                    f"[AutoLyap][INFO] Smallest constrained scalar value (nonnegative): "
+                    f"{float(nonnegative['worst_value']):.3e} at {nonnegative['worst_label']}."
+                )
+
+        print(
+            f"[AutoLyap][INFO] PSD check: "
+            f"{psd['negative_count']}/{psd['total_count']} constrained matrices have a negative minimum eigenvalue; "
+            f"largest violation={psd['largest_violation']:.3e}."
+        )
+        if psd["worst_label"] is not None:
+            if int(psd["negative_count"]) > 0:
+                print(
+                    f"[AutoLyap][INFO] Worst PSD minimum eigenvalue: "
+                    f"{float(psd['worst_min_eigenvalue']):.3e} at {psd['worst_label']}."
+                )
+            else:
+                print(
+                    f"[AutoLyap][INFO] Smallest PSD minimum eigenvalue (nonnegative): "
+                    f"{float(psd['worst_min_eigenvalue']):.3e} at {psd['worst_label']}."
+                )
+
+        if equality["total_count"] == 0:
+            print("[AutoLyap][INFO] Equality check: no active equality constraints.")
+        else:
+            print(
+                f"[AutoLyap][INFO] Equality check: "
+                f"{equality['violating_entries']}/{equality['total_entries']} entries exceed "
+                f"tol={float(equality['tolerance']):.1e}; "
+                f"largest absolute residual={float(equality['largest_violation']):.3e}."
+            )
+            if equality["worst_label"] is not None:
+                print(
+                    f"[AutoLyap][INFO] Worst equality residual: "
+                    f"{float(equality['worst_signed_residual']):.3e} at "
+                    f"{equality['worst_label']}[index={int(equality['worst_index'])}]."
+                )
+
+        if verbosity >= 2:
+            for entry in psd["per_constraint"]:
+                print(
+                    f"[AutoLyap][DETAIL] {entry['label']}: "
+                    f"min_eigenvalue={float(entry['min_eigenvalue']):.3e}, "
+                    f"violation={float(entry['violation']):.3e}."
+                )
+            for entry in equality["per_constraint"]:
+                print(
+                    f"[AutoLyap][DETAIL] {entry['label']}: "
+                    f"max_abs_residual={float(entry['max_abs_residual']):.3e}, "
+                    f"l2_residual={float(entry['l2_residual']):.3e}."
+                )
+            for label, value in nonnegative["top_negative"]:
+                print(
+                    f"[AutoLyap][DETAIL] Negative constrained scalar: "
+                    f"value={value:.3e} at {label}."
+                )
+
+    @staticmethod
     def _validate_iteration_dependent_inputs(
             prob: Type[InclusionProblem],
             algo: Type[Algorithm],
@@ -891,6 +1202,7 @@ class IterationDependent:
             q_0: Optional[np.ndarray] = None,
             q_K: Optional[np.ndarray] = None,
             solver_options: Optional[SolverOptions] = None,
+            verbosity: int = 0,
     ) -> Dict[str, object]:
         r"""
         Verify feasibility of iteration-dependent Lyapunov inequalities via an SDP.
@@ -968,6 +1280,8 @@ class IterationDependent:
         - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
           Optional backend and parameter settings. Defaults to
           `SolverOptions(backend="mosek_fusion")`.
+        - `verbosity` (:class:`int`): Nonnegative output level. `0` disables user-facing
+          diagnostics, `1` prints concise summaries, and `2` adds per-iteration detail.
 
         **Returns**
 
@@ -1045,6 +1359,7 @@ class IterationDependent:
         K, _, _, _, _, m_func, m_op, _, dim_Q, dim_q = IterationDependent._validate_iteration_dependent_inputs(
             prob, algo, K, Q_0, Q_K, q_0, q_K
         )
+        verbosity = ensure_integral(verbosity, "verbosity", minimum=0)
         solver_options = normalize_solver_options(solver_options)
 
         if solver_options.backend == "mosek_fusion":
@@ -1065,12 +1380,37 @@ class IterationDependent:
             )
             IterationDependent._apply_mosek_solver_params(Mod, solver_options)
             c_var = solution_handles["c_var"]
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Solving iteration-dependent SDP "
+                    f"(backend={solver_options.backend}, K={K})."
+                )
 
             try:
                 Mod.solve()
                 Mod.primalObjValue()
                 c_val = IterationDependent._extract_scalar_variable_value(c_var)
                 certificate = IterationDependent._extract_iteration_dependent_certificate(solution_handles)
+                if verbosity > 0:
+                    try:
+                        diagnostics = IterationDependent._compute_iteration_dependent_diagnostics(
+                            prob,
+                            algo,
+                            K,
+                            c_val,
+                            certificate,
+                        )
+                        IterationDependent._print_iteration_dependent_diagnostics(
+                            diagnostics,
+                            K,
+                            c_val,
+                            solver_options.backend,
+                            verbosity,
+                        )
+                    except Exception as exc:
+                        print(
+                            f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
+                        )
                 return {"success": True, "c": c_val, "certificate": certificate}
             except OptimizeError as e:
                 licence_markers = (
@@ -1080,8 +1420,16 @@ class IterationDependent:
                 )
                 if any(mark in str(e) for mark in licence_markers):
                     raise
+                if verbosity > 0:
+                    print(
+                        f"[AutoLyap][INFO] Iteration-dependent SDP is infeasible or not solved for K={K}."
+                    )
                 return {"success": False, "c": None, "certificate": None}
             except Exception:
+                if verbosity > 0:
+                    print(
+                        f"[AutoLyap][INFO] Iteration-dependent SDP is infeasible or not solved for K={K}."
+                    )
                 return {"success": False, "c": None, "certificate": None}
             finally:
                 Mod.dispose()
@@ -1103,16 +1451,49 @@ class IterationDependent:
         )
         solve_kwargs = get_cvxpy_solve_kwargs(solver_options)
         accepted_statuses = get_cvxpy_accepted_statuses(cp, solver_options)
+        if verbosity > 0:
+            print(
+                f"[AutoLyap][INFO] Solving iteration-dependent SDP "
+                f"(backend={solver_options.backend}, K={K})."
+            )
         try:
             problem.solve(**solve_kwargs)
         except Exception:
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Iteration-dependent SDP solve failed for K={K}."
+                )
             return {"success": False, "c": None, "certificate": None}
 
         if problem.status not in accepted_statuses:
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Iteration-dependent SDP status={problem.status}; no feasible certificate for K={K}."
+                )
             return {"success": False, "c": None, "certificate": None}
 
         c_val = IterationDependent._extract_scalar_variable_value(solution_handles["c_var"])
         certificate = IterationDependent._extract_iteration_dependent_certificate_cvxpy(solution_handles)
+        if verbosity > 0:
+            try:
+                diagnostics = IterationDependent._compute_iteration_dependent_diagnostics(
+                    prob,
+                    algo,
+                    K,
+                    c_val,
+                    certificate,
+                )
+                IterationDependent._print_iteration_dependent_diagnostics(
+                    diagnostics,
+                    K,
+                    c_val,
+                    solver_options.backend,
+                    verbosity,
+                )
+            except Exception as exc:
+                print(
+                    f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
+                )
         return {"success": True, "c": c_val, "certificate": certificate}
 
     @staticmethod
