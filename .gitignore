@@ -27,6 +27,7 @@ Thumbs.db
 .eggs/
 build/
 dist/
+docs/build/
 
 # PyInstaller
 *.manifest
