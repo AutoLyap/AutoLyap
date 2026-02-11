@@ -116,10 +116,10 @@ class IterationDependent:
 
     We set the endpoint parameters :math:`(Q_0,q_0)` and :math:`(Q_K,q_K)` and
     search for intermediate :math:`(Q_k,q_k)` for
-    :math:`k \in \llbracket 1, K-1 \rrbracket`, together with a scalar :math:`c \ge 0`, such that
+    :math:`k \in \llbracket 1, K-1 \rrbracket`, together with a scalar :math:`c_K \ge 0`, such that
 
     .. math::
-        \mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c\,\mathcal{V}(0).
+        \mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c_K\,\mathcal{V}(0).
 
     **Role of K**
 
@@ -128,10 +128,10 @@ class IterationDependent:
 
     **Convergence conclusions**
 
-    When the chained inequalities are feasible, there exists :math:`c \ge 0` such that
+    When the chained inequalities are feasible, there exists :math:`c_K \ge 0` such that
 
     .. math::
-        \mathcal{V}(K) \le c\,\mathcal{V}(0).
+        \mathcal{V}(K) \le c_K\,\mathcal{V}(0).
 
     """
     @staticmethod
@@ -193,7 +193,7 @@ class IterationDependent:
             prob: Type[InclusionProblem],
             algo: Type[Algorithm],
             K: int,
-            c_value: float,
+            c_K_value: float,
             certificate: Dict[str, object],
     ) -> Dict[str, object]:
         r"""Compute post-solve diagnostics for nonnegativity, PSD, and equality constraints."""
@@ -204,7 +204,7 @@ class IterationDependent:
             q_sequence = [np.asarray(q_k, dtype=float).reshape(-1) for q_k in q_sequence_raw]
         multipliers = certificate["multipliers"]
 
-        nonnegative_records: List[Tuple[str, float]] = [("c", float(c_value))]
+        nonnegative_records: List[Tuple[str, float]] = [("c_K", float(c_K_value))]
         for multiplier_name in ("operator_lambda", "function_lambda"):
             for record in multipliers[multiplier_name]:
                 label = (
@@ -220,7 +220,7 @@ class IterationDependent:
 
         Ws: Dict[int, np.ndarray] = {}
         Theta0_0, Theta1_0 = IterationDependent._compute_Thetas(algo, 0)
-        Ws[0] = Theta1_0.T @ Q_sequence[1] @ Theta1_0 - c_value * (Theta0_0.T @ Q_sequence[0] @ Theta0_0)
+        Ws[0] = Theta1_0.T @ Q_sequence[1] @ Theta1_0 - c_K_value * (Theta0_0.T @ Q_sequence[0] @ Theta0_0)
         for k in range(1, K):
             Theta0_k, Theta1_k = IterationDependent._compute_Thetas(algo, k)
             Ws[k] = Theta1_k.T @ Q_sequence[k + 1] @ Theta1_k - Theta0_k.T @ Q_sequence[k] @ Theta0_k
@@ -286,7 +286,7 @@ class IterationDependent:
             theta0, theta1 = IterationDependent._compute_thetas(algo)
 
             ws: Dict[int, np.ndarray] = {}
-            ws[0] = theta1.T @ q_sequence[1] - c_value * (theta0.T @ q_sequence[0])
+            ws[0] = theta1.T @ q_sequence[1] - c_K_value * (theta0.T @ q_sequence[0])
             for k in range(1, K):
                 ws[k] = theta1.T @ q_sequence[k + 1] - theta0.T @ q_sequence[k]
 
@@ -390,7 +390,7 @@ class IterationDependent:
     def _print_iteration_dependent_diagnostics(
             diagnostics: Dict[str, object],
             K: int,
-            c_value: float,
+            c_K_value: float,
             backend: str,
             verbosity: int,
     ) -> None:
@@ -404,7 +404,7 @@ class IterationDependent:
 
         print(
             f"[AutoLyap][INFO] Iteration-dependent SDP diagnostics "
-            f"(backend={backend}, K={K}, c={c_value:.12g})."
+            f"(backend={backend}, K={K}, c_K={c_K_value:.12g})."
         )
         print(
             f"[AutoLyap][INFO] Nonnegativity check: "
@@ -664,7 +664,7 @@ class IterationDependent:
             model: Optional[Model] = None,
         ) -> Tuple[Model, Dict[str, object]]:
         Mod = model if model is not None else Model()
-        c = Mod.variable(1, Domain.greaterThan(0.0))
+        c_K = Mod.variable("c_K", 1, Domain.greaterThan(0.0))
         
         Qs = {}
         Qs[0] = Q_0
@@ -692,8 +692,8 @@ class IterationDependent:
         # ---------------------------------------------------------------------
         Ws = {}
         (Theta0, Theta1) = IterationDependent._compute_Thetas(algo, 0)
-        # First inequality uses the scaled Lyapunov decrease with multiplier c.
-        W_0 = Theta1.T @ Qs[1] @ Theta1 - c[0] * Theta0.T @ Qs[0] @ Theta0
+        # First inequality uses the scaled Lyapunov decrease with multiplier c_K.
+        W_0 = Theta1.T @ Qs[1] @ Theta1 - c_K[0] * Theta0.T @ Qs[0] @ Theta0
         Ws[0] = W_0
         for k in range(1, K):
             (Theta0, Theta1) = IterationDependent._compute_Thetas(algo, k)
@@ -704,7 +704,7 @@ class IterationDependent:
             ws = {}
             (theta0, theta1) = IterationDependent._compute_thetas(algo)
             # Linear term for functional components mirrors the quadratic Lyapunov recursion.
-            w_0 = theta1.T @ qs[1] - c[0] * theta0.T @ qs[0]
+            w_0 = theta1.T @ qs[1] - c_K[0] * theta0.T @ qs[0]
             ws[0] = w_0
             for k in range(1, K):
                 w_k = theta1.T @ qs[k+1] - theta0.T @ qs[k]
@@ -859,7 +859,7 @@ class IterationDependent:
         # ---------------------------------------------------------------------
         # Add the objective function to the model.
         # ---------------------------------------------------------------------
-        Mod.objective("obj", ObjectiveSense.Minimize, c)
+        Mod.objective("obj", ObjectiveSense.Minimize, c_K)
 
         solution_handles: Dict[str, object] = {
             "K": K,
@@ -875,7 +875,7 @@ class IterationDependent:
             "lambdas_op": lambdas_op,
             "lambdas_func": lambdas_func,
             "nus_func": nus_func,
-            "c_var": c,
+            "c_K_var": c_K,
         }
         return Mod, solution_handles
 
@@ -895,7 +895,7 @@ class IterationDependent:
             cp,
     ) -> Tuple[object, Dict[str, object]]:
         r"""Assemble and return the CVXPY problem and variable handles."""
-        c = cp.Variable(nonneg=True)
+        c_K = cp.Variable(nonneg=True)
 
         Qs: Dict[int, Any] = {0: Q_0, K: Q_K}
         Q_vars: Dict[int, object] = {}
@@ -914,7 +914,7 @@ class IterationDependent:
 
         Ws: Dict[int, Any] = {}
         Theta0, Theta1 = IterationDependent._compute_Thetas(algo, 0)
-        Ws[0] = Theta1.T @ Qs[1] @ Theta1 - c * (Theta0.T @ Qs[0] @ Theta0)
+        Ws[0] = Theta1.T @ Qs[1] @ Theta1 - c_K * (Theta0.T @ Qs[0] @ Theta0)
         for k in range(1, K):
             Theta0, Theta1 = IterationDependent._compute_Thetas(algo, k)
             Ws[k] = Theta1.T @ Qs[k + 1] @ Theta1 - Theta0.T @ Qs[k] @ Theta0
@@ -922,7 +922,7 @@ class IterationDependent:
         if m_func > 0:
             ws: Dict[int, Any] = {}
             theta0, theta1 = IterationDependent._compute_thetas(algo)
-            ws[0] = theta1.T @ qs[1] - c * (theta0.T @ qs[0])
+            ws[0] = theta1.T @ qs[1] - c_K * (theta0.T @ qs[0])
             for k in range(1, K):
                 ws[k] = theta1.T @ qs[k + 1] - theta0.T @ qs[k]
 
@@ -1052,7 +1052,7 @@ class IterationDependent:
             if m_func > 0:
                 constraints.append(eq_constraint_sums[k] == 0)
 
-        problem = cp.Problem(cp.Minimize(c), constraints)
+        problem = cp.Problem(cp.Minimize(c_K), constraints)
         solution_handles: Dict[str, object] = {
             "K": K,
             "dim_Q": dim_Q,
@@ -1067,7 +1067,7 @@ class IterationDependent:
             "lambdas_op": lambdas_op,
             "lambdas_func": lambdas_func,
             "nus_func": nus_func,
-            "c_var": c,
+            "c_K_var": c_K,
         }
         return problem, solution_handles
 
@@ -1220,16 +1220,16 @@ class IterationDependent:
         The method enforces the chained Lyapunov inequalities
 
         .. math::
-            \mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c\,\mathcal{V}(0).
+            \mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c_K\,\mathcal{V}(0).
 
-        with :math:`c \ge 0`.
+        with :math:`c_K \ge 0`.
 
         **User-specified targets**
 
         The user sets the endpoint parameters :math:`(Q_0,q_0)` and :math:`(Q_K,q_K)`.
         These endpoint parameters are fixed inputs to the SDP (not optimization variables).
         The SDP then searches for intermediate :math:`(Q_k,q_k)` for
-        :math:`k \in \llbracket 1, K-1\rrbracket` and the minimum feasible :math:`c`.
+        :math:`k \in \llbracket 1, K-1\rrbracket` and the minimum feasible :math:`c_K`.
         When :math:`\NumFunc = 0`, the vectors :math:`q_k` (and inputs `q_0`, `q_K`) are omitted.
 
         The Lyapunov values are
@@ -1286,11 +1286,11 @@ class IterationDependent:
         **Returns**
 
         - (:class:`~typing.Dict`\[:class:`str`, :class:`object`\]): Result dictionary
-          with keys `success`, `c`, and `certificate`.
+          with keys `success`, `c_K`, and `certificate`.
 
           - `success` (:class:`bool`): `True` iff the SDP is feasible.
-          - `c` (:class:`~typing.Optional`\[:class:`float`\]): Optimal objective value when
-            `success` is `True`; otherwise `None`.
+          - `c_K` (:class:`~typing.Optional`\[:class:`float`\]): Optimal objective value when
+            `success` is `True`; otherwise `None`. This is the horizon-dependent scalar.
           - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`object`\]\]):
             `None` when `success` is `False`; otherwise a feasible certificate.
 
@@ -1379,7 +1379,7 @@ class IterationDependent:
                 model=Mod,
             )
             IterationDependent._apply_mosek_solver_params(Mod, solver_options)
-            c_var = solution_handles["c_var"]
+            c_K_var = solution_handles["c_K_var"]
             if verbosity > 0:
                 print(
                     f"[AutoLyap][INFO] Solving iteration-dependent SDP "
@@ -1389,7 +1389,7 @@ class IterationDependent:
             try:
                 Mod.solve()
                 Mod.primalObjValue()
-                c_val = IterationDependent._extract_scalar_variable_value(c_var)
+                c_K_val = IterationDependent._extract_scalar_variable_value(c_K_var)
                 certificate = IterationDependent._extract_iteration_dependent_certificate(solution_handles)
                 if verbosity > 0:
                     try:
@@ -1397,13 +1397,13 @@ class IterationDependent:
                             prob,
                             algo,
                             K,
-                            c_val,
+                            c_K_val,
                             certificate,
                         )
                         IterationDependent._print_iteration_dependent_diagnostics(
                             diagnostics,
                             K,
-                            c_val,
+                            c_K_val,
                             solver_options.backend,
                             verbosity,
                         )
@@ -1411,7 +1411,7 @@ class IterationDependent:
                         print(
                             f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                         )
-                return {"success": True, "c": c_val, "certificate": certificate}
+                return {"success": True, "c_K": c_K_val, "certificate": certificate}
             except OptimizeError as e:
                 licence_markers = (
                     "err_license_max",         # 1016 – all floating tokens in use
@@ -1424,13 +1424,13 @@ class IterationDependent:
                     print(
                         f"[AutoLyap][INFO] Iteration-dependent SDP is infeasible or not solved for K={K}."
                     )
-                return {"success": False, "c": None, "certificate": None}
+                return {"success": False, "c_K": None, "certificate": None}
             except Exception:
                 if verbosity > 0:
                     print(
                         f"[AutoLyap][INFO] Iteration-dependent SDP is infeasible or not solved for K={K}."
                     )
-                return {"success": False, "c": None, "certificate": None}
+                return {"success": False, "c_K": None, "certificate": None}
             finally:
                 Mod.dispose()
 
@@ -1463,16 +1463,16 @@ class IterationDependent:
                 print(
                     f"[AutoLyap][INFO] Iteration-dependent SDP solve failed for K={K}."
                 )
-            return {"success": False, "c": None, "certificate": None}
+            return {"success": False, "c_K": None, "certificate": None}
 
         if problem.status not in accepted_statuses:
             if verbosity > 0:
                 print(
                     f"[AutoLyap][INFO] Iteration-dependent SDP status={problem.status}; no feasible certificate for K={K}."
                 )
-            return {"success": False, "c": None, "certificate": None}
+            return {"success": False, "c_K": None, "certificate": None}
 
-        c_val = IterationDependent._extract_scalar_variable_value(solution_handles["c_var"])
+        c_K_val = IterationDependent._extract_scalar_variable_value(solution_handles["c_K_var"])
         certificate = IterationDependent._extract_iteration_dependent_certificate_cvxpy(solution_handles)
         if verbosity > 0:
             try:
@@ -1480,13 +1480,13 @@ class IterationDependent:
                     prob,
                     algo,
                     K,
-                    c_val,
+                    c_K_val,
                     certificate,
                 )
                 IterationDependent._print_iteration_dependent_diagnostics(
                     diagnostics,
                     K,
-                    c_val,
+                    c_K_val,
                     solver_options.backend,
                     verbosity,
                 )
@@ -1494,7 +1494,7 @@ class IterationDependent:
                 print(
                     f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                 )
-        return {"success": True, "c": c_val, "certificate": certificate}
+        return {"success": True, "c_K": c_K_val, "certificate": certificate}
 
     @staticmethod
     def _compute_Thetas(algo: Type[Algorithm], k: int) -> Tuple[np.ndarray, np.ndarray]:

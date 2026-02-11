@@ -71,6 +71,7 @@ _LATO_FONT_VARIANTS = (
 )
 _DOCS_FONT_DIR_CANDIDATES = ("css/fonts", "../_static/css/fonts")
 _SUPERSCRIPT_LABEL_RE = re.compile(r"^\s*(.+?)\^\{(.+?)\}\s*$")
+_SUBSCRIPT_LABEL_RE = re.compile(r"^\s*(.+?)_\{?(.+?)\}?\s*$")
 
 
 @dataclass(frozen=True)
@@ -165,6 +166,26 @@ def _svg_tick_label_markup(label: str) -> str:
     return (
         f"{base_text}"
         f'<tspan baseline-shift="super" font-size="65%">{exponent_text}</tspan>'
+    )
+
+
+def _svg_math_label_markup(label: str, is_math: bool) -> str:
+    """Render lightweight math labels, including a simple subscript form."""
+    label = label.strip()
+    if not label:
+        return ""
+    if not is_math:
+        return xml_escape(label)
+
+    sub_match = _SUBSCRIPT_LABEL_RE.match(label)
+    if sub_match is None:
+        return xml_escape(label)
+
+    base_text = xml_escape(sub_match.group(1).strip())
+    sub_text = xml_escape(sub_match.group(2).strip())
+    return (
+        f"{base_text}"
+        f'<tspan baseline-shift="sub" font-size="65%">{sub_text}</tspan>'
     )
 
 
@@ -330,6 +351,8 @@ def render_cartesian_svg(
 
     x_label_text, x_label_is_math = _latex_to_svg_label(x_label)
     y_label_text, y_label_is_math = _latex_to_svg_label(y_label)
+    x_label_markup = _svg_math_label_markup(x_label_text, x_label_is_math)
+    y_label_markup = _svg_math_label_markup(y_label_text, y_label_is_math)
     x_label_style = (
         ' font-style="italic"' if italic_math_labels and x_label_is_math else ""
     )
@@ -562,14 +585,14 @@ def render_cartesian_svg(
                 f'  <text x="{margin_left + plot_width / 2.0:.3f}" '
                 f'y="{height_px - 10.0:.3f}" text-anchor="middle" fill="{style.label_color}" '
                 f'font-family="{style.font_family}" font-size="28"{x_label_style}>'
-                f"{xml_escape(x_label_text)}</text>"
+                f"{x_label_markup}</text>"
             ),
             (
                 f'  <text x="30.0" y="{margin_top + plot_height / 2.0:.3f}" '
                 f'text-anchor="middle" transform="rotate({y_label_rotation_deg:g} 30.0 '
                 f'{margin_top + plot_height / 2.0:.3f})" fill="{style.label_color}" '
                 f'font-family="{style.font_family}" font-size="28"{y_label_style}>'
-                f"{xml_escape(y_label_text)}</text>"
+                f"{y_label_markup}</text>"
             ),
             "</svg>",
         ]

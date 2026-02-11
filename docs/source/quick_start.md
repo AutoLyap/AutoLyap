@@ -20,7 +20,7 @@ Typical usage has four steps:
 1. Build an `InclusionProblem` from function and operator classes.
 2. Pick an algorithm or your own subclass of `Algorithm`.
 3. Select Lyapunov targets with helper constructors (`get_parameters_*`).
-4. Solve the SDP and inspect `result["success"]`, the scalar (`rho` or `c`), and `result["certificate"]`.
+4. Solve the SDP and inspect `result["success"]`, the scalar (`rho` or `c_K`), and `result["certificate"]`.
 
 ## Iteration-independent example: The gradient method
 
@@ -169,24 +169,24 @@ result = IterationDependent.verify_iteration_dependent_Lyapunov(
 if not result["success"]:
     raise RuntimeError("No feasible chained Lyapunov certificate for this setup.")
 
-c = result["c"]
+c_K = result["c_K"]
 certificate = result["certificate"]
 
 Q_sequence = certificate["Q_sequence"]  # [Q_0, Q_1, ..., Q_K]
 q_sequence = certificate["q_sequence"]  # [q_0, q_1, ..., q_K] or None
 
 theta_K = algorithm._compute_theta(K, K)
-c_theory = L / (2.0 * theta_K ** 2)
+c_K_theory = L / (2.0 * theta_K ** 2)
 
-print(f"c (AutoLyap): {c:.6e}")
-print(f"c (theory):   {c_theory:.6e}")
+print(f"c_K (AutoLyap): {c_K:.6e}")
+print(f"c_K (theory):   {c_K_theory:.6e}")
 ```
 
-The computed value `c (AutoLyap)` matches the theoretical horizon-`K` expression
+The computed value `c_K (AutoLyap)` matches the theoretical horizon-`K` expression
 
 ```{math}
-f(x^K) - f(x^\star) \le c\,\|x^0 - x^\star\|^2, \qquad
-c = \frac{L}{2\theta_K^2}.
+f(x^K) - f(x^\star) \le c_K\,\|x^0 - x^\star\|^2, \qquad
+c_K = \frac{L}{2\theta_K^2}.
 ```
 
 In particular,
@@ -199,7 +199,7 @@ Sweeping over {math}`K \in \llbracket 1, 100\rrbracket` gives the log-log plot b
 the theoretical bound in black and AutoLyap certificates as blue dots.
 
 ```{image} _static/optimized_gradient_method_c_vs_K_loglog.svg
-:alt: Optimized-gradient c versus K in log-log scale with theoretical line and AutoLyap points.
+:alt: Optimized-gradient c_K versus K in log-log scale with theoretical line and AutoLyap points.
 :align: center
 :width: 100%
 ```
@@ -207,7 +207,7 @@ the theoretical bound in black and AutoLyap certificates as blue dots.
 ## What to inspect
 
 - `success`: whether the selected backend found a feasible certificate.
-- `rho` (iteration-independent) or `c` (iteration-dependent): the main scalar output.
+- `rho` (iteration-independent) or `c_K` (iteration-dependent): the main scalar output.
 - `certificate`: Matrices and vectors that parameterize the Lyapunov certificate.
 
 ## Verbosity diagnostics

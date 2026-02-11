@@ -42,8 +42,8 @@ def test_convergence_optimized_gradient_method_c_matches_theory_cvxpy(
             solver_options=cvxpy_open_source_solver_options,
         )
         assert result["success"] is True
-        assert result["c"] is not None
+        assert result["c_K"] is not None
 
         theta_k = algorithm._compute_theta(k, k)
         c_theory = L / (2.0 * theta_k ** 2)
-        assert result["c"] == pytest.approx(c_theory, rel=rel_tol, abs=abs_tol)
+        assert result["c_K"] == pytest.approx(c_theory, rel=rel_tol, abs=abs_tol)

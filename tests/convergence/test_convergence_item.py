@@ -46,7 +46,7 @@ def test_convergence_item_c_matches_theoretical_bound():
         )
 
         assert result["success"] is True
-        assert result["c"] is not None
+        assert result["c_K"] is not None
         assert result["certificate"] is not None
         certificate = result["certificate"]
         assert len(certificate["Q_sequence"]) == k + 1
@@ -56,4 +56,4 @@ def test_convergence_item_c_matches_theoretical_bound():
         assert len(certificate["q_sequence"]) == k + 1
         assert np.allclose(certificate["q_sequence"][0], q_0)
         assert np.allclose(certificate["q_sequence"][-1], q_k)
-        assert result["c"] == pytest.approx(bound_theoretical, abs=1e-6)
+        assert result["c_K"] == pytest.approx(bound_theoretical, abs=1e-6)

@@ -23,10 +23,10 @@ def test_iteration_dependent_verify_with_cvxpy_backend_smoke(
         q_K=q_K,
         solver_options=cvxpy_open_source_solver_options,
     )
-    assert set(result.keys()) == {"success", "c", "certificate"}
+    assert set(result.keys()) == {"success", "c_K", "certificate"}
     if result["success"]:
         certificate = result["certificate"]
-        assert result["c"] is not None
+        assert result["c_K"] is not None
         assert certificate is not None
         assert "Q_sequence" in certificate
         assert "q_sequence" in certificate
@@ -51,7 +51,7 @@ def test_iteration_dependent_verify_with_cvxpy_operator_only_schema(
         Q_1,
         solver_options=cvxpy_open_source_solver_options,
     )
-    assert set(result.keys()) == {"success", "c", "certificate"}
+    assert set(result.keys()) == {"success", "c_K", "certificate"}
     if result["success"]:
         certificate = result["certificate"]
         assert certificate is not None
@@ -94,7 +94,7 @@ def test_iteration_dependent_verify_verbosity_reports_equality_section(
             or "Iteration-dependent SDP solve failed"
             in captured.out
         )
-    assert set(result.keys()) == {"success", "c", "certificate"}
+    assert set(result.keys()) == {"success", "c_K", "certificate"}
 
 
 def test_iteration_dependent_verify_operator_only_verbosity_reports_no_equalities(
@@ -128,4 +128,4 @@ def test_iteration_dependent_verify_operator_only_verbosity_reports_no_equalitie
             or "Iteration-dependent SDP solve failed"
             in captured.out
         )
-    assert set(result.keys()) == {"success", "c", "certificate"}
+    assert set(result.keys()) == {"success", "c_K", "certificate"}

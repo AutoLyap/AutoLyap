@@ -133,9 +133,9 @@ def test_iteration_dependent_verify_cross_backend_equivalence(
     )
 
     assert result_mosek["success"] and result_cvxpy["success"]
-    assert result_mosek["c"] is not None
-    assert result_cvxpy["c"] is not None
-    assert np.isclose(result_mosek["c"], result_cvxpy["c"], atol=1e-7)
+    assert result_mosek["c_K"] is not None
+    assert result_cvxpy["c_K"] is not None
+    assert np.isclose(result_mosek["c_K"], result_cvxpy["c_K"], atol=1e-7)
 
     cert_mosek = result_mosek["certificate"]
     cert_cvxpy = result_cvxpy["certificate"]
