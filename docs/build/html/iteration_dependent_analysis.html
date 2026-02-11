@@ -240,18 +240,18 @@ When <span class="math notranslate nohighlight">\(\NumFunc = 0\)</span>, the vec
 <p><strong>Chained Lyapunov inequalities</strong></p>
 <p>We set the endpoint parameters <span class="math notranslate nohighlight">\((Q_0,q_0)\)</span> and <span class="math notranslate nohighlight">\((Q_K,q_K)\)</span> and
 search for intermediate <span class="math notranslate nohighlight">\((Q_k,q_k)\)</span> for
-<span class="math notranslate nohighlight">\(k \in \llbracket 1, K-1 \rrbracket\)</span>, together with a scalar <span class="math notranslate nohighlight">\(c \ge 0\)</span>, such that</p>
+<span class="math notranslate nohighlight">\(k \in \llbracket 1, K-1 \rrbracket\)</span>, together with a scalar <span class="math notranslate nohighlight">\(c_K \ge 0\)</span>, such that</p>
 <div class="math notranslate nohighlight">
-\[\mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c\,\mathcal{V}(0).\]</div>
+\[\mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c_K\,\mathcal{V}(0).\]</div>
 <p><strong>Role of K</strong></p>
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(K\)</span> is the iteration budget and final index in the chained inequalities.</p></li>
 <li><p>The chain links the Lyapunov values from <span class="math notranslate nohighlight">\(k=0\)</span> to <span class="math notranslate nohighlight">\(k=K\)</span>.</p></li>
 </ul>
 <p><strong>Convergence conclusions</strong></p>
-<p>When the chained inequalities are feasible, there exists <span class="math notranslate nohighlight">\(c \ge 0\)</span> such that</p>
+<p>When the chained inequalities are feasible, there exists <span class="math notranslate nohighlight">\(c_K \ge 0\)</span> such that</p>
 <div class="math notranslate nohighlight">
-\[\mathcal{V}(K) \le c\,\mathcal{V}(0).\]</div>
+\[\mathcal{V}(K) \le c_K\,\mathcal{V}(0).\]</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="autolyap.IterationDependent.get_parameters_distance_to_solution">
 <em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_parameters_distance_to_solution</span></span><span class="sig-paren">(</span>
@@ -513,13 +513,13 @@ follow the class-level reference in
 <p><strong>Enforced inequalities</strong></p>
 <p>The method enforces the chained Lyapunov inequalities</p>
 <div class="math notranslate nohighlight">
-\[\mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c\,\mathcal{V}(0).\]</div>
-<p>with <span class="math notranslate nohighlight">\(c \ge 0\)</span>.</p>
+\[\mathcal{V}(K) \le \mathcal{V}(K-1) \le \cdots \le \mathcal{V}(1) \le c_K\,\mathcal{V}(0).\]</div>
+<p>with <span class="math notranslate nohighlight">\(c_K \ge 0\)</span>.</p>
 <p><strong>User-specified targets</strong></p>
 <p>The user sets the endpoint parameters <span class="math notranslate nohighlight">\((Q_0,q_0)\)</span> and <span class="math notranslate nohighlight">\((Q_K,q_K)\)</span>.
 These endpoint parameters are fixed inputs to the SDP (not optimization variables).
 The SDP then searches for intermediate <span class="math notranslate nohighlight">\((Q_k,q_k)\)</span> for
-<span class="math notranslate nohighlight">\(k \in \llbracket 1, K-1\rrbracket\)</span> and the minimum feasible <span class="math notranslate nohighlight">\(c\)</span>.
+<span class="math notranslate nohighlight">\(k \in \llbracket 1, K-1\rrbracket\)</span> and the minimum feasible <span class="math notranslate nohighlight">\(c_K\)</span>.
 When <span class="math notranslate nohighlight">\(\NumFunc = 0\)</span>, the vectors <span class="math notranslate nohighlight">\(q_k\)</span> (and inputs <cite>q_0</cite>, <cite>q_K</cite>) are omitted.</p>
 <p>The Lyapunov values are</p>
 <div class="math notranslate nohighlight">
@@ -571,11 +571,11 @@ diagnostics, <cite>1</cite> prints concise summaries, and <cite>2</cite> adds pe
 <p><strong>Returns</strong></p>
 <ul>
 <li><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]): Result dictionary
-with keys <cite>success</cite>, <cite>c</cite>, and <cite>certificate</cite>.</p>
+with keys <cite>success</cite>, <cite>c_K</cite>, and <cite>certificate</cite>.</p>
 <ul class="simple">
 <li><p><cite>success</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>): <cite>True</cite> iff the SDP is feasible.</p></li>
-<li><p><cite>c</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Optimal objective value when
-<cite>success</cite> is <cite>True</cite>; otherwise <cite>None</cite>.</p></li>
+<li><p><cite>c_K</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]): Optimal objective value when
+<cite>success</cite> is <cite>True</cite>; otherwise <cite>None</cite>. This is the horizon-dependent scalar.</p></li>
 <li><p><cite>certificate</cite> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]]):
 <cite>None</cite> when <cite>success</cite> is <cite>False</cite>; otherwise a feasible certificate.</p></li>
 </ul>

@@ -189,14 +189,17 @@ print(f"rho (AutoLyap):  {rho_autolyap:.8f}")
 print(f"rho (theory):    {rho_taylor:.8f}")
 ```
 
-The computed value `rho (AutoLyap)` matches the closed-form theoretical rate expression from Theorem 2.1 in {cite}`taylor2018proximal`, i.e., 
+The computed value `rho (AutoLyap)` matches the closed-form theoretical rate
+expression from Theorem 2.1 in {cite}`taylor2018proximal`, i.e.,
 
 ```{math}
 \|x^k - x^\star\|^2 = O(\rho^k), \qquad
 \rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2,
 ```
 
-or
+where {math}`x^\star \in \Argmin_{x \in \calH} \bigl(f(x)+g(x)\bigr)`.
+
+Equivalently,
 
 ```{math}
 \|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).

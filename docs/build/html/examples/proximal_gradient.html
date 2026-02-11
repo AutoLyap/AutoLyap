@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="The proximal point method" href="proximal_point.html" />
-    <link rel="prev" title="The heavy-ball method" href="heavy_ball.html" />
+    <link rel="prev" title="Nesterov’s fast gradient method" href="nesterov_fast_gradient.html" />
  
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
@@ -124,8 +124,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick start</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="douglas_rachford_operator_giselsson.html">The Douglas–Rachford method (operator form)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="douglas_rachford_operator_giselsson.html">The Douglas–Rachford method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="heavy_ball.html">The heavy-ball method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nesterov_fast_gradient.html">Nesterov’s fast gradient method</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Define your own algorithm: The proximal gradient method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#step-1-problem-statement">Step 1: Problem statement</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#step-2-standard-form">Step 2: Standard form</a></li>
@@ -335,11 +336,13 @@ D_k &amp;=
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rho (theory):    </span><span class="si">{</span><span class="n">rho_taylor</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The computed value <code class="docutils literal notranslate"><span class="pre">rho</span> <span class="pre">(AutoLyap)</span></code> matches the closed-form theoretical rate expression from Theorem 2.1 in <span id="id1">[<a class="reference internal" href="#id4" title="Adrien B. Taylor, Julien M. Hendrickx, and Francois Glineur. The exact worst-case convergence rate of the proximal gradient method for composite convex optimization. Journal of Optimization Theory and Applications, 178(2):455–476, 2018. doi:10.1007/s10957-018-1298-1.">THG18</a>]</span>, i.e.,</p>
+<p>The computed value <code class="docutils literal notranslate"><span class="pre">rho</span> <span class="pre">(AutoLyap)</span></code> matches the closed-form theoretical rate
+expression from Theorem 2.1 in <span id="id1">[<a class="reference internal" href="#id4" title="Adrien B. Taylor, Julien M. Hendrickx, and Francois Glineur. The exact worst-case convergence rate of the proximal gradient method for composite convex optimization. Journal of Optimization Theory and Applications, 178(2):455–476, 2018. doi:10.1007/s10957-018-1298-1.">THG18</a>]</span>, i.e.,</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\|^2 = O(\rho^k), \qquad
 \rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2,\]</div>
-<p>or</p>
+<p>where <span class="math notranslate nohighlight">\(x^\star \in \Argmin_{x \in \calH} \bigl(f(x)+g(x)\bigr)\)</span>.</p>
+<p>Equivalently,</p>
 <div class="math notranslate nohighlight">
 \[\|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).\]</div>
 <p>Sweeping over 100 values of <span class="math notranslate nohighlight">\(\gamma\)</span> on <span class="math notranslate nohighlight">\(0 &lt; \gamma \le 2/L\)</span> gives
@@ -365,7 +368,7 @@ as blue dots.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="heavy_ball.html" class="btn btn-neutral float-left" title="The heavy-ball method" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="nesterov_fast_gradient.html" class="btn btn-neutral float-left" title="Nesterov’s fast gradient method" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="proximal_point.html" class="btn btn-neutral float-right" title="The proximal point method" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

@@ -51,14 +51,17 @@ print(f"rho (AutoLyap): {rho_autolyap:.8f}")
 print(f"rho (theory):   {rho_theory:.8f}")
 ```
 
-The computed value `rho (AutoLyap)` matches the theoretical rate expression given in {cite}`Rockafellar1976PPA`, i.e.,
+The computed value `rho (AutoLyap)` matches the theoretical rate expression
+given in {cite}`Rockafellar1976PPA`, i.e.,
 
 ```{math}
 \|x^k - x^\star\|^2 = O(\rho^k), \qquad
 \rho = \left(\frac{1}{1+\gamma\mu}\right)^2,
 ```
 
-or
+where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
+
+Equivalently,
 
 ```{math}
 \|x^k - x^\star\| = O\!\left(\left(\frac{1}{1+\gamma\mu}\right)^k\right).

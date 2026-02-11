@@ -131,6 +131,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="heavy_ball.html">The heavy-ball method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nesterov_fast_gradient.html">Nesterov’s fast gradient method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="proximal_gradient.html">Define your own algorithm: The proximal gradient method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="proximal_point.html">The proximal point method</a></li>
 </ul>
@@ -171,7 +172,7 @@
 <h2>Problem setup<a class="headerlink" href="#problem-setup" title="Link to this heading"></a></h2>
 <p>Consider the monotone inclusion</p>
 <div class="math notranslate nohighlight">
-\[\text{find } x^\star \in \calH \text{ such that } 0 \in G_1(x^\star) + G_2(x^\star),\]</div>
+\[\text{find } x \in \calH \text{ such that } 0 \in G_1(x) + G_2(x),\]</div>
 <p>where:</p>
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(G_1 : \calH \rightrightarrows \calH\)</span> is maximally monotone,</p></li>
@@ -250,7 +251,10 @@ Theorem 6.5 of <span id="id1">[<a class="reference internal" href="#id9" title="
 <p>with</p>
 <div class="math notranslate nohighlight">
 \[\alpha = \frac{\lambda}{2}, \qquad
-\delta = \sqrt{1 - \frac{4\gamma\mu}{1 + 2\gamma\mu + (\gamma L)^2}}.\]</div>
+\delta = \sqrt{1 - \frac{4\gamma\mu}{1 + 2\gamma\mu + (\gamma L)^2}},\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[x^\star \in \zer(G_1 + G_2).\]</div>
 <p>Sweeping over 100 values of <span class="math notranslate nohighlight">\(\gamma\)</span> on <span class="math notranslate nohighlight">\(0 &lt; \gamma \le 5\)</span> (with
 <span class="math notranslate nohighlight">\(\mu=1\)</span>, <span class="math notranslate nohighlight">\(L=2\)</span>, <span class="math notranslate nohighlight">\(\lambda=2\)</span>) gives the plot below, with the
 theoretical rate in black and AutoLyap certificates as blue dots.</p>

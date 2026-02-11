@@ -5,7 +5,7 @@
 Consider the monotone inclusion
 
 ```{math}
-\text{find } x^\star \in \calH \text{ such that } 0 \in G_1(x^\star) + G_2(x^\star),
+\text{find } x \in \calH \text{ such that } 0 \in G_1(x) + G_2(x),
 ```
 
 where:
@@ -93,8 +93,16 @@ with
 
 ```{math}
 \alpha = \frac{\lambda}{2}, \qquad
-\delta = \sqrt{1 - \frac{4\gamma\mu}{1 + 2\gamma\mu + (\gamma L)^2}}.
+\delta = \sqrt{1 - \frac{4\gamma\mu}{1 + 2\gamma\mu + (\gamma L)^2}},
 ```
+
+where 
+
+
+```{math}
+x^\star \in \zer(G_1 + G_2).
+```
+
 
 Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 5` (with
 {math}`\mu=1`, {math}`L=2`, {math}`\lambda=2`) gives the plot below, with the

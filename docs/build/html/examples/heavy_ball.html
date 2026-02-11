@@ -28,8 +28,8 @@
 
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Define your own algorithm: The proximal gradient method" href="proximal_gradient.html" />
-    <link rel="prev" title="The Douglas–Rachford method (operator form)" href="douglas_rachford_operator_giselsson.html" />
+    <link rel="next" title="Nesterov’s fast gradient method" href="nesterov_fast_gradient.html" />
+    <link rel="prev" title="The Douglas–Rachford method" href="douglas_rachford_operator_giselsson.html" />
  
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
@@ -124,13 +124,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick start</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="douglas_rachford_operator_giselsson.html">The Douglas–Rachford method (operator form)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="douglas_rachford_operator_giselsson.html">The Douglas–Rachford method</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">The heavy-ball method</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#problem-setup">Problem setup</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#run-the-iteration-independent-analysis-with-c4">Run the iteration-independent analysis with C4</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="nesterov_fast_gradient.html">Nesterov’s fast gradient method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="proximal_gradient.html">Define your own algorithm: The proximal gradient method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="proximal_point.html">The proximal point method</a></li>
 </ul>
@@ -169,8 +170,8 @@
 <h1>The heavy-ball method<a class="headerlink" href="#the-heavy-ball-method" title="Link to this heading"></a></h1>
 <section id="problem-setup">
 <h2>Problem setup<a class="headerlink" href="#problem-setup" title="Link to this heading"></a></h2>
-<p>We consider the unconstrained minimization of a convex,
-<span class="math notranslate nohighlight">\(L\)</span>-smooth function <span class="math notranslate nohighlight">\(f : \calH \to \reals\)</span>, with <span class="math notranslate nohighlight">\(L &gt; 0\)</span>.</p>
+<p>We consider the unconstrained minimization of a convex and <span class="math notranslate nohighlight">\(L\)</span>-smooth
+function <span class="math notranslate nohighlight">\(f : \calH \to \reals\)</span>, with <span class="math notranslate nohighlight">\(L &gt; 0\)</span>.</p>
 <p>Given initial points <span class="math notranslate nohighlight">\(x^{-1}, x^0 \in \calH\)</span>, momentum
 <span class="math notranslate nohighlight">\(\delta \in \reals\)</span>, and step size <span class="math notranslate nohighlight">\(\gamma \in \reals_{++}\)</span>,
 the heavy-ball iteration is</p>
@@ -195,7 +196,7 @@ setting (<span class="math notranslate nohighlight">\(\rho = 1\)</span>) while e
 <span class="n">problem</span> <span class="o">=</span> <span class="n">InclusionProblem</span><span class="p">([</span><span class="n">SmoothConvex</span><span class="p">(</span><span class="n">L</span><span class="p">)])</span>
 <span class="n">algorithm</span> <span class="o">=</span> <span class="n">HeavyBallMethod</span><span class="p">(</span><span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="n">delta</span><span class="p">)</span>
 
-<span class="c1"># V(P,p,k) = 0 and R(T,t,k) = f(x^k) - f(x^*)</span>
+<span class="c1"># V(P,p,k) = 0 and R(T,t,k) = function-value suboptimality</span>
 <span class="n">P</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">IterationIndependent</span><span class="o">.</span><span class="n">SublinearConvergence</span><span class="o">.</span><span class="n">get_parameters_function_value_suboptimality</span><span class="p">(</span>
     <span class="n">algorithm</span><span class="p">,</span>
     <span class="n">tau</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -221,7 +222,8 @@ setting (<span class="math notranslate nohighlight">\(\rho = 1\)</span>) while e
 <p>When the certificate is feasible, the certified function-value convergence is</p>
 <div class="math notranslate nohighlight">
 \[f(x^k) - f(x^\star) = o\!\left(\frac{1}{k}\right),\]</div>
-<p>or equivalently</p>
+<p>where <span class="math notranslate nohighlight">\(x^\star \in \Argmin_{x \in \calH} f(x)\)</span>.</p>
+<p>Equivalently,</p>
 <div class="math notranslate nohighlight">
 \[\lim_{k \to \infty} k\bigl(f(x^k)-f(x^\star)\bigr)=0.\]</div>
 <p>Sweeping over <span class="math notranslate nohighlight">\(\gamma\)</span> and <span class="math notranslate nohighlight">\(\delta\)</span> gives the plot below, where
@@ -246,8 +248,8 @@ each dot denotes a parameter pair for which the verification is successful.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="douglas_rachford_operator_giselsson.html" class="btn btn-neutral float-left" title="The Douglas–Rachford method (operator form)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="proximal_gradient.html" class="btn btn-neutral float-right" title="Define your own algorithm: The proximal gradient method" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="douglas_rachford_operator_giselsson.html" class="btn btn-neutral float-left" title="The Douglas–Rachford method" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="nesterov_fast_gradient.html" class="btn btn-neutral float-right" title="Nesterov’s fast gradient method" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -76,14 +76,17 @@ print(f"rho (AutoLyap): {rho:.8f}")
 print(f"rho (theory):   {rho_theory:.8f}")
 ```
 
-The computed value `rho (AutoLyap)` matches the theoretical rate expression for gradient methods; see {cite}`quick-Polyak1963GradientUSSR`.
+The computed value `rho (AutoLyap)` matches the theoretical rate expression for
+gradient methods; see {cite}`quick-Polyak1963GradientUSSR`:
 
 ```{math}
 \|x^k - x^\star\|^2 = O(\rho^k), \qquad
 \rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2,
 ```
 
-or
+where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
+
+Equivalently,
 
 ```{math}
 \|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).
@@ -182,12 +185,15 @@ print(f"c_K (AutoLyap): {c_K:.6e}")
 print(f"c_K (theory):   {c_K_theory:.6e}")
 ```
 
-The computed value `c_K (AutoLyap)` matches the theoretical horizon-`K` expression
+The computed value `c_K (AutoLyap)` matches the theoretical horizon-`K`
+expression:
 
 ```{math}
 f(x^K) - f(x^\star) \le c_K\,\|x^0 - x^\star\|^2, \qquad
 c_K = \frac{L}{2\theta_K^2}.
 ```
+
+where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
 
 In particular,
 
