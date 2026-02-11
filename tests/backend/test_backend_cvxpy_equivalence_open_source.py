@@ -4,7 +4,6 @@ import pytest
 from autolyap import IterationDependent, IterationIndependent
 from autolyap.algorithms import GradientMethod, OptimizedGradientMethod
 from autolyap.problemclass import InclusionProblem, SmoothConvex, SmoothStronglyConvex
-from tests.shared.cvxpy_fixtures import cvxpy_open_source_solver_name, cvxpy_open_source_solver_options
 from tests.shared.cvxpy_test_utils import make_cvxpy_solver_options
 
 

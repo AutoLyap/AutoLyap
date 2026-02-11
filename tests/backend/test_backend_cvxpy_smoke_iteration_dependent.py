@@ -1,6 +1,5 @@
 from autolyap import IterationDependent
 from autolyap.problemclass import Convex, InclusionProblem, MaximallyMonotone
-from tests.shared.cvxpy_fixtures import cvxpy_open_source_solver_options
 
 
 def test_iteration_dependent_verify_with_cvxpy_backend_smoke(

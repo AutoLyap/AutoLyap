@@ -4,7 +4,6 @@ import pytest
 from autolyap import IterationIndependent
 from autolyap.algorithms import GradientMethod, ProximalPoint
 from autolyap.problemclass import InclusionProblem, SmoothStronglyConvex, StronglyConvex
-from tests.shared.cvxpy_fixtures import cvxpy_open_source_solver_name, cvxpy_open_source_solver_options
 
 
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")

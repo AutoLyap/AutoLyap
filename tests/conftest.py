@@ -3,6 +3,8 @@ import pytest
 
 from autolyap.algorithms.algorithm import Algorithm
 
+pytest_plugins = ("tests.shared.cvxpy_fixtures",)
+
 
 # Shared algorithm fixtures for matrix and parameter tests.
 class _ConstantAlgorithm(Algorithm):

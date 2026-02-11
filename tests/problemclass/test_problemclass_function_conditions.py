@@ -15,7 +15,6 @@ from autolyap.problemclass import (
 )
 from autolyap.problemclass.problemclass import (
     ParametrizedFunctionInterpolationCondition,
-    FunctionInterpolationCondition,
 )
 
 

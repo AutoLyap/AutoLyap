@@ -2,7 +2,6 @@ import numpy as np
 
 from autolyap import IterationIndependent
 from autolyap.problemclass import Convex, InclusionProblem, MaximallyMonotone
-from tests.shared.cvxpy_fixtures import cvxpy_open_source_solver_name, cvxpy_open_source_solver_options
 from tests.shared.cvxpy_test_utils import make_cvxpy_solver_options
 
 

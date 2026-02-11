@@ -4,7 +4,6 @@ import pytest
 from autolyap import IterationIndependent
 from autolyap.algorithms import Algorithm
 from autolyap.problemclass import Convex, InclusionProblem, SmoothStronglyConvex
-from tests.shared.cvxpy_fixtures import cvxpy_open_source_solver_name, cvxpy_open_source_solver_options
 
 
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
