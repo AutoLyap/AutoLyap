@@ -4,7 +4,6 @@ import pytest
 from autolyap import IterationDependent, IterationIndependent
 from autolyap.algorithms import GradientMethod, OptimizedGradientMethod
 from autolyap.problemclass import InclusionProblem, SmoothConvex, SmoothStronglyConvex
-from tests.shared.cvxpy_fixtures import cvxpy_mosek_solver_options, mosek_fusion_solver_options
 
 
 pytestmark = pytest.mark.mosek

@@ -1,6 +1,5 @@
 from autolyap import IterationDependent, IterationIndependent
 from autolyap.problemclass import Convex, InclusionProblem, MaximallyMonotone
-from tests.shared.cvxpy_fixtures import cvxpy_module
 
 
 def test_iteration_independent_cvxpy_builder_respects_fixed_flags(
