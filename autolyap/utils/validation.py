@@ -1,7 +1,7 @@
 """Validation helpers shared across algorithms and problem classes."""
 
 from numbers import Integral, Real
-from typing import Iterable, List, Optional, Sequence
+from typing import Iterable, List, Optional, Sequence, cast
 
 import numpy as np
 
@@ -11,7 +11,7 @@ _INDEX_LIST_TYPES = (list, tuple, np.ndarray)
 def _ensure_index_container(values: object, name: str, error_message: str) -> Sequence[object]:
     if values is None or not isinstance(values, _INDEX_LIST_TYPES):
         raise ValueError(error_message)
-    return values
+    return cast(Sequence[object], values)
 
 
 def ensure_integral(value: object, name: str, minimum: Optional[int] = None,

@@ -1,8 +1,8 @@
 import numpy as np
-from typing import Any, Type, Optional, Tuple, Union, List, Dict, Iterator
+from typing import Any, Optional, Tuple, Union, List, Dict, Iterator, cast
 from itertools import combinations
 from mosek.fusion import Model, Domain, ObjectiveSense, OptimizeError
-import mosek.fusion.pythonic
+import mosek.fusion.pythonic  # noqa: F401  # required to enable Fusion operator overloads
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
 from autolyap.solver_options import (
     SolverOptions,
@@ -19,8 +19,8 @@ from autolyap.algorithms import Algorithm
 
 Pair = Union[Tuple[int, int], Tuple[str, str]]
 PairTuple = Tuple[Pair, ...]
-OperatorInterpolationData = Tuple[np.ndarray, str]
-FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, str]
+OperatorInterpolationData = Tuple[np.ndarray, Any]
+FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, Any]
 InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
 
 class IterationDependent:
@@ -190,12 +190,12 @@ class IterationDependent:
 
     @staticmethod
     def _compute_iteration_dependent_diagnostics(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             K: int,
             c_K_value: float,
-            certificate: Dict[str, object],
-    ) -> Dict[str, object]:
+            certificate: Dict[str, Any],
+    ) -> Dict[str, Any]:
         r"""Compute post-solve diagnostics for nonnegativity, PSD, and equality constraints."""
         Q_sequence = [np.asarray(Q_k, dtype=float) for Q_k in certificate["Q_sequence"]]
         q_sequence_raw = certificate["q_sequence"]
@@ -252,9 +252,9 @@ class IterationDependent:
             W_matrix = E_matrix.T @ M @ E_matrix
             psd_constraint_sums[k] = psd_constraint_sums[k] + value * W_matrix
 
-        psd_per_constraint: List[Dict[str, object]] = []
+        psd_per_constraint: List[Dict[str, Any]] = []
         largest_psd_violation = 0.0
-        worst_psd_entry: Optional[Dict[str, object]] = None
+        worst_psd_entry: Optional[Dict[str, Any]] = None
 
         for k in range(0, K):
             min_eigenvalue = IterationDependent._min_symmetric_eigenvalue(psd_constraint_sums[k])
@@ -271,11 +271,11 @@ class IterationDependent:
             if violation > largest_psd_violation:
                 largest_psd_violation = violation
 
-        equality_per_constraint: List[Dict[str, object]] = []
+        equality_per_constraint: List[Dict[str, Any]] = []
         violating_equality_entries = 0
         total_equality_entries = 0
         largest_equality_violation = 0.0
-        worst_equality_entry: Optional[Dict[str, object]] = None
+        worst_equality_entry: Optional[Dict[str, Any]] = None
         equality_tolerance = 1e-9
 
         if algo.m_func > 0:
@@ -388,7 +388,7 @@ class IterationDependent:
 
     @staticmethod
     def _print_iteration_dependent_diagnostics(
-            diagnostics: Dict[str, object],
+            diagnostics: Dict[str, Any],
             K: int,
             c_K_value: float,
             backend: str,
@@ -477,8 +477,8 @@ class IterationDependent:
 
     @staticmethod
     def _validate_iteration_dependent_inputs(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             K: int,
             Q_0: np.ndarray,
             Q_K: np.ndarray,
@@ -603,7 +603,7 @@ class IterationDependent:
 
     @staticmethod
     def _collect_iteration_dependent_component_data(
-            prob: Type[InclusionProblem],
+            prob: InclusionProblem,
             m: int,
             op_components: set,
     ) -> Dict[int, List[Tuple[InterpolationData, str, bool, bool]]]:
@@ -614,13 +614,17 @@ class IterationDependent:
             data = prob.get_component_data(i)
             validated: List[Tuple[InterpolationData, str, bool, bool]] = []
             for o, interp_data in enumerate(data):
-                interp_idx = interp_data[1] if is_op else interp_data[3]
+                if is_op:
+                    interp_idx = cast(OperatorInterpolationData, interp_data)[1]
+                else:
+                    interp_idx = cast(FunctionInterpolationData, interp_data)[3]
                 interp_key = str(interp_idx)
                 expected_len = IterationDependent._expected_pairs_len(interp_key)
                 expected_dim = 2 * expected_len
 
                 if is_op:
-                    M, _ = interp_data
+                    interp_data_op = cast(OperatorInterpolationData, interp_data)
+                    M, _ = interp_data_op
                     if getattr(M, 'shape', None) != (expected_dim, expected_dim):
                         raise ValueError(
                             f"Interpolation matrix for component {i}, condition {o} must have "
@@ -628,9 +632,10 @@ class IterationDependent:
                             f"Got {getattr(M, 'shape', None)}."
                         )
                     has_quadratic = bool(np.any(M))
-                    validated.append((interp_data, interp_key, has_quadratic, False))
+                    validated.append((interp_data_op, interp_key, has_quadratic, False))
                 else:
-                    M, a, _eq, _ = interp_data
+                    interp_data_func = cast(FunctionInterpolationData, interp_data)
+                    M, a, _eq, _ = interp_data_func
                     if getattr(a, 'shape', None) != (expected_len,):
                         raise ValueError(
                             f"Interpolation vector for component {i}, condition {o} must have "
@@ -644,14 +649,14 @@ class IterationDependent:
                         )
                     has_quadratic = bool(np.any(M))
                     has_linear = bool(np.any(a))
-                    validated.append((interp_data, interp_key, has_quadratic, has_linear))
+                    validated.append((interp_data_func, interp_key, has_quadratic, has_linear))
             component_data[i] = validated
         return component_data
 
     @staticmethod
     def _build_iteration_dependent_model(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             K: int,
             Q_0,
             Q_K,
@@ -662,7 +667,7 @@ class IterationDependent:
             m_func: int,
             m_op: int,
             model: Optional[Model] = None,
-        ) -> Tuple[Model, Dict[str, object]]:
+        ) -> Tuple[Model, Dict[str, Any]]:
         Mod = model if model is not None else Model()
         c_K = Mod.variable("c_K", 1, Domain.greaterThan(0.0))
         
@@ -782,9 +787,9 @@ class IterationDependent:
             if comp_type == 'op':
                 if not has_quadratic:
                     return
-                M, _ = interpolation_data
+                M, _ = cast(OperatorInterpolationData, interpolation_data)
             else:
-                M, a, eq, _ = interpolation_data
+                M, a, eq, _ = cast(FunctionInterpolationData, interpolation_data)
                 if not has_quadratic and not has_linear:
                     return
 
@@ -861,7 +866,7 @@ class IterationDependent:
         # ---------------------------------------------------------------------
         Mod.objective("obj", ObjectiveSense.Minimize, c_K)
 
-        solution_handles: Dict[str, object] = {
+        solution_handles: Dict[str, Any] = {
             "K": K,
             "dim_Q": dim_Q,
             "dim_q": dim_q,
@@ -881,8 +886,8 @@ class IterationDependent:
 
     @staticmethod
     def _build_iteration_dependent_problem_cvxpy(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             K: int,
             Q_0,
             Q_K,
@@ -893,7 +898,7 @@ class IterationDependent:
             m_func: int,
             m_op: int,
             cp,
-    ) -> Tuple[object, Dict[str, object]]:
+    ) -> Tuple[Any, Dict[str, Any]]:
         r"""Assemble and return the CVXPY problem and variable handles."""
         c_K = cp.Variable(nonneg=True)
 
@@ -937,8 +942,6 @@ class IterationDependent:
         lambdas_func: Dict[Tuple[int, int, PairTuple, int], object] = {}
         nus_func: Dict[Tuple[int, int, PairTuple, int], object] = {}
 
-        n = algo.n
-        m_bar = algo.m_bar
         m_bar_func = algo.m_bar_func
         op_components = set(algo.I_op)
         m = algo.m
@@ -984,9 +987,9 @@ class IterationDependent:
             if comp_type == 'op':
                 if not has_quadratic:
                     return
-                M, _ = interpolation_data
+                M, _ = cast(OperatorInterpolationData, interpolation_data)
             else:
-                M, a, eq, _ = interpolation_data
+                M, a, eq, _ = cast(FunctionInterpolationData, interpolation_data)
                 if not has_quadratic and not has_linear:
                     return
 
@@ -1053,7 +1056,7 @@ class IterationDependent:
                 constraints.append(eq_constraint_sums[k] == 0)
 
         problem = cp.Problem(cp.Minimize(c_K), constraints)
-        solution_handles: Dict[str, object] = {
+        solution_handles: Dict[str, Any] = {
             "K": K,
             "dim_Q": dim_Q,
             "dim_q": dim_q,
@@ -1079,9 +1082,9 @@ class IterationDependent:
     @staticmethod
     def _serialize_iteration_dependent_multipliers(
             multiplier_vars: Dict[Tuple[int, int, PairTuple, int], object]
-    ) -> List[Dict[str, object]]:
+    ) -> List[Dict[str, Any]]:
         r"""Convert scalar multiplier variables into readable records."""
-        records: List[Dict[str, object]] = []
+        records: List[Dict[str, Any]] = []
         for key, var in sorted(
                 multiplier_vars.items(),
                 key=lambda item: (item[0][0], item[0][1], item[0][3], str(item[0][2]))):
@@ -1097,7 +1100,7 @@ class IterationDependent:
         return records
 
     @staticmethod
-    def _extract_iteration_dependent_certificate(solution_handles: Dict[str, object]) -> Dict[str, object]:
+    def _extract_iteration_dependent_certificate(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
         r"""Extract a solved iteration-dependent certificate into NumPy/Python values."""
         K = int(solution_handles["K"])
         dim_Q = int(solution_handles["dim_Q"])
@@ -1146,7 +1149,7 @@ class IterationDependent:
         }
 
     @staticmethod
-    def _extract_iteration_dependent_certificate_cvxpy(solution_handles: Dict[str, object]) -> Dict[str, object]:
+    def _extract_iteration_dependent_certificate_cvxpy(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
         r"""Extract a solved CVXPY-backed iteration-dependent certificate."""
         K = int(solution_handles["K"])
         m_func = int(solution_handles["m_func"])
@@ -1194,8 +1197,8 @@ class IterationDependent:
 
     @staticmethod
     def verify_iteration_dependent_Lyapunov(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             K: int,
             Q_0: np.ndarray,
             Q_K: np.ndarray,
@@ -1203,7 +1206,7 @@ class IterationDependent:
             q_K: Optional[np.ndarray] = None,
             solver_options: Optional[SolverOptions] = None,
             verbosity: int = 0,
-    ) -> Dict[str, object]:
+    ) -> Dict[str, Any]:
         r"""
         Verify feasibility of iteration-dependent Lyapunov inequalities via an SDP.
 
@@ -1497,7 +1500,7 @@ class IterationDependent:
         return {"success": True, "c_K": c_K_val, "certificate": certificate}
 
     @staticmethod
-    def _compute_Thetas(algo: Type[Algorithm], k: int) -> Tuple[np.ndarray, np.ndarray]:
+    def _compute_Thetas(algo: Algorithm, k: int) -> Tuple[np.ndarray, np.ndarray]:
         r"""
         Compute the capital :math:`\Theta` matrices for the iteration-dependent Lyapunov context.
 
@@ -1573,7 +1576,7 @@ class IterationDependent:
         return Theta0, Theta1
 
     @staticmethod
-    def _compute_thetas(algo: Type[Algorithm]) -> Tuple[np.ndarray, np.ndarray]:
+    def _compute_thetas(algo: Algorithm) -> Tuple[np.ndarray, np.ndarray]:
         r"""
         Compute the lowercase :math:`\theta` matrices for the iteration-dependent Lyapunov context.
 
@@ -1636,7 +1639,7 @@ class IterationDependent:
 
     @staticmethod
     def get_parameters_distance_to_solution(
-            algo: Type[Algorithm],
+            algo: Algorithm,
             k: int,
             i: int = 1,
             j: int = 1
@@ -1737,7 +1740,7 @@ class IterationDependent:
     
     @staticmethod
     def get_parameters_function_value_suboptimality(
-            algo: Type[Algorithm], 
+            algo: Algorithm, 
             k: int, 
             j: int = 1
         ) -> Tuple[np.ndarray, np.ndarray]:
@@ -1817,7 +1820,7 @@ class IterationDependent:
 
     @staticmethod
     def get_parameters_fixed_point_residual(
-            algo: Type[Algorithm], 
+            algo: Algorithm, 
             k: int
         ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
         r"""
@@ -1894,7 +1897,7 @@ class IterationDependent:
 
     @staticmethod
     def get_parameters_optimality_measure(
-            algo: Type[Algorithm], 
+            algo: Algorithm, 
             k: int
         ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
         r"""
@@ -1995,13 +1998,10 @@ class IterationDependent:
                 raise ValueError("Optimality measure requires each component to have at least one evaluation.")
             # m > 1:
             # term1 = (sum_{i=1}^{m} P_{(i,1)}U_{k}^{k,k})^{\top} (sum_{i=1}^{m} P_{(i,1)}U_{k}^{k,k})
-            S = None
+            S = np.zeros((1, Us[k].shape[1]))
             for i in range(1, algo.m + 1):
                 P_i = Ps[(i, 1)]
-                if S is None:
-                    S = P_i @ Us[k]
-                else:
-                    S = S + P_i @ Us[k]
+                S = S + P_i @ Us[k]
             term1 = S.T @ S
             
             # term2 = sum_{i=2}^{m} ((P_{(1,1)} - P_{(i,1)})Y_{k}^{k,k})^{\top} ((P_{(1,1)} - P_{(i,1)})Y_{k}^{k,k})

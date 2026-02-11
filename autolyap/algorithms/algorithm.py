@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from numbers import Integral
-from typing import List, Tuple, Any, Dict, Union
+from typing import List, Tuple, Any, Dict, Optional, TypeVar, Union
 
 from autolyap.utils.validation import (
     ensure_finite_array,
@@ -14,6 +14,18 @@ from autolyap.utils.validation import (
 
 Pair = Union[Tuple[int, int], Tuple[str, str]]
 PairList = List[Pair]
+MatrixTuple = Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+HorizonKey = Tuple[int, int]
+StepKey = Union[int, str]
+ProjectionKey = Tuple[int, Union[int, str]]
+FKey = Tuple[int, Union[int, str], Union[int, str]]
+AsBsCsDsDict = Dict[int, MatrixTuple]
+UsDict = Dict[StepKey, np.ndarray]
+YsDict = Dict[StepKey, np.ndarray]
+XsDict = Dict[int, np.ndarray]
+PsDict = Dict[ProjectionKey, np.ndarray]
+FsDict = Dict[FKey, np.ndarray]
+CacheValueT = TypeVar("CacheValueT")
 
 class Algorithm(ABC):
     r"""
@@ -198,22 +210,22 @@ class Algorithm(ABC):
         self.m_bar_func = sum(m_bar_is[i - 1] for i in I_func) if I_func else 0  # \bar{m}_{\text{func}}
         self.m_bar_op = sum(m_bar_is[i - 1] for i in I_op) if I_op else 0          # \bar{m}_{\text{op}}
         # Mapping for functional indices (for F matrices)
-        self.kappa = {I_func[i]: i + 1 for i in range(self.m_func)} if I_func else {}
+        self.kappa: Dict[int, int] = {I_func[i]: i + 1 for i in range(self.m_func)} if I_func else {}
         # Precompute offsets for faster projections and F rows.
         self._m_bar_offsets = np.concatenate(([0], np.cumsum(self.m_bar_is)))
-        self._func_offsets = {}
+        self._func_offsets: Dict[int, int] = {}
         func_offset = 0
         for i in self.I_func:
             self._func_offsets[i] = func_offset
             func_offset += self.m_bar_is[i - 1]
-        self._Ps_cache = None
+        self._Ps_cache: Optional[PsDict] = None
         # Bounded LRU caches keyed by (k_min, k_max) to reuse horizon-specific matrices.
         self._cache_maxsize = 8
-        self._cache_AsBsCsDs = OrderedDict()
-        self._cache_Us = OrderedDict()
-        self._cache_Ys = OrderedDict()
-        self._cache_Xs = OrderedDict()
-        self._cache_Fs = OrderedDict()
+        self._cache_AsBsCsDs: OrderedDict[HorizonKey, AsBsCsDsDict] = OrderedDict()
+        self._cache_Us: OrderedDict[HorizonKey, UsDict] = OrderedDict()
+        self._cache_Ys: OrderedDict[HorizonKey, YsDict] = OrderedDict()
+        self._cache_Xs: OrderedDict[HorizonKey, XsDict] = OrderedDict()
+        self._cache_Fs: OrderedDict[HorizonKey, FsDict] = OrderedDict()
         object.__setattr__(self, "_cache_enabled", True)
 
     def _clear_dynamic_caches(self) -> None:
@@ -233,14 +245,19 @@ class Algorithm(ABC):
             self._cache_Fs.clear()
         object.__setattr__(self, "_Ps_cache", None)
 
-    def _cache_get(self, cache: OrderedDict, key: Tuple[int, int]):
+    def _cache_get(self, cache: OrderedDict[HorizonKey, CacheValueT], key: HorizonKey) -> Optional[CacheValueT]:
         # Simple LRU: move hit to the end to mark it as most recently used.
         if key in cache:
             cache.move_to_end(key)
             return cache[key]
         return None
 
-    def _cache_set(self, cache: OrderedDict, key: Tuple[int, int], value):
+    def _cache_set(
+            self,
+            cache: OrderedDict[HorizonKey, CacheValueT],
+            key: HorizonKey,
+            value: CacheValueT,
+    ) -> CacheValueT:
         # Insert and evict least-recently-used when capacity is exceeded.
         cache[key] = value
         cache.move_to_end(key)
@@ -266,8 +283,14 @@ class Algorithm(ABC):
         view.setflags(write=False)
         return view
 
-    def _readonly_tuple(self, mats: Tuple[np.ndarray, ...]) -> Tuple[np.ndarray, ...]:
-        return tuple(self._readonly_view(mat) for mat in mats)
+    def _readonly_tuple(self, mats: MatrixTuple) -> MatrixTuple:
+        A, B, C, D = mats
+        return (
+            self._readonly_view(A),
+            self._readonly_view(B),
+            self._readonly_view(C),
+            self._readonly_view(D),
+        )
 
     @staticmethod
     def _validate_k_bounds(k_min: int, k_max: int) -> Tuple[int, int]:
@@ -366,8 +389,7 @@ class Algorithm(ABC):
         """
         pass
 
-    def get_AsBsCsDs(self, k_min: int, k_max: int
-                      ) -> Dict[int, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+    def get_AsBsCsDs(self, k_min: int, k_max: int) -> AsBsCsDsDict:
         r"""
         Return a dictionary mapping each iteration index :math:`k` to
         :math:`(A_k, B_k, C_k, D_k)` for :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`.
@@ -407,7 +429,7 @@ class Algorithm(ABC):
         cached = self._cache_get(self._cache_AsBsCsDs, key)
         if cached is not None:
             return dict(cached)
-        sys_mats = {}
+        sys_mats: AsBsCsDsDict = {}
         for k in range(k_min, k_max + 1):
             mats = self.get_ABCD(k)
             if not (isinstance(mats, tuple) and len(mats) == 4):
@@ -432,7 +454,7 @@ class Algorithm(ABC):
         return dict(sys_mats)
 
     # --- U MATRICES ---
-    def _generate_U(self, k_min: int, k_max: int, k: int = None, star: bool = False) -> np.ndarray:
+    def _generate_U(self, k_min: int, k_max: int, k: Optional[int] = None, star: bool = False) -> np.ndarray:
         r"""
         Generate a U matrix for the specified iteration range.
         The total number of columns is:
@@ -505,7 +527,7 @@ class Algorithm(ABC):
             right = np.zeros((self.m_bar, (k_max - k) * self.m_bar + self.m))
             return np.hstack([left, ident, right])
 
-    def get_Us(self, k_min: int, k_max: int) -> Dict[Any, np.ndarray]:
+    def get_Us(self, k_min: int, k_max: int) -> UsDict:
         r"""
         Return a dictionary of U matrices for iterations :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`,
         including the star matrix.
@@ -566,7 +588,7 @@ class Algorithm(ABC):
         cached = self._cache_get(self._cache_Us, key)
         if cached is not None:
             return dict(cached)
-        Us = {}
+        Us: UsDict = {}
         for k in range(k_min, k_max + 1):
             Us[k] = self._readonly_view(self._generate_U(k_min, k_max, k=k, star=False))
         Us['star'] = self._readonly_view(self._generate_U(k_min, k_max, star=True))
@@ -575,8 +597,8 @@ class Algorithm(ABC):
 
     # --- Y MATRICES ---
     def _generate_Y(self,
-                    sys_mats: Dict[int, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]],
-                    k_min: int, k_max: int, k: int = None, star: bool = False) -> np.ndarray:
+                    sys_mats: AsBsCsDsDict,
+                    k_min: int, k_max: int, k: Optional[int] = None, star: bool = False) -> np.ndarray:
         r"""
         Generate the output matrix :math:`Y` using system matrices from `sys_mats`.
         The total number of columns is:
@@ -684,7 +706,7 @@ class Algorithm(ABC):
             blocks.append(zeros_blk)
             return np.hstack(blocks)
 
-    def get_Ys(self, k_min: int, k_max: int) -> Dict[Any, np.ndarray]:
+    def get_Ys(self, k_min: int, k_max: int) -> YsDict:
         r"""
         Return a dictionary of Y matrices for iterations :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`,
         including :math:`Y_{\star}`.
@@ -767,7 +789,7 @@ class Algorithm(ABC):
         if cached is not None:
             return dict(cached)
         sys_mats = self.get_AsBsCsDs(k_min, k_max)
-        Ys = {}
+        Ys: YsDict = {}
         for k in range(k_min, k_max + 1):
             Ys[k] = self._readonly_view(self._generate_Y(sys_mats, k_min, k_max, k=k, star=False))
         Ys['star'] = self._readonly_view(self._generate_Y(sys_mats, k_min, k_max, star=True))
@@ -775,7 +797,7 @@ class Algorithm(ABC):
         return dict(Ys)
 
     # --- X MATRICES ---
-    def _generate_X_k(self, sys_mats: Dict[int, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]],
+    def _generate_X_k(self, sys_mats: AsBsCsDsDict,
                         k: int, k_min: int, k_max: int) -> np.ndarray:
         r"""
         Generate the state matrix :math:`X_k` for
@@ -845,7 +867,7 @@ class Algorithm(ABC):
         parts.append(zeros_blk)
         return np.hstack(parts)
 
-    def get_Xs(self, k_min: int, k_max: int) -> Dict[int, np.ndarray]:
+    def get_Xs(self, k_min: int, k_max: int) -> XsDict:
         r"""
         Return a dictionary mapping each iteration index :math:`k`
         (for :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}} + 1\rrbracket`) to the corresponding
@@ -919,14 +941,14 @@ class Algorithm(ABC):
         if cached is not None:
             return dict(cached)
         sys_mats = self.get_AsBsCsDs(k_min, k_max)
-        Xs = {}
+        Xs: XsDict = {}
         for k in range(k_min, k_max + 2):
             Xs[k] = self._readonly_view(self._generate_X_k(sys_mats, k, k_min, k_max))
         self._cache_set(self._cache_Xs, key, Xs)
         return dict(Xs)
 
     # --- PROJECTION MATRICES (P) ---
-    def get_Ps(self) -> Dict[Tuple[Any, Any], np.ndarray]:
+    def get_Ps(self) -> PsDict:
         r"""
         Return a dictionary of projection matrices :math:`P`.
         In compact form:
@@ -979,7 +1001,7 @@ class Algorithm(ABC):
         # Cache projection matrices since they are structural (independent of horizons and step sizes).
         if self._Ps_cache is not None:
             return dict(self._Ps_cache)
-        Ps = {}
+        Ps: PsDict = {}
         for i in range(1, self.m + 1):
             offset = int(self._m_bar_offsets[i - 1])
             for j in range(1, self.m_bar_is[i - 1] + 1):
@@ -993,7 +1015,7 @@ class Algorithm(ABC):
         return dict(Ps)
 
     # --- F MATRICES (for functional components) ---
-    def _generate_F(self, i: int, j: int = None, k: int = None,
+    def _generate_F(self, i: int, j: Optional[int] = None, k: Optional[int] = None,
                     star: bool = False, k_min: int = 0, k_max: int = 0) -> np.ndarray:
         r"""
         Generate one row of the F matrix for a functional component indexed by :math:`i`.
@@ -1062,7 +1084,7 @@ class Algorithm(ABC):
             F_nonstar[0, start_idx + j - 1] = 1
             return F_nonstar
 
-    def get_Fs(self, k_min: int, k_max: int) -> Dict[Tuple[Any, Any, Any], np.ndarray]:
+    def get_Fs(self, k_min: int, k_max: int) -> FsDict:
         r"""
         Return a dictionary of F matrices for all functional components.
         In compact form:
@@ -1134,7 +1156,7 @@ class Algorithm(ABC):
         cached = self._cache_get(self._cache_Fs, key)
         if cached is not None:
             return dict(cached)
-        Fs = {}
+        Fs: FsDict = {}
         for k in range(k_min, k_max + 1):
             for i in self.I_func:
                 for j in range(1, self.m_bar_is[i - 1] + 1):

@@ -1,8 +1,8 @@
 import numpy as np
-from typing import Any, Type, Optional, Tuple, Union, List, Dict, Iterator
+from typing import Any, Optional, Tuple, Union, List, Dict, Iterator, cast
 from itertools import combinations
 from mosek.fusion import Model, Domain, OptimizeError, Expr
-import mosek.fusion.pythonic
+import mosek.fusion.pythonic  # noqa: F401  # required to enable Fusion operator overloads
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
 from autolyap.solver_options import (
     SolverOptions,
@@ -20,8 +20,8 @@ from autolyap.algorithms import Algorithm
 
 Pair = Union[Tuple[int, int], Tuple[str, str]]
 PairTuple = Tuple[Pair, ...]
-OperatorInterpolationData = Tuple[np.ndarray, str]
-FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, str]
+OperatorInterpolationData = Tuple[np.ndarray, Any]
+FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, Any]
 InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
 
 class LinearConvergence:
@@ -38,7 +38,7 @@ class LinearConvergence:
     """
     @staticmethod
     def get_parameters_distance_to_solution(
-            algo: Type[Algorithm], 
+            algo: Algorithm, 
             h: int = 0, 
             alpha: int = 0,
             i: int = 1, 
@@ -147,9 +147,6 @@ class LinearConvergence:
         m = algo.m            # Total number of components.
         m_bar = algo.m_bar    # Total evaluations per iteration.
         
-        # Dimension of P: n + (h+1)*m_bar + m.
-        dim_P = n + (h + 1) * m_bar + m
-        
         # Dimension of T: n + (h+alpha+2)*m_bar + m.
         dim_T = n + (h + alpha + 2) * m_bar + m
 
@@ -188,7 +185,7 @@ class LinearConvergence:
 
     @staticmethod
     def get_parameters_function_value_suboptimality(
-            algo: Type[Algorithm],
+            algo: Algorithm,
             h: int = 0,
             alpha: int = 0,
             j: int = 1,
@@ -298,7 +295,6 @@ class LinearConvergence:
         
         dim_P = n + (h + 1) * m_bar + m
         dim_T = n + (h + alpha + 2) * m_bar + m
-        dim_p = (h + 1) * m_bar_func + m_func
         dim_t = (h + alpha + 2) * m_bar_func + m_func
         
         # ----- Construct zero matrices/vectors for the remaining outputs -----
@@ -310,8 +306,8 @@ class LinearConvergence:
     
     @staticmethod
     def bisection_search_rho(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             P: np.ndarray,
             T: np.ndarray,
             p: Optional[np.ndarray] = None,
@@ -330,7 +326,7 @@ class LinearConvergence:
             tol: float = 1e-12,
             solver_options: Optional[SolverOptions] = None,
             verbosity: int = 0,
-        ) -> Dict[str, object]:
+        ) -> Dict[str, Any]:
         r"""
         Perform a bisection search to find the minimum contraction parameter :math:`\rho`.
 
@@ -488,25 +484,25 @@ class LinearConvergence:
                         )
                     return {"success": False, "rho": None, "certificate": None}
 
-                l = lower_bound
-                u = upper_bound
+                lower = lower_bound
+                upper = upper_bound
                 iterations = 0
-                while (u - l) > tol:
+                while (upper - lower) > tol:
                     iterations += 1
-                    mid = (l + u) / 2.0
+                    mid = (lower + upper) / 2.0
                     if _check_rho(mid):
-                        u = mid
+                        upper = mid
                     else:
-                        l = mid
+                        lower = mid
                     if verbosity >= 2:
                         print(
                             f"[AutoLyap][DETAIL] Bisection iteration {iterations}: "
-                            f"interval=[{l:.12g}, {u:.12g}] (width={u - l:.3e})."
+                            f"interval=[{lower:.12g}, {upper:.12g}] (width={upper - lower:.3e})."
                         )
-                if not _check_rho(u):
+                if not _check_rho(upper):
                     if verbosity > 0:
                         print(
-                            f"[AutoLyap][INFO] Bisection finished without a feasible terminal rho."
+                            "[AutoLyap][INFO] Bisection finished without a feasible terminal rho."
                         )
                     return {"success": False, "rho": None, "certificate": None}
 
@@ -514,7 +510,7 @@ class LinearConvergence:
                 if verbosity > 0:
                     print(
                         f"[AutoLyap][INFO] Bisection succeeded in {iterations} iterations "
-                        f"with {feasibility_checks} feasibility checks. Final rho={u:.12g}."
+                        f"with {feasibility_checks} feasibility checks. Final rho={upper:.12g}."
                     )
                     try:
                         diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(
@@ -524,7 +520,7 @@ class LinearConvergence:
                             T,
                             p,
                             t,
-                            float(u),
+                            float(upper),
                             h,
                             alpha,
                             remove_C2,
@@ -534,7 +530,7 @@ class LinearConvergence:
                         )
                         IterationIndependent._print_iteration_independent_diagnostics(
                             diagnostics,
-                            float(u),
+                            float(upper),
                             solver_options.backend,
                             verbosity,
                         )
@@ -542,7 +538,7 @@ class LinearConvergence:
                         print(
                             f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                         )
-                return {"success": True, "rho": float(u), "certificate": certificate}
+                return {"success": True, "rho": float(upper), "certificate": certificate}
             finally:
                 Mod.dispose()
 
@@ -600,25 +596,25 @@ class LinearConvergence:
                 )
             return {"success": False, "rho": None, "certificate": None}
 
-        l = lower_bound
-        u = upper_bound
+        lower = lower_bound
+        upper = upper_bound
         iterations = 0
-        while (u - l) > tol:
+        while (upper - lower) > tol:
             iterations += 1
-            mid = (l + u) / 2.0
+            mid = (lower + upper) / 2.0
             if _check_rho_cvxpy(mid):
-                u = mid
+                upper = mid
             else:
-                l = mid
+                lower = mid
             if verbosity >= 2:
                 print(
                     f"[AutoLyap][DETAIL] Bisection iteration {iterations}: "
-                    f"interval=[{l:.12g}, {u:.12g}] (width={u - l:.3e})."
+                    f"interval=[{lower:.12g}, {upper:.12g}] (width={upper - lower:.3e})."
                 )
-        if not _check_rho_cvxpy(u):
+        if not _check_rho_cvxpy(upper):
             if verbosity > 0:
                 print(
-                    f"[AutoLyap][INFO] Bisection finished without a feasible terminal rho."
+                    "[AutoLyap][INFO] Bisection finished without a feasible terminal rho."
                 )
             return {"success": False, "rho": None, "certificate": None}
 
@@ -626,7 +622,7 @@ class LinearConvergence:
         if verbosity > 0:
             print(
                 f"[AutoLyap][INFO] Bisection succeeded in {iterations} iterations "
-                f"with {feasibility_checks} feasibility checks. Final rho={u:.12g}."
+                f"with {feasibility_checks} feasibility checks. Final rho={upper:.12g}."
             )
             try:
                 diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(
@@ -636,7 +632,7 @@ class LinearConvergence:
                     T,
                     p,
                     t,
-                    float(u),
+                    float(upper),
                     h,
                     alpha,
                     remove_C2,
@@ -646,7 +642,7 @@ class LinearConvergence:
                 )
                 IterationIndependent._print_iteration_independent_diagnostics(
                     diagnostics,
-                    float(u),
+                    float(upper),
                     solver_options.backend,
                     verbosity,
                 )
@@ -654,7 +650,7 @@ class LinearConvergence:
                 print(
                     f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                 )
-        return {"success": True, "rho": float(u), "certificate": certificate}
+        return {"success": True, "rho": float(upper), "certificate": certificate}
 
 class SublinearConvergence:
     r"""
@@ -668,7 +664,7 @@ class SublinearConvergence:
     """
     @staticmethod
     def get_parameters_fixed_point_residual(
-            algo: Type[Algorithm],
+            algo: Algorithm,
             h: int = 0,
             alpha: int = 0,
             tau: int = 0
@@ -749,8 +745,6 @@ class SublinearConvergence:
         
         # Dimension of P: n + (h+1)*m_bar + m.
         dim_P = n + (h + 1) * m_bar + m
-        # Dimension of T: n + (h+alpha+2)*m_bar + m.
-        dim_T = n + (h + alpha + 2) * m_bar + m
 
         # ----- Compute T -----
         # Retrieve X matrices for the horizon [0, h+alpha+1].
@@ -777,7 +771,7 @@ class SublinearConvergence:
 
     @staticmethod
     def get_parameters_duality_gap(
-            algo: Type[Algorithm],
+            algo: Algorithm,
             h: int = 0,
             alpha: int = 0,
             tau: int = 0
@@ -959,7 +953,7 @@ class SublinearConvergence:
     
     @staticmethod
     def get_parameters_function_value_suboptimality(
-            algo: Type[Algorithm],
+            algo: Algorithm,
             h: int = 0,
             alpha: int = 0,
             j: int = 1,
@@ -1058,7 +1052,6 @@ class SublinearConvergence:
         m_bar_func = algo.m_bar_func
         m_func = algo.m_func
         dim_p = (h + 1) * m_bar_func + m_func
-        dim_t = (h + alpha + 2) * m_bar_func + m_func
 
         T = np.zeros((dim_T, dim_T))
         P = np.zeros((dim_P, dim_P))
@@ -1081,7 +1074,7 @@ class SublinearConvergence:
         
     @staticmethod
     def get_parameters_optimality_measure(
-                algo: Type[Algorithm],
+                algo: Algorithm,
                 h: int = 0,
                 alpha: int = 0,
                 tau: int = 0
@@ -1210,13 +1203,13 @@ class SublinearConvergence:
         else:
             # Case: m > 1.
             # First term: sum_{i=1}^{m} P_{(i,1)} U_tau.
-            sum_U = None
+            sum_U = np.zeros((1, U_tau.shape[1]))
             for i in range(1, m + 1):
                 if (i, 1) not in Ps:
                     raise ValueError(f"Projection matrix for component {i}, evaluation 1 not found.")
                 P_i1 = Ps[(i, 1)]
                 term = P_i1 @ U_tau
-                sum_U = term if sum_U is None else sum_U + term
+                sum_U = sum_U + term
             first_term = sum_U.T @ sum_U
             
             # Second term: sum_{i=2}^{m} ((P_{(1,1)} - P_{(i,1)}) Y_k).T ((P_{(1,1)} - P_{(i,1)}) Y_k).
@@ -1485,8 +1478,8 @@ class IterationIndependent:
 
     @staticmethod
     def _compute_iteration_independent_diagnostics(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             P: np.ndarray,
             T: np.ndarray,
             p: Optional[np.ndarray],
@@ -1497,8 +1490,8 @@ class IterationIndependent:
             remove_C2: bool,
             remove_C3: bool,
             remove_C4: bool,
-            certificate: Dict[str, object],
-    ) -> Dict[str, object]:
+            certificate: Dict[str, Any],
+    ) -> Dict[str, Any]:
         r"""Compute post-solve diagnostics for nonnegativity, PSD, and equality constraints."""
         Q_mat = np.asarray(certificate["Q"], dtype=float)
         S_mat = np.asarray(certificate["S"], dtype=float)
@@ -1570,9 +1563,9 @@ class IterationIndependent:
             W_matrix = E_matrix.T @ M @ E_matrix
             psd_constraint_sums[cond] = psd_constraint_sums[cond] + value * W_matrix
 
-        psd_per_constraint: List[Dict[str, object]] = []
+        psd_per_constraint: List[Dict[str, Any]] = []
         largest_psd_violation = 0.0
-        worst_psd_entry: Optional[Dict[str, object]] = None
+        worst_psd_entry: Optional[Dict[str, Any]] = None
 
         for cond in conds:
             min_eigenvalue = IterationIndependent._min_symmetric_eigenvalue(psd_constraint_sums[cond])
@@ -1589,11 +1582,11 @@ class IterationIndependent:
             if violation > largest_psd_violation:
                 largest_psd_violation = violation
 
-        equality_per_constraint: List[Dict[str, object]] = []
+        equality_per_constraint: List[Dict[str, Any]] = []
         violating_equality_entries = 0
         total_equality_entries = 0
         largest_equality_violation = 0.0
-        worst_equality_entry: Optional[Dict[str, object]] = None
+        worst_equality_entry: Optional[Dict[str, Any]] = None
         equality_tolerance = 1e-9
 
         if algo.m_func > 0:
@@ -1716,7 +1709,7 @@ class IterationIndependent:
 
     @staticmethod
     def _print_iteration_independent_diagnostics(
-            diagnostics: Dict[str, object],
+            diagnostics: Dict[str, Any],
             rho: float,
             backend: str,
             verbosity: int,
@@ -1804,8 +1797,8 @@ class IterationIndependent:
 
     @staticmethod
     def _validate_iteration_independent_inputs(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             P: np.ndarray,
             T: np.ndarray,
             p: Optional[np.ndarray],
@@ -1943,7 +1936,7 @@ class IterationIndependent:
 
     @staticmethod
     def _collect_iteration_independent_component_data(
-            prob: Type[InclusionProblem],
+            prob: InclusionProblem,
             m: int,
             op_components: set,
     ) -> Dict[int, List[Tuple[InterpolationData, str, bool, bool]]]:
@@ -1954,13 +1947,17 @@ class IterationIndependent:
             data = prob.get_component_data(i)
             validated: List[Tuple[InterpolationData, str, bool, bool]] = []
             for o, interp_data in enumerate(data):
-                interp_idx = interp_data[1] if is_op else interp_data[3]
+                if is_op:
+                    interp_idx = cast(OperatorInterpolationData, interp_data)[1]
+                else:
+                    interp_idx = cast(FunctionInterpolationData, interp_data)[3]
                 interp_key = str(interp_idx)
                 expected_len = IterationIndependent._expected_pairs_len(interp_key)
                 expected_dim = 2 * expected_len
 
                 if is_op:
-                    M, _ = interp_data
+                    interp_data_op = cast(OperatorInterpolationData, interp_data)
+                    M, _ = interp_data_op
                     if getattr(M, 'shape', None) != (expected_dim, expected_dim):
                         raise ValueError(
                             f"Interpolation matrix for component {i}, condition {o} must have "
@@ -1968,9 +1965,10 @@ class IterationIndependent:
                             f"Got {getattr(M, 'shape', None)}."
                         )
                     has_quadratic = bool(np.any(M))
-                    validated.append((interp_data, interp_key, has_quadratic, False))
+                    validated.append((interp_data_op, interp_key, has_quadratic, False))
                 else:
-                    M, a, _eq, _ = interp_data
+                    interp_data_func = cast(FunctionInterpolationData, interp_data)
+                    M, a, _eq, _ = interp_data_func
                     if getattr(a, 'shape', None) != (expected_len,):
                         raise ValueError(
                             f"Interpolation vector for component {i}, condition {o} must have "
@@ -1984,14 +1982,14 @@ class IterationIndependent:
                         )
                     has_quadratic = bool(np.any(M))
                     has_linear = bool(np.any(a))
-                    validated.append((interp_data, interp_key, has_quadratic, has_linear))
+                    validated.append((interp_data_func, interp_key, has_quadratic, has_linear))
             component_data[i] = validated
         return component_data
 
     @staticmethod
     def _build_iteration_independent_model(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             P: np.ndarray,
             T: np.ndarray,
             p: Optional[np.ndarray],
@@ -2007,7 +2005,7 @@ class IterationIndependent:
             remove_C4: bool,
             rho_term,
             model: Optional[Model] = None,
-        ) -> Tuple[Model, Dict[str, object]]:
+        ) -> Tuple[Model, Dict[str, Any]]:
         r"""Assemble and return the MOSEK Fusion model and variable handles."""
         # Dimensions and indices have already been validated by callers.
         n = algo.n
@@ -2015,8 +2013,6 @@ class IterationIndependent:
         m = algo.m
         m_bar_func = algo.m_bar_func
         m_func = algo.m_func
-        m_op = algo.m_op
-        m_bar_op = algo.m_bar_op
 
         dim_P = n + (h + 1) * m_bar + m
         dim_T = n + (h + alpha + 2) * m_bar + m
@@ -2045,6 +2041,8 @@ class IterationIndependent:
         q_var = None
         s_var = None
         if m_func > 0:
+            if p is None or t is None:
+                raise ValueError("p and t must be provided when functional components are active.")
             if q_equals_p:
                 q = p
             else:
@@ -2185,9 +2183,9 @@ class IterationIndependent:
             if comp_type == 'op':
                 if not has_quadratic:
                     return
-                M, _ = interpolation_data
+                M, _ = cast(OperatorInterpolationData, interpolation_data)
             else:
-                M, a, eq, _ = interpolation_data
+                M, a, eq, _ = cast(FunctionInterpolationData, interpolation_data)
                 if not has_quadratic and not has_linear:
                     return
 
@@ -2272,7 +2270,7 @@ class IterationIndependent:
             if m_func > 0:
                 Mod.constraint(eq_constraint_sums[cond] == 0)
 
-        solution_handles: Dict[str, object] = {
+        solution_handles: Dict[str, Any] = {
             "dim_P": dim_P,
             "dim_T": dim_T,
             "m_func": m_func,
@@ -2292,8 +2290,8 @@ class IterationIndependent:
 
     @staticmethod
     def _build_iteration_independent_problem_cvxpy(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             P: np.ndarray,
             T: np.ndarray,
             p: Optional[np.ndarray],
@@ -2309,7 +2307,7 @@ class IterationIndependent:
             remove_C4: bool,
             rho_term,
             cp,
-    ) -> Tuple[object, Dict[str, object]]:
+    ) -> Tuple[Any, Dict[str, Any]]:
         r"""Assemble and return the CVXPY problem and variable handles."""
         n = algo.n
         m_bar = algo.m_bar
@@ -2449,9 +2447,9 @@ class IterationIndependent:
             if comp_type == 'op':
                 if not has_quadratic:
                     return
-                M, _ = interpolation_data
+                M, _ = cast(OperatorInterpolationData, interpolation_data)
             else:
-                M, a, eq, _ = interpolation_data
+                M, a, eq, _ = cast(FunctionInterpolationData, interpolation_data)
                 if not has_quadratic and not has_linear:
                     return
 
@@ -2527,7 +2525,7 @@ class IterationIndependent:
                 constraints.append(eq_constraint_sums[cond] == 0)
 
         problem = cp.Problem(cp.Minimize(0), constraints)
-        solution_handles: Dict[str, object] = {
+        solution_handles: Dict[str, Any] = {
             "dim_P": dim_P,
             "dim_T": dim_T,
             "m_func": m_func,
@@ -2553,7 +2551,7 @@ class IterationIndependent:
     @staticmethod
     def _serialize_multipliers(
             multiplier_vars: Dict[Tuple[str, int, PairTuple, int], object]
-    ) -> List[Dict[str, object]]:
+    ) -> List[Dict[str, Any]]:
         r"""
         Convert scalar multiplier variables into readable records.
 
@@ -2595,7 +2593,7 @@ class IterationIndependent:
           with :math:`j=\star \Leftrightarrow k=\star`.
         - `value` is a real scalar.
         """
-        records: List[Dict[str, object]] = []
+        records: List[Dict[str, Any]] = []
         for key, var in sorted(
                 multiplier_vars.items(),
                 key=lambda item: (item[0][0], item[0][1], item[0][3], str(item[0][2]))):
@@ -2611,7 +2609,7 @@ class IterationIndependent:
         return records
 
     @staticmethod
-    def _extract_iteration_independent_certificate(solution_handles: Dict[str, object]) -> Dict[str, object]:
+    def _extract_iteration_independent_certificate(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
         r"""
         Extract a solved iteration-independent certificate into NumPy/Python values.
 
@@ -2672,7 +2670,7 @@ class IterationIndependent:
         }
 
     @staticmethod
-    def _extract_iteration_independent_certificate_cvxpy(solution_handles: Dict[str, object]) -> Dict[str, object]:
+    def _extract_iteration_independent_certificate_cvxpy(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
         r"""Extract a solved CVXPY-backed iteration-independent certificate."""
         m_func = int(solution_handles["m_func"])
         P = solution_handles["P"]
@@ -2723,8 +2721,8 @@ class IterationIndependent:
 
     @staticmethod
     def verify_iteration_independent_Lyapunov(
-            prob: Type[InclusionProblem],
-            algo: Type[Algorithm],
+            prob: InclusionProblem,
+            algo: Algorithm,
             P: np.ndarray,
             T: np.ndarray,
             p: Optional[np.ndarray] = None,
@@ -2741,7 +2739,7 @@ class IterationIndependent:
             remove_C4: bool = True,
             solver_options: Optional[SolverOptions] = None,
             verbosity: int = 0,
-    ) -> Dict[str, object]:
+    ) -> Dict[str, Any]:
         r"""
         Verify feasibility of an iteration-independent Lyapunov inequality via an SDP.
 
@@ -3051,7 +3049,7 @@ class IterationIndependent:
         return {"success": True, "rho": float(rho), "certificate": certificate}
     
     @staticmethod
-    def _compute_Thetas(algo: Type[Algorithm], h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:
+    def _compute_Thetas(algo: Algorithm, h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:
         r"""
         Compute the Theta matrices (capital :math:`\Theta`) using the :math:`X` matrices.
 
@@ -3137,7 +3135,7 @@ class IterationIndependent:
         raise ValueError("Unexpected error in _compute_Thetas.")
 
     @staticmethod
-    def _compute_thetas(algo: Type[Algorithm], h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:
+    def _compute_thetas(algo: Algorithm, h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:
         r"""
         Compute the theta matrices (lowercase :math:`\theta`) for functional evaluations.
 

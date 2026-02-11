@@ -139,8 +139,6 @@ class ITEM(Algorithm):
 
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         q = self.mu / self.L
-        A_k = self.get_A(k)
-        A_k1 = self.get_A(k + 1)
         beta = self.compute_beta(k)
         delta = self.compute_delta(k)
 
