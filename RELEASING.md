@@ -11,17 +11,19 @@ AutoLyap uses Semantic Versioning (`MAJOR.MINOR.PATCH`).
 ## Release workflow
 
 The `release` GitHub Actions workflow runs when a tag matching `v*` is pushed.
-It runs the core test suite, validates that the tag matches the `VERSION` file,
+It runs the full test suite, validates that the tag matches the `VERSION` file,
 builds source and wheel distributions, checks package metadata, creates a
-GitHub Release with generated notes and attached artifacts, publishes docs to
-`AutoLyap/AutoLyap.github.io`, and then publishes to PyPI using a Trusted
-Publisher.
+GitHub Release with generated notes and attached artifacts, publishes to PyPI using a Trusted Publisher, and then publishes docs to
+`AutoLyap/AutoLyap.github.io`.
 
 The PyPI publish step is tied to the GitHub environment `pypi` and requires a
 manual approval from configured reviewers.
 
-Docs publish uses the Actions secret `AUTOLYAP_GH_PAGES_TOKEN` (write access to
-`AutoLyap/AutoLyap.github.io`).
+Required GitHub Actions secrets:
+
+- `AUTOLYAP_GH_PAGES_TOKEN` for docs publish to `AutoLyap/AutoLyap.github.io`.
+- `MOSEK_LICENSE` for the `tests` workflow `pytest-mosek` job that runs on
+  repository pushes and for release verification.
 
 ## Maintainer steps
 
@@ -32,5 +34,5 @@ Docs publish uses the Actions secret `AUTOLYAP_GH_PAGES_TOKEN` (write access to
 5. Create and push a matching tag from the release commit on `main`:
    - `git tag v$(cat VERSION)`
    - `git push origin v$(cat VERSION)`
-6. Verify docs were published to `https://autolyap.github.io/`.
-7. Approve the `pypi` environment deployment when prompted in GitHub Actions.
+6. Approve the `pypi` environment deployment when prompted in GitHub Actions.
+7. Verify docs were published to `https://autolyap.github.io/`.

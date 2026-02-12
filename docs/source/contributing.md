@@ -1,7 +1,10 @@
 # Contributing
 
-Thank you for your interest in contributing to AutoLyap.
-This guide is for contributors working from a fork and submitting pull requests.
+Thank you for your interest in contributing to AutoLyap. This guide is for contributors working from a fork and submitting pull requests.
+
+## Source code 
+
+The project is hosted on GitHub at [https://github.com/AutoLyap/AutoLyap](https://github.com/AutoLyap/AutoLyap).
 
 ## Ways to contribute
 
@@ -46,12 +49,6 @@ python -m pip install -e '.[test]'
 
 AutoLyap requires Python `>=3.9`.
 
-For docs work, install docs dependencies:
-
-```bash
-make -C docs deps
-```
-
 ## Keep your branch current
 
 Rebase your branch onto `upstream/main` before opening or updating a PR:
@@ -78,23 +75,23 @@ python -m pip install ruff mypy
 The CI test matrix runs on Python `3.9`, `3.10`, `3.11`, `3.12`, and `3.13`.
 At minimum, run the checks above locally on one supported Python version.
 
-If you changed docs, run:
+If your change affects MOSEK, run:
 
 ```bash
-make check-docs
+make check-mosek
 ```
 
-Generated files are written to `docs/build/html/`.
-Do not commit generated files from `docs/build/`.
+## Notes for docs
 
-## Notes for docs and examples
+- Keep docstrings, docs, and mathematical notation consistent with existing structure and style.
+- To build the Sphinx documentation locally:
 
-- Keep notation consistent with nearby files.
-- Keep docstrings and docs consistent with existing section structure and style.
-- For new examples:
-  1. Add a page under `docs/source/examples/`.
-  2. Add it to the toctree in `docs/source/examples.md`.
-  3. Keep it runnable and focused on one workflow.
+```bash
+make -C docs deps
+make -C docs html
+```
+
+The generated site is written to `docs/build/html/` (open `docs/build/html/index.html`).
 
 ## Open a pull request
 
@@ -105,10 +102,6 @@ git push -u origin <feature-branch>
 ```
 
 2. Open a PR from your fork branch to `AutoLyap/AutoLyap:main`.
-3. In the PR description, include:
-- What changed.
-- Why it changed.
-- Which local commands you ran (ruff, mypy, pytest, docs build as applicable).
 
 ## Pull request checklist
 
@@ -118,4 +111,4 @@ git push -u origin <feature-branch>
 - [ ] Docs are updated when API or behavior changed.
 - [ ] Docs build locally (`make -C docs html`) if docs were changed.
 - [ ] No generated files from `docs/build/` are committed.
-- [ ] PR description states what changed, why, and which commands were run.
+- [ ] PR description states what changed and why.
