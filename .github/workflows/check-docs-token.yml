@@ -2,6 +2,9 @@ name: check-docs-token
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - manu/wip-large-update
 
 permissions:
   contents: read
