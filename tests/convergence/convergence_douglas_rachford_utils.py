@@ -5,7 +5,7 @@ import numpy as np
 from autolyap.iteration_independent import IterationIndependent
 
 
-def bisection_rho(problem, algorithm, h: int = 0, alpha: int = 0):
+def bisection_rho(problem, algorithm, h: int = 0, alpha: int = 0, solver_options=None):
     if algorithm.m_func > 0:
         P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
             algorithm, h, alpha
@@ -22,6 +22,7 @@ def bisection_rho(problem, algorithm, h: int = 0, alpha: int = 0):
             S_equals_T=True,
             s_equals_t=True,
             remove_C3=True,
+            solver_options=solver_options,
         )
 
     P, T = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
@@ -37,6 +38,7 @@ def bisection_rho(problem, algorithm, h: int = 0, alpha: int = 0):
         S_equals_T=True,
         s_equals_t=True,
         remove_C3=True,
+        solver_options=solver_options,
     )
 
 

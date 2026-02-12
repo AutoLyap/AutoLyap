@@ -1,19 +1,22 @@
 import numpy as np
-from autolyap.algorithms import GradientMethod
-from autolyap.problemclass import InclusionProblem, SmoothStronglyConvex
+import pytest
+from autolyap.algorithms import ProximalPoint
+from autolyap.problemclass import InclusionProblem, StronglyConvex
 from autolyap.iteration_independent import IterationIndependent
 from tests.shared.mosek_utils import require_mosek_license
 
+pytestmark = pytest.mark.mosek
 
-# Convergence-rate test for the gradient method using MOSEK.
-def test_convergence_gradient_method_rho_matches_theory():
+
+# Convergence-rate test for the proximal point method using MOSEK.
+# Theoretical rate reference: Rockafellar1976PPA.
+def test_convergence_proximal_point_rho_matches_theory():
     require_mosek_license()
     mu = 1.0
-    L = 4.0
-    problem = InclusionProblem([SmoothStronglyConvex(mu, L)])
-    algorithm = GradientMethod(gamma=1.0)
+    problem = InclusionProblem([StronglyConvex(mu)])
+    algorithm = ProximalPoint(gamma=1.0)
 
-    gammas = np.linspace(0.05, 0.45, 10)
+    gammas = np.linspace(0.05, 0.95, 10)
     for gamma in gammas:
         algorithm.set_gamma(gamma)
         P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(algorithm)
@@ -35,5 +38,5 @@ def test_convergence_gradient_method_rho_matches_theory():
         assert "multipliers" in result["certificate"]
         rho_al = result["rho"]
         assert rho_al is not None
-        rho_theoretical = max(gamma * L - 1, 1 - gamma * mu) ** 2
+        rho_theoretical = (1 / (1 + gamma * mu)) ** 2
         assert abs(rho_al - rho_theoretical) < 1e-5

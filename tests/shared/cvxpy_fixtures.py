@@ -3,6 +3,7 @@
 import pytest
 
 from tests.shared.cvxpy_test_utils import (
+    require_cvxpy_clarabel_solver,
     make_cvxpy_mosek_options,
     make_cvxpy_solver_options,
     make_mosek_fusion_options,
@@ -27,6 +28,17 @@ def cvxpy_open_source_solver_options():
     solver_name = require_open_source_cvxpy_solver()
     extra = {"max_iter": 400} if solver_name == "CLARABEL" else None
     return make_cvxpy_solver_options(solver_name, extra_params=extra)
+
+
+@pytest.fixture(scope="module")
+def cvxpy_clarabel_solver_name():
+    return require_cvxpy_clarabel_solver()
+
+
+@pytest.fixture(scope="module")
+def cvxpy_clarabel_solver_options():
+    require_cvxpy_clarabel_solver()
+    return make_cvxpy_solver_options("CLARABEL", extra_params={"max_iter": 400})
 
 
 @pytest.fixture(scope="module")

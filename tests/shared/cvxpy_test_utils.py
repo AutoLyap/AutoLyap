@@ -5,7 +5,7 @@ from typing import Any, Mapping, Optional, Sequence, Set
 import pytest
 
 from autolyap import SolverOptions
-from tests.shared.mosek_utils import require_mosek_license
+from tests.shared.mosek_utils import require_mosek_license, skip_or_fail_mosek
 
 _DEFAULT_SCS_TEST_PARAMS = {
     # Tuned to prefer stable OPTIMAL status in CI over aggressively tight accuracy.
@@ -50,11 +50,22 @@ def require_open_source_cvxpy_solver(preferred_order: Sequence[str] = ("CLARABEL
         pytest.skip(f"CVXPY is installed, but no supported SDP solver ({preferred}) is available.")
 
 
-def require_cvxpy_mosek_solver() -> str:
+def require_cvxpy_clarabel_solver() -> str:
     cp = require_cvxpy_module()
     installed = get_installed_cvxpy_solvers(cp)
+    if "CLARABEL" not in installed:
+        pytest.skip("CVXPY CLARABEL solver is not available.")
+    return "CLARABEL"
+
+
+def require_cvxpy_mosek_solver() -> str:
+    try:
+        import cvxpy as cp
+    except ModuleNotFoundError:
+        skip_or_fail_mosek("CVXPY is not installed.")
+    installed = get_installed_cvxpy_solvers(cp)
     if "MOSEK" not in installed:
-        pytest.skip("CVXPY MOSEK solver interface is not available.")
+        skip_or_fail_mosek("CVXPY MOSEK solver interface is not available.")
     require_mosek_license()
     return "MOSEK"
 

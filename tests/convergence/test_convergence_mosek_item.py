@@ -6,6 +6,8 @@ from autolyap.problemclass import InclusionProblem, SmoothStronglyConvex
 from autolyap.iteration_dependent import IterationDependent
 from tests.shared.mosek_utils import require_mosek_license
 
+pytestmark = pytest.mark.mosek
+
 
 # Iteration-dependent convergence test for ITEM.
 # Mirrors the old experiment:
