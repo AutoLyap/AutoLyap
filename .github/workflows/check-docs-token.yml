@@ -1,0 +1,60 @@
+name: check-docs-token
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-token:
+    name: validate-token
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Ensure docs token is configured
+        shell: bash
+        env:
+          AUTOLYAP_GH_PAGES_TOKEN: ${{ secrets.AUTOLYAP_GH_PAGES_TOKEN }}
+        run: |
+          if [ -n "$AUTOLYAP_GH_PAGES_TOKEN" ]; then
+            echo "AUTOLYAP_GH_PAGES_TOKEN detected."
+          else
+            echo "AUTOLYAP_GH_PAGES_TOKEN is missing." >&2
+            exit 1
+          fi
+
+      - name: Verify token has push permission on docs repo
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.AUTOLYAP_GH_PAGES_TOKEN }}
+        run: |
+          repo_json="$(
+            curl -fsS \
+              -H "Authorization: Bearer $TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/AutoLyap/AutoLyap.github.io"
+          )"
+          can_push="$(printf '%s' "$repo_json" | jq -r '.permissions.push // false')"
+          if [ "$can_push" = "true" ]; then
+            echo "Token has push permission on AutoLyap/AutoLyap.github.io."
+          else
+            echo "Token does not have push permission on AutoLyap/AutoLyap.github.io." >&2
+            exit 1
+          fi
+
+      - name: Verify token can push to docs default branch (dry run)
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.AUTOLYAP_GH_PAGES_TOKEN }}
+        run: |
+          git clone --depth 1 \
+            "https://x-access-token:${TOKEN}@github.com/AutoLyap/AutoLyap.github.io.git" \
+            site
+          cd site
+          default_branch="$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: docs token dry-run check"
+          git push --dry-run origin "HEAD:refs/heads/${default_branch}"
+          echo "Dry-run push to ${default_branch} succeeded."
