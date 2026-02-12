@@ -2,42 +2,32 @@
 __pycache__/
 *.py[cod]
 *.so
-*.egg
-*.egg-info/
 *.pyd
 
-# Virtual environment
-env/
-venv/
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# OS-generated files
-.DS_Store
-Thumbs.db
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Python egg files
+# Packaging and build artifacts
 *.egg
-*.egg-info
+*.egg-info/
 .eggs/
 build/
 dist/
 docs/build/
 
-# PyInstaller
-*.manifest
-*.spec
+# Virtual environments and local env vars
+env/
+venv/
+.venv/
+.env
 
-# Unit test / coverage reports
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Unit test / coverage / tooling caches
 htmlcov/
 .tox/
 .nox/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 .coverage.*
 .cache
@@ -46,14 +36,20 @@ coverage.xml
 *.cover
 *.py,cover
 
-# macOS files
-*.DS_Store
-
-# Python virtual environment
+# Logs and temp files
+*.log
+*.tmp
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Environment variables
-.env 
+# PyInstaller
+*.manifest
+*.spec
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Local project files
 AGENT.md
 Paper/
