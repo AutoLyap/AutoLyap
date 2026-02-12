@@ -82,7 +82,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .[test]
       - name: Run core test suite
-        run: python -m pytest
+        run: python -m pytest -m "not mosek"
 
   pytest-mosek:
     name: pytest-mosek (${{ matrix.python-version }})
@@ -125,4 +125,27 @@ jobs:
           printf '%s' "$MOSEK_LICENSE" > "$RUNNER_TEMP/mosek.lic"
           echo "MOSEKLM_LICENSE_FILE=$RUNNER_TEMP/mosek.lic" >> "$GITHUB_ENV"
       - name: Run MOSEK test suite
-        run: python -m pytest -m "mosek"
+        env:
+          AUTOLYAP_STRICT_MOSEK: "1"
+          PYTEST_MOSEK_REPORT: ${{ runner.temp }}/pytest-mosek.xml
+        run: |
+          python -m pytest -m "mosek" --junitxml "$PYTEST_MOSEK_REPORT"
+          python - <<'PY'
+          import os
+          import sys
+          import xml.etree.ElementTree as ET
+
+          report_path = os.environ["PYTEST_MOSEK_REPORT"]
+          root = ET.parse(report_path).getroot()
+          if root.tag == "testsuite":
+              skipped = int(root.attrib.get("skipped", 0))
+          else:
+              skipped = sum(int(suite.attrib.get("skipped", 0)) for suite in root.findall("testsuite"))
+          if skipped:
+              print(
+                  f"MOSEK CI requires executed tests; found {skipped} skipped MOSEK tests.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+          print("MOSEK suite completed with zero skipped tests.")
+          PY
