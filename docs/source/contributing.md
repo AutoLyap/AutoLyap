@@ -1,115 +1,121 @@
 # Contributing
 
 Thank you for your interest in contributing to AutoLyap.
-This guide explains how to set up a development environment, make changes, and
-submit a high-quality pull request.
+This guide is for contributors working from a fork and submitting pull requests.
 
 ## Ways to contribute
 
-You can contribute in several ways:
-
 - Fix bugs or improve robustness.
-- Add or improve algorithms, problem classes, and analyses.
-- Improve documentation and examples.
+- Add or improve algorithms, problem classes, analyses, and examples.
+- Improve documentation.
 - Add tests or improve existing test coverage.
 - Report issues with clear reproduction steps.
 
-## Development setup
+## Before you start
 
-Clone the repository and install in editable mode with test dependencies:
+- For substantial changes, open an issue first so scope and direction are clear.
+- For small fixes (typos, minor docs, straightforward bug fix), you can open a PR directly.
+- If an issue exists, reference it in your PR description.
+
+Issue tracker:
+<https://github.com/AutoLyap/AutoLyap/issues>
+
+## Fork-first workflow
+
+1. Fork `AutoLyap/AutoLyap` on GitHub.
+2. Clone your fork and add the upstream remote:
 
 ```bash
-git clone https://github.com/AutoLyap/AutoLyap.git
+git clone https://github.com/<your-github-username>/AutoLyap.git
 cd AutoLyap
+git remote add upstream https://github.com/AutoLyap/AutoLyap.git
+git fetch upstream
+```
+
+3. Create a feature branch from `upstream/main`:
+
+```bash
+git switch -c <feature-branch> upstream/main
+```
+
+4. Install in editable mode with test dependencies:
+
+```bash
 python -m pip install -e '.[test]'
 ```
 
 AutoLyap requires Python `>=3.9`.
 
-Install documentation dependencies (for docs work):
+For docs work, install docs dependencies:
 
 ```bash
 make -C docs deps
 ```
 
-## Run tests
+## Keep your branch current
 
-Run the full test suite:
+Rebase your branch onto `upstream/main` before opening or updating a PR:
 
 ```bash
-python -m pytest
+git fetch upstream
+git rebase upstream/main
 ```
 
-Run a specific test module:
+## Local checks before opening a PR
+
+Run the one-command local CI helper:
 
 ```bash
-python -m pytest tests/test_convergence_proximal_point.py -q
+make check
 ```
 
-MOSEK-backed tests will skip automatically when MOSEK or a valid license is
-not available. CVXPY backend smoke tests will skip when CVXPY or a supported
-CVXPY SDP solver is unavailable.
-
-## Build documentation
-
-Build docs locally:
+If needed, install missing lint/typecheck dependencies:
 
 ```bash
-make -C docs html
+python -m pip install ruff mypy
+```
+
+The CI test matrix runs on Python `3.9`, `3.10`, `3.11`, `3.12`, and `3.13`.
+At minimum, run the checks above locally on one supported Python version.
+
+If you changed docs, run:
+
+```bash
+make check-docs
 ```
 
 Generated files are written to `docs/build/html/`.
-Do not commit generated build artifacts from `docs/build/`.
+Do not commit generated files from `docs/build/`.
 
-## Contributing examples
+## Notes for docs and examples
 
-Examples are especially welcome.
+- Keep notation consistent with nearby files.
+- Keep docstrings and docs consistent with existing section structure and style.
+- For new examples:
+  1. Add a page under `docs/source/examples/`.
+  2. Add it to the toctree in `docs/source/examples.md`.
+  3. Keep it runnable and focused on one workflow.
 
-To add a new example:
+## Open a pull request
 
-1. Create a new page under `docs/source/examples/`.
-2. Add it to the toctree in `docs/source/examples.md`.
-3. Keep the example runnable and focused on one workflow.
-4. Prefer built-in algorithm classes when available; use custom `Algorithm`
-   subclasses when the example is specifically about defining a new method.
-
-## Style and notation conventions
-
-Please keep new contributions aligned with the current style and notation.
-
-- Follow notation used in existing code and docs (symbols should keep the same
-  meaning across files).
-- Keep docstrings and docs consistent with existing section structure and
-  wording style.
-- When in doubt, follow nearby files.
-
-## Recommended workflow
-
-1. Sync `main`, then create a feature branch:
+1. Push your branch to your fork:
 
 ```bash
-git switch main
-git pull --rebase
-git switch -c <feature-branch>
+git push -u origin <feature-branch>
 ```
 
-2. Implement your change in small, reviewable commits.
-3. Run relevant tests locally.
-4. Build docs if you changed any documentation.
-5. Open a pull request with a clear summary and rationale.
+2. Open a PR from your fork branch to `AutoLyap/AutoLyap:main`.
+3. In the PR description, include:
+- What changed.
+- Why it changed.
+- Which local commands you ran (ruff, mypy, pytest, docs build as applicable).
 
 ## Pull request checklist
 
 - [ ] Code changes are scoped and readable.
-- [ ] Tests pass locally (`python -m pytest`).
+- [ ] CI-equivalent local checks pass.
 - [ ] New behavior is covered by tests when applicable.
-- [ ] Docs are updated when APIs/behavior changed.
+- [ ] Docs are updated when API or behavior changed.
 - [ ] Docs build locally (`make -C docs html`) if docs were changed.
-- [ ] No generated files from `docs/build/` are included in the commit.
-- [ ] PR description states what changed, why, and which test and docs build commands were run.
-
-## Reporting issues
-
-For bug reports and feature requests, open an issue at:
-
-<https://github.com/AutoLyap/AutoLyap/issues>
+- [ ] No generated files from `docs/build/` are committed.
+- [ ] PR description states what changed, why, and which commands were run.
