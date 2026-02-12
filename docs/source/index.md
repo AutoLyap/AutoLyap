@@ -8,10 +8,15 @@ tocdepth: 1
 
 ## Installation
 
-```{include} ../../README.md
-:start-after: "## Installation"
-:end-before: "## Companion paper"
+```bash
+pip install autolyap
 ```
+
+AutoLyap depends on:
+
+* [NumPy](https://numpy.org/)
+* [MOSEK](https://www.mosek.com/) (academic license available)
+* [CVXPY](https://www.cvxpy.org/) (no MOSEK license required)
 
 ## Companion paper
 
@@ -22,18 +27,9 @@ For full mathematical context, see the companion paper {cite}`index-upadhyaya202
 :keyprefix: index-
 ```
 
-## Source code
-
-```{include} ../../README.md
-:start-after: "## Source code"
-:end-before: "## Development install & tests"
-```
-
 ## Other computer-assisted methodologies
 
-```{include} ../../README.md
-:start-after: "## Other computer-assisted methodologies"
-```
+[PEPit](https://pepit.readthedocs.io) is a computer-assisted performance estimation framework that targets worst-case analyses of first-order methods through SDP formulations. AutoLyap is complementary: it focuses on Lyapunov analyses and automates the corresponding SDP formulations. In practice, PEPit is a strong choice for tight bounds, while AutoLyap is tailored to Lyapunov-based proofs and scalable analysis patterns.
 
 ```{toctree}
 :maxdepth: 1

@@ -201,7 +201,7 @@ In particular,
 f(x^K) - f(x^\star) = O\!\left(\frac{1}{\theta_K^2}\right) = O\!\left(\frac{1}{K^2}\right).
 ```
 
-Sweeping over {math}`K \in \llbracket 1, 100\rrbracket` gives the log-log plot below, with
+Sweeping over {math}`K \in \llbracket 1, 100\rrbracket` gives the plot below, with
 the theoretical bound in black and AutoLyap certificates as blue dots.
 
 ```{image} _static/optimized_gradient_method_c_vs_K_loglog.svg
