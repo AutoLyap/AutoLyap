@@ -11,7 +11,7 @@ Tests are grouped by domain:
 
 Docs-derived tests are grouped by technical domain instead of a separate docs folder.
 Use a `_docs_example` suffix in the filename (for example,
-`test_convergence_proximal_gradient_docs_example.py`) to keep origin traceable.
+`test_convergence_cvxpy_proximal_gradient_docs_example.py`) to keep origin traceable.
 
 Shared support modules:
 

@@ -6,6 +6,8 @@ from autolyap.problemclass import InclusionProblem, MaximallyMonotone, Convex
 from autolyap.iteration_dependent import IterationDependent
 from tests.shared.mosek_utils import require_mosek_license
 
+pytestmark = pytest.mark.mosek
+
 
 # Iteration-dependent bound test for accelerated proximal point (operator mode).
 # The test mirrors the old experiment setup:
