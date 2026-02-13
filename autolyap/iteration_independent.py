@@ -337,7 +337,7 @@ class _LinearConvergence:
         model with an updated :math:`\rho` until the interval size is below :math:`{\text{tol}}`.
 
         Each feasibility check is performed by
-        :meth:`~autolyap.IterationIndependent.verify_iteration_independent_Lyapunov`;
+        :meth:`~autolyap.IterationIndependent.search_lyapunov`;
         see its documentation for the enforced SDP feasibility checks.
         The Lyapunov conditions and convergence conclusions are documented in the
         class-level reference of :class:`~autolyap.iteration_independent.IterationIndependent`.
@@ -384,7 +384,7 @@ class _LinearConvergence:
             `True`; otherwise `None`.
 
           The `certificate` schema is exactly the same as in
-          :meth:`~autolyap.IterationIndependent.verify_iteration_independent_Lyapunov`.
+          :meth:`~autolyap.IterationIndependent.search_lyapunov`.
 
         **Raises**
 
@@ -1264,7 +1264,19 @@ class _SublinearConvergence:
             return P_mat, T_mat
 
 
-class IterationIndependent:
+class _IterationIndependentMeta(type):
+    def __getattr__(cls, name: str) -> Any:
+        if name == "verify_iteration_independent_Lyapunov":
+            raise AttributeError(
+                "IterationIndependent.verify_iteration_independent_Lyapunov was removed in v0.2.0. "
+                "Use IterationIndependent.search_lyapunov instead. "
+                "Migration: https://autolyap.github.io/release_notes/v0_2_0.html. "
+                "Quick start: https://autolyap.github.io/quick_start.html."
+            )
+        raise AttributeError(f"type object '{cls.__name__}' has no attribute '{name}'")
+
+
+class IterationIndependent(metaclass=_IterationIndependentMeta):
     r"""
     Iteration-independent Lyapunov analysis utilities.
 
@@ -1408,7 +1420,7 @@ class IterationIndependent:
     **Convergence conclusions**
 
     When :math:`(Q,q,S,s)` satisfy the enabled Lyapunov inequalities (in particular (C1)–(C3)) used in
-    :meth:`~autolyap.IterationIndependent.verify_iteration_independent_Lyapunov`,
+    :meth:`~autolyap.IterationIndependent.search_lyapunov`,
     the following conclusions hold.
 
     - Linear setting (:math:`\rho \in [0,1)`):
@@ -3055,7 +3067,7 @@ class IterationIndependent:
         }
 
     @staticmethod
-    def verify_iteration_independent_Lyapunov(
+    def search_lyapunov(
             prob: InclusionProblem,
             algo: Algorithm,
             P: np.ndarray,
@@ -3076,7 +3088,7 @@ class IterationIndependent:
             verbosity: int = 0,
     ) -> Dict[str, Any]:
         r"""
-        Verify feasibility of an iteration-independent Lyapunov inequality via an SDP.
+        Search for a feasible iteration-independent Lyapunov certificate via an SDP.
 
         This method formulates and solves a semidefinite program (SDP)
         for a given inclusion problem, algorithm, and user-specified targets
@@ -3386,7 +3398,7 @@ class IterationIndependent:
                     f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                 )
         return {"success": True, "rho": float(rho), "certificate": certificate}
-    
+
     @staticmethod
     def _compute_Thetas(algo: Algorithm, h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:
         r"""

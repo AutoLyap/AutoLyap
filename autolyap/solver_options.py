@@ -25,11 +25,11 @@ class SolverOptions:
     **Used in**
 
     - ``solver_options`` argument of
-      :meth:`~autolyap.IterationIndependent.verify_iteration_independent_Lyapunov`.
+      :meth:`~autolyap.IterationIndependent.search_lyapunov`.
     - ``solver_options`` argument of
       :meth:`~autolyap.IterationIndependent.LinearConvergence.bisection_search_rho`.
     - ``solver_options`` argument of
-      :meth:`~autolyap.IterationDependent.verify_iteration_dependent_Lyapunov`.
+      :meth:`~autolyap.IterationDependent.search_lyapunov`.
 
     **Parameters**
 

@@ -22,7 +22,7 @@ def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
         bound_theoretical = L / (2 * theta_K ** 2)
 
         Q_k, q_k = IterationDependent.get_parameters_function_value_suboptimality(algorithm, k)
-        result = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.search_lyapunov(
             problem,
             algorithm,
             k,

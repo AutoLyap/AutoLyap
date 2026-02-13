@@ -27,7 +27,7 @@ def test_convergence_optimized_gradient_method_c_matches_theory_cvxpy_clarabel(
         Q_k, q_k = IterationDependent.get_parameters_function_value_suboptimality(
             algorithm, k
         )
-        result = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.search_lyapunov(
             problem,
             algorithm,
             k,

@@ -143,7 +143,7 @@ def _run_smooth_convex_scan(
             )
 
             try:
-                result = IterationIndependent.verify_iteration_independent_Lyapunov(
+                result = IterationIndependent.search_lyapunov(
                     problem,
                     algorithm,
                     P,

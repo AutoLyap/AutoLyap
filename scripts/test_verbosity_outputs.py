@@ -44,7 +44,7 @@ def _run_verify_iteration_independent(
     P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
         algorithm
     )
-    return IterationIndependent.verify_iteration_independent_Lyapunov(
+    return IterationIndependent.search_lyapunov(
         problem,
         algorithm,
         P,
@@ -88,7 +88,7 @@ def _run_verify_iteration_dependent(
     algorithm = OptimizedGradientMethod(L=1.0, K=K)
     Q_0, q_0 = IterationDependent.get_parameters_distance_to_solution(algorithm, k=0, i=1, j=1)
     Q_K, q_K = IterationDependent.get_parameters_function_value_suboptimality(algorithm, k=K)
-    return IterationDependent.verify_iteration_dependent_Lyapunov(
+    return IterationDependent.search_lyapunov(
         problem,
         algorithm,
         K,
@@ -130,7 +130,7 @@ def _main() -> int:
 
     cases: Tuple[Tuple[str, Callable[[SolverOptions, int], Dict[str, object]], str], ...] = (
         (
-            "verify_iteration_independent_Lyapunov",
+            "iteration_independent.search_lyapunov",
             _run_verify_iteration_independent,
             "rho",
         ),
@@ -140,7 +140,7 @@ def _main() -> int:
             "rho",
         ),
         (
-            "verify_iteration_dependent_Lyapunov",
+            "iteration_dependent.search_lyapunov",
             _run_verify_iteration_dependent,
             "c",
         ),

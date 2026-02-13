@@ -2,7 +2,7 @@
 
 ```{eval-rst}
 .. autoclass:: autolyap.IterationIndependent
-   :members: verify_iteration_independent_Lyapunov
+   :members: search_lyapunov
    :show-inheritance:
 ```
 

@@ -14,14 +14,14 @@ Curated, user-facing summaries are available in
 ### Added
 
 - Top-level `SolverOptions` support for explicit backend configuration in
-  Lyapunov verification/search calls.
+  Lyapunov search calls.
 - CVXPY backend execution paths alongside MOSEK Fusion, with backend
   equivalence and integration coverage.
 - Runtime diagnostic summaries for Lyapunov solves, including checks for
   nonnegativity-constrained scalars, PSD-constrained matrices
   (minimum-eigenvalue checks), and equality-constraint residuals.
 - `verbosity` controls for iteration-independent and iteration-dependent
-  Lyapunov verification/search APIs.
+  Lyapunov search APIs.
 - New quick-start documentation and expanded worked examples for proximal,
   heavy-ball, Nesterov fast-gradient, and Douglas-Rachford analyses.
 - CI workflows for tests, releases, CodeQL, and secret scanning.
@@ -31,7 +31,7 @@ Curated, user-facing summaries are available in
 - Refactored problem-class internals into focused modules (`base`,
   `functions`, `operators`, `indices`, `inclusion_problem`) with stricter
   validation and clearer error messages.
-- Updated Lyapunov verification/search routines to return certificates in
+- Updated Lyapunov search routines to return certificates in
   solver results.
 - Tightened algorithm constructor/setter validation and shared helper
   utilities for dimensions and matrix checks.
@@ -48,12 +48,20 @@ Curated, user-facing summaries are available in
   - `i!=j` -> `r1!=r2`
   - `i` -> `r1`
   - `i!=star` -> `r1!=star`
+- Renamed Lyapunov entry points:
+  - `IterationIndependent.verify_iteration_independent_Lyapunov` ->
+    `IterationIndependent.search_lyapunov`
+  - `IterationDependent.verify_iteration_dependent_Lyapunov` ->
+    `IterationDependent.search_lyapunov`
+- Removed deprecated Lyapunov alias methods:
+  - `IterationIndependent.verify_iteration_independent_Lyapunov`
+  - `IterationDependent.verify_iteration_dependent_Lyapunov`
 - Updated public return shapes for Lyapunov APIs:
-  - `IterationIndependent.verify_iteration_independent_Lyapunov` now returns
+  - `IterationIndependent.search_lyapunov` now returns
     `{"success", "rho", "certificate"}` (previously `bool`).
   - `IterationIndependent.LinearConvergence.bisection_search_rho` now returns
     `{"success", "rho", "certificate"}` (previously `float | None`).
-  - `IterationDependent.verify_iteration_dependent_Lyapunov` now returns
+  - `IterationDependent.search_lyapunov` now returns
     `{"success", "c_K", "certificate"}` (previously `(bool, c)`).
 
 [Unreleased]: https://github.com/AutoLyap/AutoLyap/compare/v0.2.0...HEAD

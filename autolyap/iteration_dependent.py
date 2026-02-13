@@ -23,7 +23,20 @@ OperatorInterpolationData = Tuple[np.ndarray, Any]
 FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, Any]
 InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
 
-class IterationDependent:
+
+class _IterationDependentMeta(type):
+    def __getattr__(cls, name: str) -> Any:
+        if name == "verify_iteration_dependent_Lyapunov":
+            raise AttributeError(
+                "IterationDependent.verify_iteration_dependent_Lyapunov was removed in v0.2.0. "
+                "Use IterationDependent.search_lyapunov instead. "
+                "Migration: https://autolyap.github.io/release_notes/v0_2_0.html. "
+                "Quick start: https://autolyap.github.io/quick_start.html."
+            )
+        raise AttributeError(f"type object '{cls.__name__}' has no attribute '{name}'")
+
+
+class IterationDependent(metaclass=_IterationDependentMeta):
     r"""
     Iteration-dependent Lyapunov analysis utilities.
 
@@ -1522,7 +1535,7 @@ class IterationDependent:
         }
 
     @staticmethod
-    def verify_iteration_dependent_Lyapunov(
+    def search_lyapunov(
             prob: InclusionProblem,
             algo: Algorithm,
             K: int,
@@ -1534,7 +1547,7 @@ class IterationDependent:
             verbosity: int = 0,
     ) -> Dict[str, Any]:
         r"""
-        Verify feasibility of iteration-dependent Lyapunov inequalities via an SDP.
+        Search for a feasible iteration-dependent Lyapunov certificate via an SDP.
 
         This method formulates and solves a semidefinite program (SDP)
         for a given inclusion problem, algorithm, and endpoint targets
