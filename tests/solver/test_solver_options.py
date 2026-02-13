@@ -3,14 +3,14 @@ import pytest
 from autolyap import SolverOptions
 from autolyap.solver_options import (
     SUPPORTED_SOLVER_BACKENDS,
-    get_cvxpy_accepted_statuses,
-    get_cvxpy_solve_kwargs,
-    normalize_solver_options,
+    _get_cvxpy_accepted_statuses,
+    _get_cvxpy_solve_kwargs,
+    _normalize_solver_options,
 )
 
 
 def test_solver_options_defaults_to_mosek_fusion():
-    options = normalize_solver_options(None)
+    options = _normalize_solver_options(None)
     assert options.backend == "mosek_fusion"
     assert options.mosek_params is None
     assert options.cvxpy_solver is None
@@ -20,31 +20,31 @@ def test_solver_options_defaults_to_mosek_fusion():
 
 def test_solver_options_rejects_unknown_backend():
     with pytest.raises(ValueError):
-        normalize_solver_options(SolverOptions(backend="unknown"))
+        _normalize_solver_options(SolverOptions(backend="unknown"))
 
 
 def test_solver_options_rejects_non_string_mosek_param_keys():
     with pytest.raises(ValueError):
-        normalize_solver_options(
+        _normalize_solver_options(
             SolverOptions(mosek_params={1: 1e-8})  # type: ignore[dict-item]
         )
 
 
 def test_solver_options_normalizes_backend_case():
-    options = normalize_solver_options(SolverOptions(backend="CVXPY"))
+    options = _normalize_solver_options(SolverOptions(backend="CVXPY"))
     assert options.backend == "cvxpy"
     assert options.backend in SUPPORTED_SOLVER_BACKENDS
 
 
 def test_get_cvxpy_solve_kwargs_merges_solver_and_params():
-    options = normalize_solver_options(
+    options = _normalize_solver_options(
         SolverOptions(
             backend="cvxpy",
             cvxpy_solver="SCS",
             cvxpy_solver_params={"max_iters": 123},
         )
     )
-    kwargs = get_cvxpy_solve_kwargs(options)
+    kwargs = _get_cvxpy_solve_kwargs(options)
     assert kwargs["solver"] == "SCS"
     assert kwargs["max_iters"] == 123
     assert kwargs["eps"] == 1e-6
@@ -52,24 +52,24 @@ def test_get_cvxpy_solve_kwargs_merges_solver_and_params():
 
 
 def test_get_cvxpy_solve_kwargs_allows_warm_start_override():
-    options = normalize_solver_options(
+    options = _normalize_solver_options(
         SolverOptions(
             backend="cvxpy",
             cvxpy_solver_params={"warm_start": False},
         )
     )
-    kwargs = get_cvxpy_solve_kwargs(options)
+    kwargs = _get_cvxpy_solve_kwargs(options)
     assert kwargs["warm_start"] is False
 
 
 def test_get_cvxpy_solve_kwargs_applies_clarabel_defaults():
-    options = normalize_solver_options(
+    options = _normalize_solver_options(
         SolverOptions(
             backend="cvxpy",
             cvxpy_solver="CLARABEL",
         )
     )
-    kwargs = get_cvxpy_solve_kwargs(options)
+    kwargs = _get_cvxpy_solve_kwargs(options)
     assert kwargs["solver"] == "CLARABEL"
     assert kwargs["max_iter"] == 2000
     assert kwargs["tol_feas"] == 1e-8
@@ -79,14 +79,14 @@ def test_get_cvxpy_solve_kwargs_applies_clarabel_defaults():
 
 
 def test_get_cvxpy_solve_kwargs_user_params_override_defaults():
-    options = normalize_solver_options(
+    options = _normalize_solver_options(
         SolverOptions(
             backend="cvxpy",
             cvxpy_solver="CLARABEL",
             cvxpy_solver_params={"max_iter": 2500, "tol_feas": 5e-8},
         )
     )
-    kwargs = get_cvxpy_solve_kwargs(options)
+    kwargs = _get_cvxpy_solve_kwargs(options)
     assert kwargs["max_iter"] == 2500
     assert kwargs["tol_feas"] == 5e-8
     assert kwargs["tol_gap_abs"] == 1e-8
@@ -95,7 +95,7 @@ def test_get_cvxpy_solve_kwargs_user_params_override_defaults():
 
 def test_solver_options_rejects_non_bool_cvxpy_accept_inaccurate():
     with pytest.raises(ValueError):
-        normalize_solver_options(
+        _normalize_solver_options(
             SolverOptions(cvxpy_accept_inaccurate="yes")  # type: ignore[arg-type]
         )
 
@@ -105,7 +105,7 @@ def test_get_cvxpy_accepted_statuses_default_includes_inaccurate():
         OPTIMAL = "optimal"
         OPTIMAL_INACCURATE = "optimal_inaccurate"
 
-    statuses = get_cvxpy_accepted_statuses(_CP, normalize_solver_options(None))
+    statuses = _get_cvxpy_accepted_statuses(_CP, _normalize_solver_options(None))
     assert statuses == {"optimal", "optimal_inaccurate"}
 
 
@@ -114,8 +114,8 @@ def test_get_cvxpy_accepted_statuses_strict_excludes_inaccurate():
         OPTIMAL = "optimal"
         OPTIMAL_INACCURATE = "optimal_inaccurate"
 
-    options = normalize_solver_options(
+    options = _normalize_solver_options(
         SolverOptions(backend="cvxpy", cvxpy_accept_inaccurate=False)
     )
-    statuses = get_cvxpy_accepted_statuses(_CP, options)
+    statuses = _get_cvxpy_accepted_statuses(_CP, options)
     assert statuses == {"optimal"}

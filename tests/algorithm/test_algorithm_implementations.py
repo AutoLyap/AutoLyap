@@ -2,7 +2,9 @@ import numpy as np
 import pytest
 
 from autolyap.algorithms import (
+    ForwardMethod,
     GradientMethod,
+    MalitskyTamFRB,
     DouglasRachford,
     ProximalPoint,
     TripleMomentum,
@@ -16,6 +18,17 @@ from autolyap.algorithms import (
 @pytest.mark.parametrize(
     "factory, shapes, expected, expected_indices",
     [
+        (
+            lambda: ForwardMethod(gamma=0.3),
+            ((1, 1), (1, 1), (1, 1), (1, 1)),
+            (
+                np.array([[1.0]]),
+                np.array([[-0.3]]),
+                np.array([[1.0]]),
+                np.array([[0.0]]),
+            ),
+            ({"I_op": [1], "I_func": []}),
+        ),
         (
             lambda: GradientMethod(gamma=0.3),
             ((1, 1), (1, 1), (1, 1), (1, 1)),
@@ -82,14 +95,27 @@ from autolyap.algorithms import (
             ),
             None,
         ),
+        (
+            lambda: MalitskyTamFRB(gamma=0.2),
+            ((2, 2), (2, 3), (3, 2), (3, 3)),
+            (
+                np.array([[1.0, 0.0], [1.0, 0.0]]),
+                np.array([[-0.4, 0.2, -0.2], [0.0, 0.0, 0.0]]),
+                np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 0.0]]),
+                np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.4, 0.2, -0.2]]),
+            ),
+            ({"I_op": [1, 2], "I_func": []}),
+        ),
     ],
     ids=[
+        "forward_method",
         "gradient_method",
         "proximal_point",
         "douglas_rachford_op",
         "davis_yin",
         "heavy_ball",
         "chambolle_pock",
+        "malitsky_tam_frb",
     ],
 )
 def test_abcd_values(factory, shapes, expected, expected_indices):

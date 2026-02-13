@@ -5,7 +5,10 @@ from autolyap.algorithms import OptimizedGradientMethod
 from autolyap.problemclass import InclusionProblem, SmoothConvex
 
 
-pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
+pytestmark = [
+    pytest.mark.public_api,
+    pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning"),
+]
 
 
 def test_convergence_optimized_gradient_method_c_matches_theory_cvxpy_clarabel(
@@ -37,6 +40,6 @@ def test_convergence_optimized_gradient_method_c_matches_theory_cvxpy_clarabel(
         assert result["success"] is True
         assert result["c_K"] is not None
 
-        theta_k = algorithm._compute_theta(k, k)
+        theta_k = algorithm.compute_theta(k, k)
         c_theory = L / (2.0 * theta_k ** 2)
         assert result["c_K"] == pytest.approx(c_theory, rel=rel_tol, abs=abs_tol)

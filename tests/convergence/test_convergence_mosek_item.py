@@ -23,8 +23,8 @@ def test_convergence_item_c_matches_theoretical_bound():
     problem = InclusionProblem([SmoothStronglyConvex(mu=mu, L=L)])
     algorithm = ITEM(L=L, mu=mu)
 
-    Ys0 = algorithm.get_Ys(0, 0)
-    Xs0 = algorithm.get_Xs(0, 0)
+    Ys0 = algorithm._get_Ys(0, 0)
+    Xs0 = algorithm._get_Xs(0, 0)
     Q_0 = (Xs0[0][1, :] - Ys0["star"]).T @ (Xs0[0][1, :] - Ys0["star"])
     q_0 = np.zeros(algorithm.m_bar_func + algorithm.m_func)
 
@@ -32,8 +32,8 @@ def test_convergence_item_c_matches_theoretical_bound():
         A_k = algorithm.get_A(k)
         bound_theoretical = 1.0 / (1.0 + q * A_k)
 
-        Ysk = algorithm.get_Ys(k, k)
-        Xsk = algorithm.get_Xs(k, k)
+        Ysk = algorithm._get_Ys(k, k)
+        Xsk = algorithm._get_Xs(k, k)
         Q_k = (Xsk[k][1, :] - Ysk["star"]).T @ (Xsk[k][1, :] - Ysk["star"])
         q_k = np.zeros(algorithm.m_bar_func + algorithm.m_func)
 

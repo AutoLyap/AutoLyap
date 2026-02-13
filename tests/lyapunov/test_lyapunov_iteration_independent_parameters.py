@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from autolyap.problemclass import InclusionProblem, Convex, MaximallyMonotone
-from autolyap.iteration_independent import LinearConvergence, SublinearConvergence, IterationIndependent
+from autolyap.iteration_independent import IterationIndependent
 
 
 # Tests for iteration-independent parameter construction and validation.
@@ -50,7 +50,7 @@ def test_validate_iteration_independent_inputs_rejects_p_t_for_operator_only(tin
 
 
 def test_linear_convergence_distance_to_solution_shapes(tiny_functional_algorithm):
-    P, p, T, t = LinearConvergence.get_parameters_distance_to_solution(
+    P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
         tiny_functional_algorithm, h=0, alpha=0, i=1, j=1, tau=0
     )
     assert P.shape == (3, 3)
@@ -62,7 +62,7 @@ def test_linear_convergence_distance_to_solution_shapes(tiny_functional_algorith
 
 def test_linear_convergence_distance_to_solution_rejects_tau(tiny_functional_algorithm):
     with pytest.raises(ValueError):
-        LinearConvergence.get_parameters_distance_to_solution(
+        IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
             tiny_functional_algorithm, h=0, alpha=0, i=1, j=1, tau=1
         )
 
@@ -78,13 +78,13 @@ def test_linear_convergence_distance_to_solution_rejects_tau(tiny_functional_alg
 )
 def test_linear_convergence_distance_to_solution_rejects_bad_indices(tiny_functional_algorithm, i, j):
     with pytest.raises(ValueError):
-        LinearConvergence.get_parameters_distance_to_solution(
+        IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
             tiny_functional_algorithm, h=0, alpha=0, i=i, j=j, tau=0
         )
 
 
 def test_linear_convergence_function_value_suboptimality_t_values(tiny_functional_algorithm):
-    _P, _p, _T, t = LinearConvergence.get_parameters_function_value_suboptimality(
+    _P, _p, _T, t = IterationIndependent.LinearConvergence.get_parameters_function_value_suboptimality(
         tiny_functional_algorithm, h=0, alpha=0, j=1, tau=0
     )
     assert np.allclose(t, 0.0)
@@ -92,47 +92,47 @@ def test_linear_convergence_function_value_suboptimality_t_values(tiny_functiona
 
 def test_linear_convergence_function_value_suboptimality_rejects_bad_j(tiny_functional_algorithm):
     with pytest.raises(ValueError):
-        LinearConvergence.get_parameters_function_value_suboptimality(
+        IterationIndependent.LinearConvergence.get_parameters_function_value_suboptimality(
             tiny_functional_algorithm, h=0, alpha=0, j=2, tau=0
         )
 
 
 def test_sublinear_fixed_point_residual_matches_diff(tiny_functional_algorithm):
-    P, p, T, t = SublinearConvergence.get_parameters_fixed_point_residual(
+    P, p, T, t = IterationIndependent.SublinearConvergence.get_parameters_fixed_point_residual(
         tiny_functional_algorithm, h=0, alpha=0, tau=0
     )
     assert P.shape == (3, 3)
     assert T.shape == (4, 4)
     assert p.shape == (2,)
     assert t.shape == (3,)
-    Xs = tiny_functional_algorithm.get_Xs(0, 1)
+    Xs = tiny_functional_algorithm._get_Xs(0, 1)
     expected_T = (Xs[1] - Xs[0]).T @ (Xs[1] - Xs[0])
     assert np.allclose(T, expected_T)
 
 
 def test_sublinear_fixed_point_residual_rejects_bad_tau(tiny_functional_algorithm):
     with pytest.raises(ValueError):
-        SublinearConvergence.get_parameters_fixed_point_residual(
+        IterationIndependent.SublinearConvergence.get_parameters_fixed_point_residual(
             tiny_functional_algorithm, h=0, alpha=0, tau=2
         )
 
 
 def test_sublinear_duality_gap_rejects_operator_only(tiny_operator_algorithm):
     with pytest.raises(ValueError):
-        SublinearConvergence.get_parameters_duality_gap(
+        IterationIndependent.SublinearConvergence.get_parameters_duality_gap(
             tiny_operator_algorithm, h=0, alpha=0, tau=0
         )
 
 
 def test_sublinear_duality_gap_rejects_bad_tau(tiny_functional_algorithm):
     with pytest.raises(ValueError):
-        SublinearConvergence.get_parameters_duality_gap(
+        IterationIndependent.SublinearConvergence.get_parameters_duality_gap(
             tiny_functional_algorithm, h=0, alpha=0, tau=2
         )
 
 
 def test_sublinear_duality_gap_t_values(tiny_functional_algorithm):
-    _P, _p, _T, t = SublinearConvergence.get_parameters_duality_gap(
+    _P, _p, _T, t = IterationIndependent.SublinearConvergence.get_parameters_duality_gap(
         tiny_functional_algorithm, h=0, alpha=0, tau=0
     )
     assert np.allclose(t, np.array([1.0, 0.0, -1.0]))

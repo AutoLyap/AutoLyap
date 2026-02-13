@@ -5,6 +5,39 @@ from autolyap.algorithms.algorithm import Algorithm
 
 pytest_plugins = ("tests.shared.cvxpy_fixtures",)
 
+_PRIVATE_TEST_PATH_PREFIXES = (
+    "tests/algorithm/",
+    "tests/lyapunov/",
+    "tests/problemclass/",
+)
+
+_PRIVATE_TEST_FILES = {
+    "tests/solver/test_solver_options.py",
+    "tests/backend/test_backend_cvxpy_builders.py",
+    "tests/convergence/test_convergence_cvxpy_accelerated_proximal_point.py",
+    "tests/convergence/test_convergence_cvxpy_item.py",
+    "tests/convergence/test_convergence_mosek_accelerated_proximal_point.py",
+    "tests/convergence/test_convergence_mosek_item.py",
+}
+
+
+def _is_private_api_test(path: str) -> bool:
+    if any(path.endswith(file_path) for file_path in _PRIVATE_TEST_FILES):
+        return True
+    return any(f"/{prefix}" in path for prefix in _PRIVATE_TEST_PATH_PREFIXES)
+
+
+def pytest_collection_modifyitems(config, items):
+    for item in items:
+        if "public_api" in item.keywords or "private_api" in item.keywords:
+            continue
+
+        path = str(item.fspath).replace("\\", "/")
+        if _is_private_api_test(path):
+            item.add_marker(pytest.mark.private_api)
+        else:
+            item.add_marker(pytest.mark.public_api)
+
 
 # Shared algorithm fixtures for matrix and parameter tests.
 class _ConstantAlgorithm(Algorithm):

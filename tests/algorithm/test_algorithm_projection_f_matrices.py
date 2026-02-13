@@ -4,7 +4,7 @@ import pytest
 
 # Tests for projection (P) and function (F) matrices.
 def test_get_ps_values(constant_algorithm):
-    Ps = constant_algorithm.get_Ps()
+    Ps = constant_algorithm._get_Ps()
     expected_keys = {(1, 1), (1, 2), (2, 1), (1, "star"), (2, "star")}
     assert set(Ps.keys()) == expected_keys
 
@@ -16,7 +16,7 @@ def test_get_ps_values(constant_algorithm):
 
 
 def test_get_fs_values(constant_algorithm):
-    Fs = constant_algorithm.get_Fs(0, 1)
+    Fs = constant_algorithm._get_Fs(0, 1)
     expected_keys = {
         (1, 1, 0),
         (1, 2, 0),
@@ -34,7 +34,7 @@ def test_get_fs_values(constant_algorithm):
 
 
 def test_get_fs_multiple_function_components_offsets(multi_func_algorithm):
-    Fs = multi_func_algorithm.get_Fs(0, 0)
+    Fs = multi_func_algorithm._get_Fs(0, 0)
     expected_keys = {
         (1, 1, 0),
         (2, 1, 0),
@@ -52,7 +52,7 @@ def test_get_fs_multiple_function_components_offsets(multi_func_algorithm):
 
 
 def test_get_fs_returns_readonly_views(constant_algorithm):
-    Fs = constant_algorithm.get_Fs(0, 0)
+    Fs = constant_algorithm._get_Fs(0, 0)
     with pytest.raises(ValueError):
         Fs[(1, 1, 0)][0, 0] = 1.0
     with pytest.raises(ValueError):
@@ -61,4 +61,4 @@ def test_get_fs_returns_readonly_views(constant_algorithm):
 
 def test_get_fs_invalid_range_raises(constant_algorithm):
     with pytest.raises(ValueError):
-        constant_algorithm.get_Fs(1, 0)
+        constant_algorithm._get_Fs(1, 0)

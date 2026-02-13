@@ -4,7 +4,7 @@ import pytest
 
 # Tests for U and Y matrix construction and immutability.
 def test_get_us_and_star_shapes_and_values(constant_algorithm):
-    Us = constant_algorithm.get_Us(0, 0)
+    Us = constant_algorithm._get_Us(0, 0)
     assert set(Us.keys()) == {0, "star"}
 
     U0 = Us[0]
@@ -30,7 +30,7 @@ def test_get_us_and_star_shapes_and_values(constant_algorithm):
 
 
 def test_get_us_returns_readonly_views(constant_algorithm):
-    Us = constant_algorithm.get_Us(0, 0)
+    Us = constant_algorithm._get_Us(0, 0)
     with pytest.raises(ValueError):
         Us[0][0, 0] = 1.0
     with pytest.raises(ValueError):
@@ -38,7 +38,7 @@ def test_get_us_returns_readonly_views(constant_algorithm):
 
 
 def test_get_ys_basic_k0(constant_algorithm):
-    Ys = constant_algorithm.get_Ys(0, 0)
+    Ys = constant_algorithm._get_Ys(0, 0)
     assert set(Ys.keys()) == {0, "star"}
 
     Y0 = Ys[0]
@@ -58,7 +58,7 @@ def test_get_ys_basic_k0(constant_algorithm):
 
 
 def test_get_ys_returns_readonly_views(constant_algorithm):
-    Ys = constant_algorithm.get_Ys(0, 0)
+    Ys = constant_algorithm._get_Ys(0, 0)
     with pytest.raises(ValueError):
         Ys[0][0, 0] = 1.0
     with pytest.raises(ValueError):
@@ -66,7 +66,7 @@ def test_get_ys_returns_readonly_views(constant_algorithm):
 
 
 def test_get_ys_multi_k_k1_values(constant_algorithm):
-    Ys = constant_algorithm.get_Ys(0, 1)
+    Ys = constant_algorithm._get_Ys(0, 1)
     Y1 = Ys[1]
     Y_star = Ys["star"]
 
@@ -89,4 +89,4 @@ def test_get_ys_multi_k_k1_values(constant_algorithm):
 
 def test_get_ys_invalid_range_raises(constant_algorithm):
     with pytest.raises(ValueError):
-        constant_algorithm.get_Ys(1, 0)
+        constant_algorithm._get_Ys(1, 0)

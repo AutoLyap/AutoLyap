@@ -7,10 +7,12 @@ from autolyap.algorithms import (
     DavisYin,
     DouglasRachford,
     Extragradient,
+    ForwardMethod,
     GradientMethod,
     GradientNesterovMomentum,
     HeavyBallMethod,
     ITEM,
+    MalitskyTamFRB,
     NesterovConstant,
     NesterovFastGradientMethod,
     OptimizedGradientMethod,
@@ -21,6 +23,7 @@ from autolyap.algorithms import (
 
 
 POSITIVE_REAL_SETTERS = [
+    (lambda: ForwardMethod(gamma=0.1), "set_gamma"),
     (lambda: GradientMethod(gamma=0.1), "set_gamma"),
     (lambda: ProximalPoint(gamma=0.1), "set_gamma"),
     (lambda: HeavyBallMethod(gamma=0.1, delta=0.0), "set_gamma"),
@@ -32,6 +35,7 @@ POSITIVE_REAL_SETTERS = [
     (lambda: TsengFBF(gamma=0.1, theta=0.0), "set_gamma"),
     (lambda: DavisYin(gamma=0.1, lambda_value=0.0), "set_gamma"),
     (lambda: DouglasRachford(gamma=0.1, lambda_value=0.0, type="operator"), "set_gamma"),
+    (lambda: MalitskyTamFRB(gamma=0.1), "set_gamma"),
     (lambda: NesterovConstant(mu=1.0, L=4.0), "set_mu"),
     (lambda: NesterovConstant(mu=1.0, L=4.0), "set_L"),
     (lambda: TripleMomentum(mu=1.0, L=4.0), "set_mu"),
@@ -103,19 +107,20 @@ def test_optimized_gradient_method_set_k_validation():
             algo.set_K(bad)
 
 
+@pytest.mark.public_api
 def test_optimized_gradient_method_compute_theta_validation():
     algo = OptimizedGradientMethod(L=1.0, K=5)
-    assert algo._compute_theta(0, 5) == pytest.approx(1.0)
-    assert algo._compute_theta(1, 5) == pytest.approx((1.0 + np.sqrt(5.0)) / 2.0)
-    assert algo._compute_theta(5, 5) > algo._compute_theta(4, 5)
+    assert algo.compute_theta(0, 5) == pytest.approx(1.0)
+    assert algo.compute_theta(1, 5) == pytest.approx((1.0 + np.sqrt(5.0)) / 2.0)
+    assert algo.compute_theta(5, 5) > algo.compute_theta(4, 5)
 
     for bad in [-1, 1.5, "3", True]:
         with pytest.raises(ValueError):
-            algo._compute_theta(bad, 5)
+            algo.compute_theta(bad, 5)
         with pytest.raises(ValueError):
-            algo._compute_theta(1, bad)
+            algo.compute_theta(1, bad)
     with pytest.raises(ValueError):
-        algo._compute_theta(6, 5)
+        algo.compute_theta(6, 5)
 
 
 @pytest.mark.parametrize(

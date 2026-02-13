@@ -20,3 +20,18 @@ Shared support modules:
 - `tests/shared/cvxpy_test_utils.py`: CVXPY/MOSEK option-builder helpers.
 - `tests/shared/cvxpy_fixtures.py`: reusable CVXPY/MOSEK fixtures for backend/convergence tests.
 - `tests/convergence/convergence_douglas_rachford_utils.py`: Douglas-Rachford theory formulas and shared bisection wrapper.
+
+# Public vs Private API Tests
+
+Tests are also separated by API surface:
+
+- `public_api`: validates user-facing behavior and stable contracts.
+- `private_api`: validates internal implementation details (private helpers, internal builders, and internals-only invariants).
+
+Markers are assigned automatically in `tests/conftest.py` using folder/file routing, so tests usually do not need explicit `@pytest.mark.*` decorations.
+
+Useful commands:
+
+- Run only public API tests: `pytest -m public_api`
+- Run only private API tests: `pytest -m private_api`
+- Exclude private API tests: `pytest -m "not private_api"`
