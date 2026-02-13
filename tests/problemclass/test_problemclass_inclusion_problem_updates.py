@@ -10,7 +10,7 @@ from autolyap.problemclass import (
 # Tests for cache invalidation and update behavior in InclusionProblem.
 def test_component_data_is_readonly():
     prob = InclusionProblem([Convex()])
-    data = prob.get_component_data(1)
+    data = prob._get_component_data(1)
     matrix, vector, _eq, _idx = data[0]
     with pytest.raises(ValueError):
         matrix[0, 0] = 1.0
@@ -20,15 +20,15 @@ def test_component_data_is_readonly():
 
 def test_update_component_instances_refreshes_indices_and_cache():
     prob = InclusionProblem([Convex()])
-    data_before = prob.get_component_data(1)
+    data_before = prob._get_component_data(1)
     assert len(data_before) == 1
     assert len(data_before[0]) == 4
 
-    prob.update_component_instances(1, MaximallyMonotone())
+    prob._update_component_instances(1, MaximallyMonotone())
     assert prob.I_op == [1]
     assert prob.I_func == []
 
-    data_after = prob.get_component_data(1)
+    data_after = prob._get_component_data(1)
     assert len(data_after) == 1
     assert len(data_after[0]) == 2
 
@@ -36,4 +36,4 @@ def test_update_component_instances_refreshes_indices_and_cache():
 def test_update_component_instances_rejects_mixed_types():
     prob = InclusionProblem([Convex()])
     with pytest.raises(ValueError):
-        prob.update_component_instances(1, [Convex(), MaximallyMonotone()])
+        prob._update_component_instances(1, [Convex(), MaximallyMonotone()])

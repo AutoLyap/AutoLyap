@@ -8,11 +8,11 @@ from autolyap.problemclass import (
     Cocoercive,
     WeakMintyVariationalInequality,
 )
-from autolyap.problemclass.problemclass import OperatorInterpolationCondition
+from autolyap.problemclass.base import _OperatorInterpolationCondition
 
 
 # Tests for operator interpolation condition data and parameter validation.
-def _assert_operator_data(cond: OperatorInterpolationCondition, expected_index: str) -> None:
+def _assert_operator_data(cond: _OperatorInterpolationCondition, expected_index: str) -> None:
     data = cond.get_data()
     assert len(data) == 1
     matrix, interp_idx = data[0]

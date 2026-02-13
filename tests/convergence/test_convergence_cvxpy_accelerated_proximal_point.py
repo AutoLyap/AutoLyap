@@ -15,13 +15,13 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
     problem_operator = InclusionProblem([MaximallyMonotone()])
     algorithm_operator = AcceleratedProximalPoint(gamma=1.0, type="operator")
 
-    Ys0 = algorithm_operator.get_Ys(0, 0)
-    Xs0 = algorithm_operator.get_Xs(0, 0)
+    Ys0 = algorithm_operator._get_Ys(0, 0)
+    Xs0 = algorithm_operator._get_Xs(0, 0)
     diff0 = Xs0[0][1, :] - Ys0["star"][0, :]
     Q_0_operator = np.outer(diff0, diff0)
 
     for k in range(1, 8):
-        Xs = algorithm_operator.get_Xs(k, k)
+        Xs = algorithm_operator._get_Xs(k, k)
         diff = Xs[k + 1][0, :] - Xs[k][1, :]
         Q_k_operator = np.outer(diff, diff)
 
@@ -46,14 +46,14 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
     problem_function = InclusionProblem([Convex()])
     algorithm_function = AcceleratedProximalPoint(gamma=1.0, type="function")
 
-    Ys0 = algorithm_function.get_Ys(0, 0)
-    Xs0 = algorithm_function.get_Xs(0, 0)
+    Ys0 = algorithm_function._get_Ys(0, 0)
+    Xs0 = algorithm_function._get_Xs(0, 0)
     diff0 = Xs0[0][1, :] - Ys0["star"][0, :]
     Q_0_function = np.outer(diff0, diff0)
     q_0_function = np.zeros(algorithm_function.m_bar_func + algorithm_function.m_func)
 
     for k in range(1, 8):
-        Xs = algorithm_function.get_Xs(k, k)
+        Xs = algorithm_function._get_Xs(k, k)
         diff = Xs[k + 1][0, :] - Xs[k][1, :]
         Q_k_function = np.outer(diff, diff)
         q_k_function = np.zeros(algorithm_function.m_bar_func + algorithm_function.m_func)

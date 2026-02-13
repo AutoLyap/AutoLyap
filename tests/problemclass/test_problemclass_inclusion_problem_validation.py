@@ -7,31 +7,31 @@ from autolyap.problemclass import (
     GradientDominated,
     InclusionProblem,
 )
-from autolyap.problemclass.problemclass import (
-    InterpolationIndices,
-    OperatorInterpolationCondition,
-    FunctionInterpolationCondition,
+from autolyap.problemclass.indices import _InterpolationIndices
+from autolyap.problemclass.base import (
+    _OperatorInterpolationCondition,
+    _FunctionInterpolationCondition,
 )
 
 
 # Tests for InclusionProblem validation and component typing rules.
-class _BadOperatorCondition(OperatorInterpolationCondition):
+class _BadOperatorCondition(_OperatorInterpolationCondition):
     def get_data(self):
         matrix = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-        return [(matrix, InterpolationIndices("r1<r2"))]
+        return [(matrix, _InterpolationIndices("r1<r2"))]
 
 
-class _BadOperatorNonsymmetric(OperatorInterpolationCondition):
+class _BadOperatorNonsymmetric(_OperatorInterpolationCondition):
     def get_data(self):
         matrix = np.array([[1.0, 2.0], [0.0, 1.0]])
-        return [(matrix, InterpolationIndices("r1<r2"))]
+        return [(matrix, _InterpolationIndices("r1<r2"))]
 
 
-class _BadFunctionCondition(FunctionInterpolationCondition):
+class _BadFunctionCondition(_FunctionInterpolationCondition):
     def get_data(self):
         matrix = np.eye(4)
         vector = np.array([1.0, 2.0, 3.0])
-        return [(matrix, vector, False, InterpolationIndices("r1!=r2"))]
+        return [(matrix, vector, False, _InterpolationIndices("r1!=r2"))]
 
 
 def test_inclusionproblem_rejects_empty_components():

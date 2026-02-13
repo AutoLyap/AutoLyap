@@ -13,9 +13,7 @@ from autolyap.problemclass import (
     SupportFunctionOfClosedConvexSet,
     GradientDominated,
 )
-from autolyap.problemclass.problemclass import (
-    ParametrizedFunctionInterpolationCondition,
-)
+from autolyap.problemclass.functions import _ParametrizedFunctionInterpolationCondition
 
 
 # Tests for function interpolation condition data and parameter validation.
@@ -32,16 +30,16 @@ def _assert_function_data_item(
 
 def test_parametrized_function_condition_requires_mu_lt_L():
     with pytest.raises(ValueError):
-        ParametrizedFunctionInterpolationCondition(mu=1.0, L=1.0)
+        _ParametrizedFunctionInterpolationCondition(mu=1.0, L=1.0)
 
 
 def test_parametrized_function_condition_rejects_negative_infinity_mu():
     with pytest.raises(ValueError):
-        ParametrizedFunctionInterpolationCondition(mu=float("-inf"), L=1.0)
+        _ParametrizedFunctionInterpolationCondition(mu=float("-inf"), L=1.0)
 
 
 def test_parametrized_function_condition_basic_shape():
-    cond = ParametrizedFunctionInterpolationCondition(mu=0.0, L=float("inf"))
+    cond = _ParametrizedFunctionInterpolationCondition(mu=0.0, L=float("inf"))
     data = cond.get_data()
     assert len(data) == 1
     _assert_function_data_item(data[0], "r1!=r2", False, (4, 4), 2)

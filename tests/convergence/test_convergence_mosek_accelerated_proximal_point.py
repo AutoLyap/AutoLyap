@@ -20,14 +20,14 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
     algorithm_operator = AcceleratedProximalPoint(gamma=1.0, type="operator")
 
     # V(0) = ||y^0 - y^*||^2 (same construction as in the original experiment code).
-    Ys0 = algorithm_operator.get_Ys(0, 0)
-    Xs0 = algorithm_operator.get_Xs(0, 0)
+    Ys0 = algorithm_operator._get_Ys(0, 0)
+    Xs0 = algorithm_operator._get_Xs(0, 0)
     diff0 = Xs0[0][1, :] - Ys0["star"][0, :]
     Q_0_operator = np.outer(diff0, diff0)
 
     for k in range(1, 11):
         # V(k) = ||x^{k+1} - y^k||^2
-        Xs = algorithm_operator.get_Xs(k, k)
+        Xs = algorithm_operator._get_Xs(k, k)
         diff = Xs[k + 1][0, :] - Xs[k][1, :]
         Q_k_operator = np.outer(diff, diff)
 
@@ -60,15 +60,15 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
     algorithm_function = AcceleratedProximalPoint(gamma=1.0, type="function")
 
     # V(0) = ||y^0 - y^*||^2 (same construction as in the original experiment code).
-    Ys0 = algorithm_function.get_Ys(0, 0)
-    Xs0 = algorithm_function.get_Xs(0, 0)
+    Ys0 = algorithm_function._get_Ys(0, 0)
+    Xs0 = algorithm_function._get_Xs(0, 0)
     diff0 = Xs0[0][1, :] - Ys0["star"][0, :]
     Q_0_function = np.outer(diff0, diff0)
     q_0_function = np.zeros(algorithm_function.m_bar_func + algorithm_function.m_func)
 
     for k in range(1, 11):
         # V(k) = ||x^{k+1} - y^k||^2
-        Xs = algorithm_function.get_Xs(k, k)
+        Xs = algorithm_function._get_Xs(k, k)
         diff = Xs[k + 1][0, :] - Xs[k][1, :]
         Q_k_function = np.outer(diff, diff)
         q_k_function = np.zeros(algorithm_function.m_bar_func + algorithm_function.m_func)
