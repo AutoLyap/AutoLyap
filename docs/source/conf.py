@@ -31,6 +31,10 @@ autodoc_mock_imports = [
     "mosek.fusion.pythonic",
 ]
 
+autodoc_type_aliases = {
+    "CacheValueT": "typing.Any",
+}
+
 templates_path = ["_templates"]
 exclude_patterns = ["release_notes/_template.md"]
 

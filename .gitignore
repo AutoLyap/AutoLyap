@@ -53,3 +53,5 @@ Thumbs.db
 # Local project files
 AGENT.md
 Paper/
+.vscode/
+docs/_build/

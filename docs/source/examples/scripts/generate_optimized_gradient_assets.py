@@ -162,8 +162,8 @@ def _make_solver_options(args: argparse.Namespace) -> SolverOptions:
 
 
 def _c_K_theory(algorithm: OptimizedGradientMethod, K: int) -> float:
-    theta_K = algorithm._compute_theta(K, K)
-    return algorithm.L / (2.0 * theta_K ** 2)
+    theta = algorithm.compute_theta(K, K)
+    return algorithm.L / (2.0 * theta ** 2)
 
 
 def _run_scan(
