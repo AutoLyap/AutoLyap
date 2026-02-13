@@ -31,7 +31,7 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
         diff = Xs[k + 1][0, :] - Xs[k][1, :]
         Q_k_operator = np.outer(diff, diff)
 
-        result = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.search_lyapunov(
             problem_operator,
             algorithm_operator,
             k,
@@ -73,7 +73,7 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
         Q_k_function = np.outer(diff, diff)
         q_k_function = np.zeros(algorithm_function.m_bar_func + algorithm_function.m_func)
 
-        result = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.search_lyapunov(
             problem_function,
             algorithm_function,
             k,

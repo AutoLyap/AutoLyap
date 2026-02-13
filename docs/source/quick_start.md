@@ -158,7 +158,7 @@ Q_K, q_K = IterationDependent.get_parameters_function_value_suboptimality(
     K,
 )
 
-result = IterationDependent.verify_iteration_dependent_Lyapunov(
+result = IterationDependent.search_lyapunov(
     problem,
     algorithm,
     K,
@@ -220,9 +220,9 @@ the theoretical bound in black and AutoLyap certificates as blue dots.
 
 All three SDP entry points support a `verbosity` argument:
 
-- {py:meth}`IterationIndependent.verify_iteration_independent_Lyapunov <autolyap.IterationIndependent.verify_iteration_independent_Lyapunov>`
+- {py:meth}`IterationIndependent.search_lyapunov <autolyap.IterationIndependent.search_lyapunov>`
 - {py:meth}`IterationIndependent.LinearConvergence.bisection_search_rho <autolyap.IterationIndependent.LinearConvergence.bisection_search_rho>`
-- {py:meth}`IterationDependent.verify_iteration_dependent_Lyapunov <autolyap.IterationDependent.verify_iteration_dependent_Lyapunov>`
+- {py:meth}`IterationDependent.search_lyapunov <autolyap.IterationDependent.search_lyapunov>`
 
 Set:
 
@@ -239,7 +239,7 @@ The diagnostic summary reports:
 Example:
 
 ```python
-result = IterationIndependent.verify_iteration_independent_Lyapunov(
+result = IterationIndependent.search_lyapunov(
     problem,
     algorithm,
     P,

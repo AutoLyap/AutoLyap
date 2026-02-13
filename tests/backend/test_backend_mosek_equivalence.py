@@ -34,11 +34,11 @@ def test_iteration_independent_verify_cross_backend_equivalence(
         s_equals_t=True,
         remove_C3=True,
     )
-    result_mosek = IterationIndependent.verify_iteration_independent_Lyapunov(
+    result_mosek = IterationIndependent.search_lyapunov(
         **kwargs,
         solver_options=mosek_fusion_solver_options,
     )
-    result_cvxpy = IterationIndependent.verify_iteration_independent_Lyapunov(
+    result_cvxpy = IterationIndependent.search_lyapunov(
         **kwargs,
         solver_options=cvxpy_mosek_solver_options,
     )
@@ -122,11 +122,11 @@ def test_iteration_dependent_verify_cross_backend_equivalence(
         q_0=q_0,
         q_K=q_K,
     )
-    result_mosek = IterationDependent.verify_iteration_dependent_Lyapunov(
+    result_mosek = IterationDependent.search_lyapunov(
         **kwargs,
         solver_options=mosek_fusion_solver_options,
     )
-    result_cvxpy = IterationDependent.verify_iteration_dependent_Lyapunov(
+    result_cvxpy = IterationDependent.search_lyapunov(
         **kwargs,
         solver_options=cvxpy_mosek_solver_options,
     )

@@ -60,7 +60,7 @@ Q_K_nf, q_K_nf = IterationDependent.get_parameters_function_value_suboptimality(
     nfgm, K, j=2
 )
 
-result_nf = IterationDependent.verify_iteration_dependent_Lyapunov(
+result_nf = IterationDependent.search_lyapunov(
     problem,
     nfgm,
     K,

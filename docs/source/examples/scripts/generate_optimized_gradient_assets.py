@@ -192,7 +192,7 @@ def _run_scan(
         )
 
         try:
-            result = IterationDependent.verify_iteration_dependent_Lyapunov(
+            result = IterationDependent.search_lyapunov(
                 problem,
                 algorithm,
                 k_int,

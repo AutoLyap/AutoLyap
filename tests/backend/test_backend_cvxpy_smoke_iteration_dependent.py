@@ -12,7 +12,7 @@ def test_iteration_dependent_verify_with_cvxpy_backend_smoke(
     Q_K, q_K = IterationDependent.get_parameters_function_value_suboptimality(
         tiny_functional_algorithm, k=1, j=1
     )
-    result = IterationDependent.verify_iteration_dependent_Lyapunov(
+    result = IterationDependent.search_lyapunov(
         problem,
         tiny_functional_algorithm,
         1,
@@ -42,7 +42,7 @@ def test_iteration_dependent_verify_with_cvxpy_operator_only_schema(
     Q_1 = IterationDependent.get_parameters_distance_to_solution(
         tiny_operator_algorithm, k=1, i=1, j=1
     )
-    result = IterationDependent.verify_iteration_dependent_Lyapunov(
+    result = IterationDependent.search_lyapunov(
         problem,
         tiny_operator_algorithm,
         1,
@@ -68,7 +68,7 @@ def test_iteration_dependent_verify_verbosity_reports_equality_section(
     Q_K, q_K = IterationDependent.get_parameters_function_value_suboptimality(
         tiny_functional_algorithm, k=1, j=1
     )
-    result = IterationDependent.verify_iteration_dependent_Lyapunov(
+    result = IterationDependent.search_lyapunov(
         problem,
         tiny_functional_algorithm,
         1,
@@ -106,7 +106,7 @@ def test_iteration_dependent_verify_operator_only_verbosity_reports_no_equalitie
     Q_1 = IterationDependent.get_parameters_distance_to_solution(
         tiny_operator_algorithm, k=1, i=1, j=1
     )
-    result = IterationDependent.verify_iteration_dependent_Lyapunov(
+    result = IterationDependent.search_lyapunov(
         problem,
         tiny_operator_algorithm,
         1,

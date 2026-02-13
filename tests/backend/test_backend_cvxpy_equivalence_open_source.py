@@ -97,11 +97,11 @@ def test_iteration_dependent_verify_cvxpy_warm_start_equivalence_open_source(
         q_0=q_0,
         q_K=q_K,
     )
-    result_warm = IterationDependent.verify_iteration_dependent_Lyapunov(
+    result_warm = IterationDependent.search_lyapunov(
         **kwargs,
         solver_options=warm_options,
     )
-    result_cold = IterationDependent.verify_iteration_dependent_Lyapunov(
+    result_cold = IterationDependent.search_lyapunov(
         **kwargs,
         solver_options=cold_options,
     )

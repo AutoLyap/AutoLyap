@@ -40,7 +40,7 @@ P, p, T, t = IterationIndependent.SublinearConvergence.get_parameters_function_v
     tau=0,
 )
 
-result = IterationIndependent.verify_iteration_independent_Lyapunov(
+result = IterationIndependent.search_lyapunov(
     problem,
     algorithm,
     P,
@@ -72,7 +72,7 @@ Equivalently,
 ```
 
 Sweeping over {math}`\gamma` and {math}`\delta` gives the plot below, where
-each dot denotes a parameter pair for which the verification is successful.
+each dot denotes a parameter pair for which the search is successful.
 
 ```{image} ../_static/heavy_ball_smooth_convex.svg
 :alt: Certified heavy-ball smooth-convex region in the (gamma, delta) plane.

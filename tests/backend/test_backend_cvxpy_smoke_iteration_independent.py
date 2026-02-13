@@ -12,7 +12,7 @@ def test_iteration_independent_verify_with_cvxpy_backend_smoke(
     P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
         tiny_functional_algorithm
     )
-    result = IterationIndependent.verify_iteration_independent_Lyapunov(
+    result = IterationIndependent.search_lyapunov(
         problem,
         tiny_functional_algorithm,
         P,
@@ -87,7 +87,7 @@ def test_iteration_independent_verify_with_cvxpy_operator_only_schema(
     P, T = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
         tiny_operator_algorithm
     )
-    result = IterationIndependent.verify_iteration_independent_Lyapunov(
+    result = IterationIndependent.search_lyapunov(
         problem,
         tiny_operator_algorithm,
         P,
@@ -113,7 +113,7 @@ def test_iteration_independent_verify_verbosity_reports_equality_section(
     P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
         tiny_functional_algorithm
     )
-    result = IterationIndependent.verify_iteration_independent_Lyapunov(
+    result = IterationIndependent.search_lyapunov(
         problem,
         tiny_functional_algorithm,
         P,
@@ -182,7 +182,7 @@ def test_iteration_independent_verify_operator_only_verbosity_reports_no_equalit
     P, T = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
         tiny_operator_algorithm
     )
-    result = IterationIndependent.verify_iteration_independent_Lyapunov(
+    result = IterationIndependent.search_lyapunov(
         problem,
         tiny_operator_algorithm,
         P,

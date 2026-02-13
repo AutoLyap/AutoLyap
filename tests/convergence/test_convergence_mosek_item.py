@@ -37,7 +37,7 @@ def test_convergence_item_c_matches_theoretical_bound():
         Q_k = (Xsk[k][1, :] - Ysk["star"]).T @ (Xsk[k][1, :] - Ysk["star"])
         q_k = np.zeros(algorithm.m_bar_func + algorithm.m_func)
 
-        result = IterationDependent.verify_iteration_dependent_Lyapunov(
+        result = IterationDependent.search_lyapunov(
             problem,
             algorithm,
             k,
