@@ -38,11 +38,19 @@ class TsengFBF(Algorithm):
     --------------------------
 
     The update can be written in the algorithm representation with
-    :math:`\bx^k = x^k`,
-    :math:`\bu^k = \left(G_1(x^k),\; G_1(\bar{x}^k),\; (x^k-\gamma G_1(x^k)-\bar{x}^k)/\gamma\right)`,
-    and :math:`\by^k = (x^k, \bar{x}^k, \bar{x}^k)`.
 
-    In :meth:`get_ABCD`, the matrices are
+    .. math::
+        \begin{aligned}
+            \bx^k &= x^k, \\
+            \bu^k &= \left(
+            G_1(x^k),\;
+            G_1(\bar{x}^k),\;
+            \frac{x^k-\gamma G_1(x^k)-\bar{x}^k}{\gamma}
+            \right), \\
+            \by^k &= (x^k, \bar{x}^k, \bar{x}^k).
+        \end{aligned}
+
+    With this representation, the system matrices are
 
     .. math::
         \begin{aligned}
@@ -61,10 +69,27 @@ class TsengFBF(Algorithm):
             -\gamma & 0 & -\gamma
             \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        n = 1,\quad m = 2,\quad (\bar{m}_i)_{i=1}^{m} = (2,1),\quad \bar{m} = 3.
+
+    .. math::
+        I_{\text{func}} = \varnothing,\quad I_{\text{op}} = \{1,2\}.
     """
     def __init__(self, gamma, theta):
         r"""
         Initialize the Tseng FBF method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+
+        .. math::
+            n = 1,\quad m = 2,\quad (\bar m_i)_{i=1}^{m} = (2,1),\quad \bar m = 3,\quad
+            I_{\mathrm{func}} = \varnothing,\quad I_{\mathrm{op}} = \{1,2\}.
         """
         super().__init__(1, 2, [2, 1], [], [1, 2]) 
         self.gamma = gamma

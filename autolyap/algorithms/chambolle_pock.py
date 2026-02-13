@@ -37,7 +37,7 @@ class ChambollePock(Algorithm):
     State-space representation
     --------------------------
 
-    Using only variables and parameters from the standard form, set
+    The update can be written in the algorithm representation with
 
     .. math::
         \bx^k = (x^k, y^k), \qquad
@@ -49,7 +49,7 @@ class ChambollePock(Algorithm):
         \frac{y^k + \sigma\left(x^{k+1} + \theta(x^{k+1}-x^k)\right)-y^{k+1}}{\sigma}
         \right).
 
-    In :meth:`get_ABCD`, the matrices are
+    With this representation, the system matrices are
 
     .. math::
         \begin{aligned}
@@ -74,10 +74,27 @@ class ChambollePock(Algorithm):
             -\tau(1+\theta) & -\frac{1}{\sigma}
             \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        n = 2,\quad m = 2,\quad (\bar{m}_i)_{i=1}^{m} = (1,1),\quad \bar{m} = 2.
+
+    .. math::
+        I_{\text{func}} = \{1,2\},\quad I_{\text{op}} = \varnothing.
     """
     def __init__(self, tau, sigma, theta):
         r"""
         Initialize the Chambolle--Pock method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+
+        .. math::
+            n = 2,\quad m = 2,\quad (\bar m_i)_{i=1}^{m} = (1,1),\quad \bar m = 2,\quad
+            I_{\mathrm{func}} = \{1,2\},\quad I_{\mathrm{op}} = \varnothing.
         """
         super().__init__(2, 2, [1, 1], [1, 2], [])
         self.tau = tau

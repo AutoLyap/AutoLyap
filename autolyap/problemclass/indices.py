@@ -1,6 +1,8 @@
 """Interpolation index helpers for problem classes."""
 
-class InterpolationIndices:
+from typing import Any
+
+class _InterpolationIndices:
     r"""
     Wrapper for interpolation indices that enforces allowed values.
 
@@ -50,12 +52,12 @@ class InterpolationIndices:
     def __str__(self) -> str:
         return self._value
 
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, InterpolationIndices):
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, _InterpolationIndices):
             return self._value == other._value
         if isinstance(other, str):
             return self._value == other
         return False
 
     def __repr__(self) -> str:
-        return f"InterpolationIndices({self._value})"
+        return f"_InterpolationIndices({self._value})"

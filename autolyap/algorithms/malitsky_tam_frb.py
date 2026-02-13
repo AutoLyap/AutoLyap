@@ -2,9 +2,10 @@ import numpy as np
 from typing import Tuple
 from .algorithm import Algorithm
 
-class ProximalPoint(Algorithm):
+
+class MalitskyTamFRB(Algorithm):
     r"""
-    Proximal point method.
+    Malitsky--Tam forward-reflected-backward method.
 
     Class-level reference
     =====================
@@ -20,19 +21,18 @@ class ProximalPoint(Algorithm):
     Standard form
     -------------
 
-
-    For an initial point :math:`x^0 \in \calH` and step size
+    For an initial pair :math:`(x^{-1}, x^0) \in \calH^2` and step size
     :math:`\gamma \in \reals_{++}`,
 
     .. math::
         (\forall k \in \naturals)\quad
-        x^{k+1} = \prox_{\gamma f}(x^k).
+        x^{k+1} = J_{\gamma G_2}\left(x^k - 2\gamma G_1(x^k) + \gamma G_1(x^{k-1})\right).
 
     Equivalently,
 
     .. math::
         (\forall k \in \naturals)\quad
-        x^{k+1} = x^k - \gamma u^k, \qquad u^k \in \partial f(x^{k+1}).
+        x^{k+1} = x^k - 2\gamma G_1(x^k) + \gamma G_1(x^{k-1}) - \gamma G_2(x^{k+1}).
 
     State-space representation
     --------------------------
@@ -40,21 +40,36 @@ class ProximalPoint(Algorithm):
     The update can be written in the algorithm representation with
 
     .. math::
-        \bx^k = x^k, \qquad
-        \bu^k = u^k, \qquad
-        \by^k = x^{k+1}.
-
-    Using the equivalent standard form,
-
-    .. math::
-        u^k \in \partial f(x^{k+1}).
+        \bx^k = (x^k,\; x^{k-1}), \qquad
+        \bu^k = \left(G_1(x^k),\; G_1(x^{k-1}),\; G_2(x^{k+1})\right), \qquad
+        \by^k = \left(x^k,\; x^{k-1},\; x^{k+1}\right).
 
     With this representation, the system matrices are
 
     .. math::
         \begin{aligned}
-            A_k &= \begin{bmatrix} 1 \end{bmatrix}, & B_k &= \begin{bmatrix} -\gamma \end{bmatrix}, \\
-            C_k &= \begin{bmatrix} 1 \end{bmatrix}, & D_k &= \begin{bmatrix} -\gamma \end{bmatrix}.
+            A_k &=
+            \begin{bmatrix}
+            1 & 0 \\
+            1 & 0
+            \end{bmatrix}, &
+            B_k &=
+            \begin{bmatrix}
+            -2\gamma & \gamma & -\gamma \\
+            0 & 0 & 0
+            \end{bmatrix}, \\
+            C_k &=
+            \begin{bmatrix}
+            1 & 0 \\
+            0 & 1 \\
+            1 & 0
+            \end{bmatrix}, &
+            D_k &=
+            \begin{bmatrix}
+            0 & 0 & 0 \\
+            0 & 0 & 0 \\
+            -2\gamma & \gamma & -\gamma
+            \end{bmatrix}.
         \end{aligned}
 
     These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
@@ -63,30 +78,30 @@ class ProximalPoint(Algorithm):
     ---------------------
 
     .. math::
-        n = 1,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (1),\quad \bar{m} = 1.
+        n = 2,\quad m = 2,\quad (\bar{m}_i)_{i=1}^{m} = (2,1),\quad \bar{m} = 3.
 
     .. math::
-        I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
+        I_{\text{func}} = \varnothing,\quad I_{\text{op}} = \{1,2\}.
     """
     def __init__(self, gamma):
         r"""
-        Initialize the proximal point method.
+        Initialize the Malitsky--Tam forward-reflected-backward method.
 
         Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
 
         .. math::
-            n = 1,\quad m = 1,\quad (\bar m_i)_{i=1}^{m} = (1),\quad \bar m = 1,\quad
-            I_{\mathrm{func}} = \{1\},\quad I_{\mathrm{op}} = \varnothing.
+            n = 2,\quad m = 2,\quad (\bar m_i)_{i=1}^{m} = (2,1),\quad \bar m = 3,\quad
+            I_{\mathrm{func}} = \varnothing,\quad I_{\mathrm{op}} = \{1,2\}.
         """
-        super().__init__(1, 1, [1], [1], [])
+        super().__init__(2, 2, [2, 1], [], [1, 2])
         self.gamma = gamma
-    
+
     def set_gamma(self, gamma: float) -> None:
         r"""
         Set the step-size parameter :math:`\gamma`.
 
         Shared notation follows the class-level reference in
-        :class:`~autolyap.algorithms.ProximalPoint`.
+        :class:`~autolyap.algorithms.MalitskyTamFRB`.
 
         **Parameters**
 
@@ -98,10 +113,16 @@ class ProximalPoint(Algorithm):
         """
         gamma = self._validate_positive_finite_real(gamma, "gamma")
         self._set_dynamic_parameter("gamma", gamma)
-    
+
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        A = np.array([[1]])
-        B = np.array([[-self.gamma]])
-        C = np.array([[1]])
-        D = np.array([[-self.gamma]])
+        A = np.array([[1, 0],
+                      [1, 0]])
+        B = np.array([[-2 * self.gamma, self.gamma, -self.gamma],
+                      [0, 0, 0]])
+        C = np.array([[1, 0],
+                      [0, 1],
+                      [1, 0]])
+        D = np.array([[0, 0, 0],
+                      [0, 0, 0],
+                      [-2 * self.gamma, self.gamma, -self.gamma]])
         return (A, B, C, D)

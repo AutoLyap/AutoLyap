@@ -3,6 +3,7 @@ from mosek.fusion import Expr
 
 
 def _upper_triangle_size(n: int) -> int:
+    r"""Return the number of entries in the upper triangle of an `n x n` matrix."""
     return n * (n + 1) // 2
 
 

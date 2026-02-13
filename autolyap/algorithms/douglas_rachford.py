@@ -46,11 +46,18 @@ class DouglasRachford(Algorithm):
     --------------------------
 
     The update can be written in the algorithm representation with
-    :math:`\bx^k = x^k`,
-    :math:`\bu^k = \left((x^k-v^k)/\gamma,\; (2v^k-x^k-w^k)/\gamma\right)`, and
-    :math:`\by^k = \left(x^k,\; 2v^k-x^k\right)`.
 
-    In :meth:`get_ABCD`, the matrices are
+    .. math::
+        \begin{aligned}
+            \bx^k &= x^k, \\
+            \bu^k &= \left(
+            \frac{x^k-v^k}{\gamma},\;
+            \frac{2v^k-x^k-w^k}{\gamma}
+            \right), \\
+            \by^k &= \left(x^k,\; 2v^k-x^k\right).
+        \end{aligned}
+
+    With this representation, the system matrices are
 
     .. math::
         \begin{aligned}
@@ -67,10 +74,40 @@ class DouglasRachford(Algorithm):
             -2\gamma & -\gamma
             \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        \text{type}=\text{"operator"}:\quad
+        n = 1,\quad m = 2,\quad (\bar{m}_i)_{i=1}^{m} = (1,1),\quad \bar{m} = 2,\quad
+        I_{\text{func}} = \varnothing,\quad I_{\text{op}} = \{1,2\}.
+
+    .. math::
+        \text{type}=\text{"function"}:\quad
+        n = 1,\quad m = 2,\quad (\bar{m}_i)_{i=1}^{m} = (1,1),\quad \bar{m} = 2,\quad
+        I_{\text{func}} = \{1,2\},\quad I_{\text{op}} = \varnothing.
     """
     def __init__(self, gamma, lambda_value, type: str = "operator"):
         r"""
         Initialize the Douglas--Rachford method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+        case-dependent:
+
+        - If `type = operator`:
+
+          .. math::
+              n = 1,\quad m = 2,\quad (\bar m_i)_{i=1}^{m} = (1,1),\quad \bar m = 2,\quad
+              I_{\mathrm{func}} = \varnothing,\quad I_{\mathrm{op}} = \{1,2\}.
+
+        - If `type = function`:
+
+          .. math::
+              n = 1,\quad m = 2,\quad (\bar m_i)_{i=1}^{m} = (1,1),\quad \bar m = 2,\quad
+              I_{\mathrm{func}} = \{1,2\},\quad I_{\mathrm{op}} = \varnothing.
         """
         if type == "operator":
             super().__init__(1, 2, [1, 1], [], [1, 2])

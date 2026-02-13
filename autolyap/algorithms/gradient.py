@@ -30,19 +30,40 @@ class GradientMethod(Algorithm):
     --------------------------
 
     The update can be written in the algorithm representation with
-    :math:`\bx^k = x^k`, :math:`\bu^k = \nabla f(x^k)`, and :math:`\by^k = x^k`.
 
-    In :meth:`get_ABCD`, the matrices are
+    .. math::
+        \bx^k = x^k, \qquad
+        \bu^k = \nabla f(x^k), \qquad
+        \by^k = x^k.
+
+    With this representation, the system matrices are
 
     .. math::
         \begin{aligned}
             A_k &= \begin{bmatrix} 1 \end{bmatrix}, & B_k &= \begin{bmatrix} -\gamma \end{bmatrix}, \\
             C_k &= \begin{bmatrix} 1 \end{bmatrix}, & D_k &= \begin{bmatrix} 0 \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        n = 1,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (1),\quad \bar{m} = 1.
+
+    .. math::
+        I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
     def __init__(self, gamma):
         r"""
         Initialize the gradient method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+
+        .. math::
+            n = 1,\quad m = 1,\quad (\bar m_i)_{i=1}^{m} = (1),\quad \bar m = 1,\quad
+            I_{\mathrm{func}} = \{1\},\quad I_{\mathrm{op}} = \varnothing.
         """
         super().__init__(n=1, m=1, m_bar_is=[1], I_func=[1], I_op=[])
         self.gamma = gamma

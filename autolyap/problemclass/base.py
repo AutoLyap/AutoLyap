@@ -4,9 +4,9 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
-from autolyap.problemclass.indices import InterpolationIndices
+from autolyap.problemclass.indices import _InterpolationIndices
 
-class InterpolationCondition(ABC):
+class _InterpolationCondition(ABC):
     r"""
     Abstract base class for an interpolation condition.
 
@@ -18,8 +18,8 @@ class InterpolationCondition(ABC):
 
     Derived classes must implement :meth:`get_data`, which returns interpolation data as a list
     of tuples encoding the relevant vectors, matrices, and interpolation indices.
-    See :class:`~autolyap.problemclass.OperatorInterpolationCondition` and
-    :class:`~autolyap.problemclass.FunctionInterpolationCondition` for
+    See :class:`~autolyap.problemclass.base._OperatorInterpolationCondition` and
+    :class:`~autolyap.problemclass.base._FunctionInterpolationCondition` for
     the detailed notation and the corresponding interpolation constraints.
 
     """
@@ -29,17 +29,17 @@ class InterpolationCondition(ABC):
         Return interpolation data.
 
         Shared tuple conventions follow the class-level reference in
-        :class:`~autolyap.problemclass.InterpolationCondition`.
+        :class:`~autolyap.problemclass.base._InterpolationCondition`.
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]\]):
+        - (:class:`~typing.List`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]\]):
           A list of tuples representing the interpolation data.
 
         """
         pass
 
-class OperatorInterpolationCondition(InterpolationCondition):
+class _OperatorInterpolationCondition(_InterpolationCondition):
     r"""
     Base class for operator interpolation conditions.
 
@@ -56,7 +56,7 @@ class OperatorInterpolationCondition(InterpolationCondition):
     where:
 
     - **matrix** is a square, symmetric 2D numpy array.
-    - **interpolation_indices** is an instance of :class:`InterpolationIndices`.
+    - **interpolation_indices** is an instance of :class:`~autolyap.problemclass.indices._InterpolationIndices`.
 
     The returned **matrix** corresponds to the quadratic term
     :math:`M_{(i,o)}^{\textup{op}}`, where :math:`i \in \IndexOp` indexes the operator component
@@ -85,22 +85,22 @@ class OperatorInterpolationCondition(InterpolationCondition):
 
     """
     @abstractmethod
-    def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, _InterpolationIndices]]:
         r"""
         Return operator interpolation data.
 
         The tuple format and notation follow the class-level reference in
-        :class:`~autolyap.problemclass.OperatorInterpolationCondition`.
+        :class:`~autolyap.problemclass.base._OperatorInterpolationCondition`.
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list of tuples, each containing a square
-          symmetric matrix and an instance of :class:`InterpolationIndices`.
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list of tuples, each containing a square
+          symmetric matrix and an instance of :class:`~autolyap.problemclass.indices._InterpolationIndices`.
 
         """
         pass
 
-class FunctionInterpolationCondition(InterpolationCondition):
+class _FunctionInterpolationCondition(_InterpolationCondition):
     r"""
     Base class for function interpolation conditions.
 
@@ -119,7 +119,7 @@ class FunctionInterpolationCondition(InterpolationCondition):
     - **matrix** is a square, symmetric 2D numpy array.
     - **vector** is a 1D numpy array.
     - **eq** is a boolean flag (True for equality, False for inequality).
-    - **interpolation_indices** is an instance of :class:`InterpolationIndices`.
+    - **interpolation_indices** is an instance of :class:`~autolyap.problemclass.indices._InterpolationIndices`.
     - **matrix** has shape :math:`(2b, 2b)` where :math:`b` is the length of **vector**.
 
     The returned **vector** corresponds to the linear term
@@ -166,18 +166,18 @@ class FunctionInterpolationCondition(InterpolationCondition):
 
     """
     @abstractmethod
-    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]]:
         r"""
         Return function interpolation data.
 
         The tuple format and notation follow the class-level reference in
-        :class:`~autolyap.problemclass.FunctionInterpolationCondition`.
+        :class:`~autolyap.problemclass.base._FunctionInterpolationCondition`.
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list of tuples, each
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list of tuples, each
           containing a square symmetric matrix, a 1D vector, a boolean flag, and an instance of
-          :class:`InterpolationIndices`.
+          :class:`~autolyap.problemclass.indices._InterpolationIndices`.
 
         """
         pass
