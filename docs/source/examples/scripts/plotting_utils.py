@@ -24,11 +24,9 @@ Usage:
 
 from __future__ import annotations
 
-import base64
 import csv
 import re
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
 from xml.sax.saxutils import escape as xml_escape
@@ -271,9 +269,6 @@ def _points_to_polyline(
 
 def _font_sources(font_stem: str) -> str:
     sources: list[str] = []
-    data_uri = _embedded_font_data_uri(font_stem)
-    if data_uri is not None:
-        sources.append(f"url('{data_uri}') format('woff2')")
     for base_dir in _DOCS_FONT_DIR_CANDIDATES:
         sources.append(f"url('{base_dir}/{font_stem}.woff2') format('woff2')")
     for base_dir in _DOCS_FONT_DIR_CANDIDATES:
@@ -291,33 +286,6 @@ def _font_face_rule(*, family: str, font_stem: str, style: str, weight: int) -> 
         f"  font-weight: {weight};\n"
         "}"
     )
-
-
-@lru_cache(maxsize=None)
-def _embedded_font_data_uri(font_stem: str) -> str | None:
-    """Return an inline `data:` URI for a docs font when available."""
-    for font_path in _font_binary_candidates(font_stem):
-        if font_path.exists():
-            encoded = base64.b64encode(font_path.read_bytes()).decode("ascii")
-            return f"data:font/woff2;base64,{encoded}"
-    return None
-
-
-def _font_binary_candidates(font_stem: str) -> tuple[Path, ...]:
-    """List likely local locations for theme font binaries."""
-    here = Path(__file__).resolve()
-    docs_root = here.parents[3]
-    candidates: list[Path] = [
-        docs_root / "build/html/_static/css/fonts" / f"{font_stem}.woff2",
-    ]
-    try:
-        import sphinx_rtd_theme  # type: ignore
-
-        theme_root = Path(sphinx_rtd_theme.__file__).resolve().parent
-        candidates.append(theme_root / "static/css/fonts" / f"{font_stem}.woff2")
-    except Exception:
-        pass
-    return tuple(candidates)
 
 
 def _embedded_docs_font_face_css() -> str:
@@ -470,14 +438,17 @@ def render_cartesian_svg(
         )
 
     for scatter in scatter_series:
+        svg_lines.append(
+            f'    <g fill="{scatter.color}" fill-opacity="{scatter.opacity:.3f}">'
+        )
         for x_value, y_value in scatter.points:
             x_pos = x_to_px(x_value)
             y_pos = y_to_px(y_value)
             svg_lines.append(
                 f'    <circle cx="{x_pos:.3f}" cy="{y_pos:.3f}" '
-                f'r="{scatter.marker_radius_px:.3f}" fill="{scatter.color}" '
-                f'fill-opacity="{scatter.opacity:.3f}"/>'
+                f'r="{scatter.marker_radius_px:.3f}"/>'
             )
+        svg_lines.append("    </g>")
 
     # Draw lines after points so curves stay visible above dense markers.
     for line in line_series:

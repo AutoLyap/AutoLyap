@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from xml.sax.saxutils import escape as xml_escape
 
@@ -282,9 +282,19 @@ html_context = {
     "seo_baseurl": "https://autolyap.github.io",
     "seo_author": author,
     "seo_in_language": "en-US",
+    "seo_organization_name": project,
+    "seo_organization_url": "https://autolyap.github.io",
+    "seo_social_profiles": [
+        "https://github.com/AutoLyap/AutoLyap",
+        "https://manuupadhyaya.github.io/",
+    ],
+    "seo_og_image_path": "/_static/favicon-master.png",
+    "seo_og_image_width": 512,
+    "seo_og_image_height": 512,
 }
 maximum_signature_line_length = 1
 toc_object_entries = True
+html_use_opensearch = "https://autolyap.github.io"
 
 # MathJax macros aligned with Paper/ver_5/commands.tex (subset used in docs/docstrings).
 mathjax3_config = {
@@ -383,10 +393,35 @@ def _normalized_baseurl(app):
     return str(context_baseurl).strip().rstrip("/")
 
 
+def _is_noindex_docname(docname: str) -> bool:
+    """Return whether a generated HTML page should be excluded from indexing."""
+    noindex_pages = {"search", "genindex", "py-modindex", "modindex"}
+    return (
+        docname in noindex_pages
+        or "genindex" in docname
+        or docname.startswith("_modules/")
+        or docname.startswith("_sources/")
+    )
+
+
 def _inject_seo_page_context(app, pagename, templatename, context, doctree):
     """Expose normalized URL and indexability flags to templates."""
     if app.builder.format != "html":
         return
+
+    context["seo_is_noindex"] = _is_noindex_docname(pagename)
+    try:
+        source_path = Path(app.env.doc2path(pagename, base=None))
+        modified_at = datetime.fromtimestamp(
+            source_path.stat().st_mtime,
+            tz=timezone.utc,
+        )
+    except Exception:
+        modified_at = datetime.now(tz=timezone.utc)
+
+    context["seo_lastmod_iso"] = (
+        modified_at.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    )
 
     baseurl = _normalized_baseurl(app)
     if not baseurl:
@@ -398,17 +433,8 @@ def _inject_seo_page_context(app, pagename, templatename, context, doctree):
     else:
         page_url = f"{baseurl}/{pagename}.html"
 
-    noindex_pages = {"search", "genindex", "py-modindex", "modindex"}
-    is_noindex = (
-        pagename in noindex_pages
-        or "genindex" in pagename
-        or pagename.startswith("_modules/")
-        or pagename.startswith("_sources/")
-    )
-
     context["pageurl"] = page_url
     context["seo_page_url"] = page_url
-    context["seo_is_noindex"] = is_noindex
 
 
 def _write_sitemap_and_robots(app, exception):
@@ -428,22 +454,38 @@ def _write_sitemap_and_robots(app, exception):
     ]
 
     for docname in sorted(env.found_docs):
+        if _is_noindex_docname(docname):
+            continue
         if docname == app.config.root_doc:
             loc = f"{baseurl}/"
+            priority = "1.0"
         else:
             loc = f"{baseurl}/{docname}.html"
+            priority = "0.8"
 
         source_path = Path(env.doc2path(docname, base=None))
         try:
-            lastmod = date.fromtimestamp(source_path.stat().st_mtime).isoformat()
+            lastmod = (
+                datetime.fromtimestamp(source_path.stat().st_mtime, tz=timezone.utc)
+                .replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
         except OSError:
-            lastmod = date.today().isoformat()
+            lastmod = (
+                datetime.now(tz=timezone.utc)
+                .replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
 
         sitemap_lines.extend(
             [
                 "  <url>",
                 f"    <loc>{xml_escape(loc)}</loc>",
                 f"    <lastmod>{lastmod}</lastmod>",
+                "    <changefreq>weekly</changefreq>",
+                f"    <priority>{priority}</priority>",
                 "  </url>",
             ]
         )
