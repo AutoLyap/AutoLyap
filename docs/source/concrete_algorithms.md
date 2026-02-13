@@ -5,10 +5,12 @@
 - {py:class}`DavisYin <autolyap.algorithms.DavisYin>`
 - {py:class}`DouglasRachford <autolyap.algorithms.DouglasRachford>`
 - {py:class}`Extragradient <autolyap.algorithms.Extragradient>`
+- {py:class}`ForwardMethod <autolyap.algorithms.ForwardMethod>`
 - {py:class}`GradientMethod <autolyap.algorithms.GradientMethod>`
 - {py:class}`GradientNesterovMomentum <autolyap.algorithms.GradientNesterovMomentum>`
 - {py:class}`HeavyBallMethod <autolyap.algorithms.HeavyBallMethod>`
 - {py:class}`ITEM <autolyap.algorithms.ITEM>`
+- {py:class}`MalitskyTamFRB <autolyap.algorithms.MalitskyTamFRB>`
 - {py:class}`NesterovConstant <autolyap.algorithms.NesterovConstant>`
 - {py:class}`NesterovFastGradientMethod <autolyap.algorithms.NesterovFastGradientMethod>`
 - {py:class}`OptimizedGradientMethod <autolyap.algorithms.OptimizedGradientMethod>`
@@ -47,6 +49,12 @@
 ```
 
 ```{eval-rst}
+.. autoclass:: autolyap.algorithms.ForwardMethod
+   :members:
+   :show-inheritance:
+```
+
+```{eval-rst}
 .. autoclass:: autolyap.algorithms.GradientMethod
    :members:
    :show-inheritance:
@@ -66,6 +74,12 @@
 
 ```{eval-rst}
 .. autoclass:: autolyap.algorithms.ITEM
+   :members:
+   :show-inheritance:
+```
+
+```{eval-rst}
+.. autoclass:: autolyap.algorithms.MalitskyTamFRB
    :members:
    :show-inheritance:
 ```

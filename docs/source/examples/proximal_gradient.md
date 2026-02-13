@@ -1,7 +1,7 @@
 # Define your own algorithm: The proximal gradient method
 
 This example is a step-by-step guide to define your own concrete algorithm with
-{py:class}`autolyap.algorithms.Algorithm`.
+{py:class}`Algorithm <autolyap.algorithms.Algorithm>`.
 
 ## Step 1: Problem statement
 
@@ -62,7 +62,8 @@ x^{k+1} \in x^k - \gamma \nabla f(x^k) - \gamma \partial g(x^{k+1}).
 
 ## Step 3: State-space representation
 
-Match the base representation
+Match the base representation used by
+{py:class}`Algorithm <autolyap.algorithms.Algorithm>`
 
 ```{math}
 \begin{aligned}
@@ -130,7 +131,7 @@ class ProximalGradientMethod(Algorithm):
         return A, B, C, D
 ```
 
-## Step 5: Build `InclusionProblem` and run the analysis
+## Step 5: Build {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>` and run the analysis
 
 ```python
 from autolyap import IterationIndependent

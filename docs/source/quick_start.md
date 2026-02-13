@@ -17,9 +17,9 @@ pip install autolyap
 
 Typical usage has four steps:
 
-1. Build an `InclusionProblem` from function and operator classes.
-2. Pick an algorithm or your own subclass of `Algorithm`.
-3. Select Lyapunov targets with helper constructors (`get_parameters_*`).
+1. Build an {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>` from function and operator classes.
+2. Pick an algorithm or your own subclass of {py:class}`Algorithm <autolyap.algorithms.Algorithm>`.
+3. Select Lyapunov targets with helper constructors.
 4. Solve the SDP and inspect `result["success"]`, the scalar (`rho` or `c_K`), and `result["certificate"]`.
 
 ## Iteration-independent example: The gradient method
@@ -106,7 +106,7 @@ as blue dots.
 
 For background on the optimized gradient method, see {cite}`quick-kin2028ogm`.
 
-Consider minimizing a convex and {math}`L`-smooth function {math}`f : \calH \to \reals`, with {math}`L > 0`; for initial points {math}`x^0, y^0 \in \calH`, smoothness constant {math}`L \in \reals_{++}`, and iteration budget {math}`K \in \naturals`, the optimized gradient method updates as
+Consider minimizing a convex and {math}`L`-smooth function {math}`f : \calH \to \reals`, with {math}`L > 0`; for initial points {math}`x^0, y^0 \in \calH`, smoothness constant {math}`L \in \reals_{++}`, and iteration budget {math}`K \in \mathbb{N}`, the optimized gradient method updates as
 
 ```{math}
 (\forall k \in \llbracket 0, K-1 \rrbracket)\quad
@@ -178,7 +178,7 @@ certificate = result["certificate"]
 Q_sequence = certificate["Q_sequence"]  # [Q_0, Q_1, ..., Q_K]
 q_sequence = certificate["q_sequence"]  # [q_0, q_1, ..., q_K] or None
 
-theta_K = algorithm._compute_theta(K, K)
+theta_K = algorithm.compute_theta(K, K)
 c_K_theory = L / (2.0 * theta_K ** 2)
 
 print(f"c_K (AutoLyap): {c_K:.6e}")
@@ -220,9 +220,9 @@ the theoretical bound in black and AutoLyap certificates as blue dots.
 
 All three SDP entry points support a `verbosity` argument:
 
-- `IterationIndependent.verify_iteration_independent_Lyapunov(...)`
-- `IterationIndependent.LinearConvergence.bisection_search_rho(...)`
-- `IterationDependent.verify_iteration_dependent_Lyapunov(...)`
+- {py:meth}`IterationIndependent.verify_iteration_independent_Lyapunov <autolyap.IterationIndependent.verify_iteration_independent_Lyapunov>`
+- {py:meth}`IterationIndependent.LinearConvergence.bisection_search_rho <autolyap.IterationIndependent.LinearConvergence.bisection_search_rho>`
+- {py:meth}`IterationDependent.verify_iteration_dependent_Lyapunov <autolyap.IterationDependent.verify_iteration_dependent_Lyapunov>`
 
 Set:
 
