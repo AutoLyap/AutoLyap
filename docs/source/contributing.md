@@ -75,16 +75,16 @@ python -m pip install ruff mypy
 The CI test matrix runs on Python `3.9`, `3.10`, `3.11`, `3.12`, and `3.13`.
 At minimum, run the checks above locally on one supported Python version.
 
-If your change affects MOSEK, run:
+If your change may impact MOSEK-backed functionality, run:
 
 ```bash
 make check-mosek
 ```
 
-## Notes for docs
+## Docs
 
 - Keep docstrings, docs, and mathematical notation consistent with existing structure and style.
-- To build the Sphinx documentation locally:
+- To build the documentation locally:
 
 ```bash
 make -C docs deps
