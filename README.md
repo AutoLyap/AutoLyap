@@ -19,3 +19,14 @@ solvers.
 ## Documentation
 
 User guide and API reference: [https://autolyap.github.io](https://autolyap.github.io/)
+
+## Note about the docs
+
+To build the documentation locally:
+
+```bash
+make -C docs deps
+make -C docs html
+```
+
+The generated site is written to `docs/build/html/` (open `docs/build/html/index.html`).
