@@ -121,18 +121,20 @@ class Algorithm(ABC):
         \Big(\sum_{\ell=1}^{b}[M]_{1,\ell} z_\ell,\ldots,\sum_{\ell=1}^{b}[M]_{d,\ell} z_\ell\Big).
 
     The system matrices :math:`(A_k,B_k,C_k,D_k)` are returned by
-    :meth:`get_ABCD` and collected over iteration ranges by :meth:`get_AsBsCsDs`.
+    :meth:`~autolyap.algorithms.Algorithm.get_ABCD` and assembled over iteration ranges by
+    :meth:`~autolyap.algorithms.algorithm.Algorithm._get_AsBsCsDs`, :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`, :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`,
+    :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`, and :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`.
 
     Note: For a given method, the state-space representation is not unique.
 
-    Concrete subclasses must implement :meth:`get_ABCD`; all other methods are implemented
+    Concrete subclasses must implement :meth:`~autolyap.algorithms.Algorithm.get_ABCD`; all other methods are implemented
     by this base class.
 
     """
 
     # Clear cached matrices when algorithm parameters change to avoid stale results.
     def __setattr__(self, name: str, value: Any) -> None:
-        object.__setattr__(self, name, value)
+        super().__setattr__(name, value)
         if getattr(self, "_cache_enabled", False):
             if name in {
                 "_cache_enabled",
@@ -187,7 +189,7 @@ class Algorithm(ABC):
           :math:`\IndexFunc` and :math:`\IndexOp` are not disjoint, do not cover
           :math:`\llbracket 1, m\rrbracket`, or are not strictly increasing sequences.
         """
-        object.__setattr__(self, "_cache_enabled", False)
+        super().__setattr__("_cache_enabled", False)
         # Basic validations
         n = ensure_integral(n, "n", minimum=1)
         m = ensure_integral(m, "m", minimum=1)
@@ -226,9 +228,15 @@ class Algorithm(ABC):
         self._cache_Ys: OrderedDict[HorizonKey, YsDict] = OrderedDict()
         self._cache_Xs: OrderedDict[HorizonKey, XsDict] = OrderedDict()
         self._cache_Fs: OrderedDict[HorizonKey, FsDict] = OrderedDict()
-        object.__setattr__(self, "_cache_enabled", True)
+        super().__setattr__("_cache_enabled", True)
 
     def _clear_dynamic_caches(self) -> None:
+        r"""
+        Clear caches tied to dynamic (non-structural) algorithm parameters.
+
+        These horizon-indexed caches are rebuilt when attributes such as step
+        sizes change: ``_cache_AsBsCsDs``, ``_cache_Ys``, and ``_cache_Xs``.
+        """
         if hasattr(self, "_cache_AsBsCsDs"):
             self._cache_AsBsCsDs.clear()
         if hasattr(self, "_cache_Ys"):
@@ -237,16 +245,29 @@ class Algorithm(ABC):
             self._cache_Xs.clear()
 
     def _clear_all_caches(self) -> None:
-        # Structural changes invalidate every cached matrix.
+        r"""
+        Clear every cached artifact after structural updates.
+
+        Structural fields (for example ``n``, ``m``, and index partitions) may
+        change matrix dimensions and projection maps. This clears dynamic
+        horizon caches, static horizon caches (``_cache_Us``, ``_cache_Fs``),
+        and the projection cache ``_Ps_cache``.
+        """
         self._clear_dynamic_caches()
         if hasattr(self, "_cache_Us"):
             self._cache_Us.clear()
         if hasattr(self, "_cache_Fs"):
             self._cache_Fs.clear()
-        object.__setattr__(self, "_Ps_cache", None)
+        super().__setattr__("_Ps_cache", None)
 
     def _cache_get(self, cache: OrderedDict[HorizonKey, CacheValueT], key: HorizonKey) -> Optional[CacheValueT]:
-        # Simple LRU: move hit to the end to mark it as most recently used.
+        r"""
+        Return one cached entry and refresh its LRU recency on hit.
+
+        ``key`` is a horizon key ``(k_min, k_max)``. On a cache hit, the entry
+        is moved to the end of the :class:`collections.OrderedDict` so it is
+        treated as most recently used. On miss, return ``None``.
+        """
         if key in cache:
             cache.move_to_end(key)
             return cache[key]
@@ -258,7 +279,13 @@ class Algorithm(ABC):
             key: HorizonKey,
             value: CacheValueT,
     ) -> CacheValueT:
-        # Insert and evict least-recently-used when capacity is exceeded.
+        r"""
+        Store one horizon-keyed cache entry with bounded LRU eviction.
+
+        The inserted/updated entry becomes most recently used. If the cache
+        exceeds ``_cache_maxsize``, the least recently used entry is evicted.
+        Returns ``value`` so call sites can assign and return in one step.
+        """
         cache[key] = value
         cache.move_to_end(key)
         if len(cache) > self._cache_maxsize:
@@ -284,6 +311,7 @@ class Algorithm(ABC):
         return view
 
     def _readonly_tuple(self, mats: MatrixTuple) -> MatrixTuple:
+        r"""Return a tuple of read-only views for `(A, B, C, D)` matrices."""
         A, B, C, D = mats
         return (
             self._readonly_view(A),
@@ -389,7 +417,7 @@ class Algorithm(ABC):
         """
         pass
 
-    def get_AsBsCsDs(self, k_min: int, k_max: int) -> AsBsCsDsDict:
+    def _get_AsBsCsDs(self, k_min: int, k_max: int) -> AsBsCsDsDict:
         r"""
         Return a dictionary mapping each iteration index :math:`k` to
         :math:`(A_k, B_k, C_k, D_k)` for :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`.
@@ -398,10 +426,10 @@ class Algorithm(ABC):
         .. math::
            \{(A_k, B_k, C_k, D_k)\}_{k=k_{\textup{min}}}^{k_{\textup{max}}}.
 
-        Each entry is the tuple returned by :meth:`get_ABCD`.
+        Each entry is the tuple returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
 
         These system matrices are used to build output and state matrices via
-        :meth:`get_Ys` and :meth:`get_Xs`.
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys` and :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`.
 
         **Parameters**
 
@@ -456,16 +484,30 @@ class Algorithm(ABC):
     # --- U MATRICES ---
     def _generate_U(self, k_min: int, k_max: int, k: Optional[int] = None, star: bool = False) -> np.ndarray:
         r"""
-        Generate a U matrix for the specified iteration range.
-        The total number of columns is:
+        Generate one matrix in the family used by
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`.
+
+        This method returns either :math:`U_k^{k_{\textup{min}},k_{\textup{max}}}`
+        (when ``star=False``) or :math:`U_{\star}^{k_{\textup{min}},k_{\textup{max}}}`
+        (when ``star=True``), with total column count
 
         .. math::
-           n + ((k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m} + m).
+           n + (k_{\textup{max}} - k_{\textup{min}} + 1)\bar{m} + m.
 
-        If ``star=True``, return :math:`U_{\star}` defined as:
+        For ``star=False`` and :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`,
+        the returned matrix is
 
         .. math::
-           U_{\star} = \begin{bmatrix}
+           U_k^{k_{\textup{min}},k_{\textup{max}}} = \begin{bmatrix}
+           \mathbf{0}_{\bar{m}\times\left(n + (k-k_{\textup{min}})\bar{m}\right)} &
+           I_{\bar{m}} &
+           \mathbf{0}_{\bar{m}\times\left((k_{\textup{max}}-k)\bar{m} + m\right)}
+           \end{bmatrix}.
+
+        For ``star=True``, the returned matrix is
+
+        .. math::
+           U_{\star}^{k_{\textup{min}},k_{\textup{max}}} = \begin{bmatrix}
            \mathbf{0}_{m \times \left(n + ((k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m})\right)} &
            N &
            \mathbf{0}_{m \times 1}
@@ -476,14 +518,7 @@ class Algorithm(ABC):
         .. math::
            N = \begin{bmatrix} I_{m-1} \\ -\mathbf{1}_{1 \times (m-1)} \end{bmatrix}.
 
-        If ``star=False`` (with :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`), return:
-
-        .. math::
-           U_k = \begin{bmatrix}
-           \mathbf{0}_{\bar{m} \times \left(n + (k - k_{\textup{min}})\bar{m}\right)} &
-           I_{\bar{m}} &
-           \mathbf{0}_{\bar{m} \times \left((k_{\textup{max}} - k)\bar{m} + m\right)}
-           \end{bmatrix}.
+        with the block column containing :math:`N` removed when :math:`m=1`.
 
         **Parameters**
 
@@ -494,7 +529,10 @@ class Algorithm(ABC):
 
         **Returns**
 
-        - (:class:`numpy.ndarray`): The generated U matrix.
+        - (:class:`numpy.ndarray`): The generated matrix
+          :math:`U_k^{k_{\textup{min}},k_{\textup{max}}}` (when ``star=False``)
+          or :math:`U_{\star}^{k_{\textup{min}},k_{\textup{max}}}`
+          (when ``star=True``).
 
         **Raises**
 
@@ -527,7 +565,7 @@ class Algorithm(ABC):
             right = np.zeros((self.m_bar, (k_max - k) * self.m_bar + self.m))
             return np.hstack([left, ident, right])
 
-    def get_Us(self, k_min: int, k_max: int) -> UsDict:
+    def _get_Us(self, k_min: int, k_max: int) -> UsDict:
         r"""
         Return a dictionary of U matrices for iterations :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`,
         including the star matrix.
@@ -558,8 +596,8 @@ class Algorithm(ABC):
 
         with the block column containing :math:`N` removed when :math:`m=1`.
 
-        These matrices are used by :meth:`compute_E` (and therefore
-        :meth:`compute_W`) to assemble lifted constraints.
+        These matrices are used by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_E` (and therefore
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_W`) to assemble lifted constraints.
 
         **Parameters**
 
@@ -600,41 +638,66 @@ class Algorithm(ABC):
                     sys_mats: AsBsCsDsDict,
                     k_min: int, k_max: int, k: Optional[int] = None, star: bool = False) -> np.ndarray:
         r"""
-        Generate the output matrix :math:`Y` using system matrices from `sys_mats`.
-        The total number of columns is:
+        Generate one matrix in the family used by
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`.
+
+        This method returns either :math:`Y_k^{k_{\textup{min}},k_{\textup{max}}}`
+        (when ``star=False``) or :math:`Y_{\star}^{k_{\textup{min}},k_{\textup{max}}}`
+        (when ``star=True``), using system matrices from ``sys_mats``.
+        The total number of columns is
 
         .. math::
            n + (k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m} + m.
 
-        If ``star=True``, return :math:`Y_{\star}` defined as:
+        For ``star=True``, the returned matrix is
 
         .. math::
-           Y_{\star} = \begin{bmatrix} \mathbf{0}_{m \times (total\_cols - 1)} & \mathbf{1}_{m \times 1} \end{bmatrix}.
+           Y_{\star}^{k_{\textup{min}},k_{\textup{max}}}
+           =
+           \begin{bmatrix}
+               0_{m\times\left(n+(k_{\textup{max}}-k_{\textup{min}}+1)\bar{m}+m-1\right)} & \mathbf{1}_m
+           \end{bmatrix}.
 
-        If ``star=False``, :math:`k` must be provided. The non-star cases are:
+        For ``star=False``, :math:`k` must be provided and the returned matrix
+        :math:`Y_k^{k_{\textup{min}},k_{\textup{max}}}` is:
 
         - If :math:`k = k_{\textup{min}}`, then
 
-          .. math::
-             Y_{k_{\textup{min}}} = \begin{bmatrix} C_{k_{\textup{min}}} & D_{k_{\textup{min}}} & \mathbf{0} \end{bmatrix},
-
-          where the zeros block has shape
-          :math:`(\bar{m}, ((k_{\textup{max}} - k_{\textup{min}}) \cdot \bar{m} + m))`.
+        .. math::
+             Y_{k_{\textup{min}}}^{k_{\textup{min}},k_{\textup{max}}}
+             =
+             \begin{bmatrix}
+             C_{k_{\textup{min}}} & D_{k_{\textup{min}}} &
+             0_{\bar{m}\times\left((k_{\textup{max}}-k_{\textup{min}})\bar{m}+m\right)}
+             \end{bmatrix},
 
         - If :math:`k = k_{\textup{min}} + 1`, then
 
-          .. math::
-             Y_{k_{\textup{min}}+1} = \begin{bmatrix} C_{k_{\textup{min}}+1} A_{k_{\textup{min}}} & C_{k_{\textup{min}}+1} B_{k_{\textup{min}}} & D_{k_{\textup{min}}+1} & \mathbf{0} \end{bmatrix},
+        .. math::
+             Y_{k_{\textup{min}}+1}^{k_{\textup{min}},k_{\textup{max}}}
+             =
+             \begin{bmatrix}
+             \left(C_{k_{\textup{min}}+1}A_{k_{\textup{min}}}\right)^{\top} \\
+             \left(C_{k_{\textup{min}}+1}B_{k_{\textup{min}}}\right)^{\top} \\
+             D_{k_{\textup{min}}+1}^{\top} \\
+             0_{\bar{m}\times\left((k_{\textup{max}}-k_{\textup{min}}-1)\bar{m}+m\right)}^{\top}
+             \end{bmatrix}^{\top},
 
-          with the zeros block of shape
-          :math:`(\bar{m}, ((k_{\textup{max}} - k_{\textup{min}} - 1) \cdot \bar{m} + m))`.
+        - If :math:`k \ge k_{\textup{min}} + 2`, then
 
-        - If :math:`k \ge k_{\textup{min}} + 2`, build :math:`Y_k` by concatenating the blocks:
-          :math:`C_k (A_{k-1} \cdots A_{k_{\textup{min}}})`, then
-          :math:`C_k (A_{k-1} \cdots A_{j+1}) B_j` for each
-          :math:`j \in \llbracket k_{\textup{min}}, k-2\rrbracket`,
-          then :math:`C_k B_{k-1}`, followed by :math:`D_k` and a zeros block of shape
-          :math:`(\bar{m}, ((k_{\textup{max}} - k) \cdot \bar{m} + m))`.
+        .. math::
+             Y_k^{k_{\textup{min}},k_{\textup{max}}}
+             =
+             \begin{bmatrix}
+                 \left(C_{k}A_{k-1}\cdots A_{k_{\textup{min}}}\right)^{\top} \\
+                 \left(C_{k}A_{k-1}\cdots A_{k_{\textup{min}}+1}B_{k_{\textup{min}}}\right)^{\top} \\
+                 \left(C_{k}A_{k-1}\cdots A_{k_{\textup{min}}+2}B_{k_{\textup{min}}+1}\right)^{\top} \\
+                 \vdots \\
+                 \left(C_{k}A_{k-1}B_{k-2}\right)^{\top} \\
+                 \left(C_{k}B_{k-1}\right)^{\top} \\
+                 D_{k}^{\top} \\
+                 0_{\bar{m}\times\left((k_{\textup{max}}-k)\bar{m}+m\right)}^{\top}
+             \end{bmatrix}^{\top},
 
         **Parameters**
 
@@ -647,7 +710,10 @@ class Algorithm(ABC):
 
         **Returns**
 
-        - (:class:`numpy.ndarray`): The generated Y matrix :math:`Y_k` (or :math:`Y_{\star}` when `star=True`).
+        - (:class:`numpy.ndarray`): The generated matrix
+          :math:`Y_k^{k_{\textup{min}},k_{\textup{max}}}` (when ``star=False``)
+          or :math:`Y_{\star}^{k_{\textup{min}},k_{\textup{max}}}`
+          (when ``star=True``).
 
         **Raises**
 
@@ -706,7 +772,7 @@ class Algorithm(ABC):
             blocks.append(zeros_blk)
             return np.hstack(blocks)
 
-    def get_Ys(self, k_min: int, k_max: int) -> YsDict:
+    def _get_Ys(self, k_min: int, k_max: int) -> YsDict:
         r"""
         Return a dictionary of Y matrices for iterations :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`,
         including :math:`Y_{\star}`.
@@ -758,8 +824,8 @@ class Algorithm(ABC):
            \end{bmatrix}.
 
         The :math:`Y` matrices are constructed from system matrices returned by
-        :meth:`get_AsBsCsDs` (which calls :meth:`get_ABCD`) and are used by
-        :meth:`compute_E`.
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_AsBsCsDs` (which calls :meth:`~autolyap.algorithms.Algorithm.get_ABCD`) and are used by
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_E`.
 
         **Parameters**
 
@@ -788,7 +854,7 @@ class Algorithm(ABC):
         cached = self._cache_get(self._cache_Ys, key)
         if cached is not None:
             return dict(cached)
-        sys_mats = self.get_AsBsCsDs(k_min, k_max)
+        sys_mats = self._get_AsBsCsDs(k_min, k_max)
         Ys: YsDict = {}
         for k in range(k_min, k_max + 1):
             Ys[k] = self._readonly_view(self._generate_Y(sys_mats, k_min, k_max, k=k, star=False))
@@ -800,23 +866,45 @@ class Algorithm(ABC):
     def _generate_X_k(self, sys_mats: AsBsCsDsDict,
                         k: int, k_min: int, k_max: int) -> np.ndarray:
         r"""
-        Generate the state matrix :math:`X_k` for
+        Generate :math:`X_k^{k_{\textup{min}},k_{\textup{max}}}` as defined in
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`, for
         :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}} + 1\rrbracket`.
         If :math:`k = k_{\textup{min}}`, then
 
         .. math::
-           X_{k_{\textup{min}}} = \begin{bmatrix} I_n & \mathbf{0} \end{bmatrix}.
+           X_{k_{\textup{min}}}^{k_{\textup{min}},k_{\textup{max}}}
+           =
+           \begin{bmatrix}
+           I_{n} &
+           0_{n\times\left((k_{\textup{max}}-k_{\textup{min}}+1)\bar{m}+m\right)}
+           \end{bmatrix}.
 
         If :math:`k = k_{\textup{min}} + 1`, then
 
         .. math::
-           X_{k_{\textup{min}}+1} = \begin{bmatrix} A_{k_{\textup{min}}} & B_{k_{\textup{min}}} & \mathbf{0} \end{bmatrix}.
+           X_{k_{\textup{min}}+1}^{k_{\textup{min}},k_{\textup{max}}}
+           =
+           \begin{bmatrix}
+           A_{k_{\textup{min}}} &
+           B_{k_{\textup{min}}} &
+           0_{n\times\left((k_{\textup{max}}-k_{\textup{min}})\bar{m}+m\right)}
+           \end{bmatrix}.
 
         If :math:`k \ge k_{\textup{min}} + 2`, then
 
         .. math::
-           X_k = \left[ A_{k-1}\cdots A_{k_{\textup{min}}},\; (A_{k-1}\cdots A_{j+1}) B_j \text{ for }
-           j \in \llbracket k_{\textup{min}}, k-2\rrbracket,\; B_{k-1},\; \mathbf{0} \right].
+           X_k^{k_{\textup{min}},k_{\textup{max}}}
+           =
+           \begin{bmatrix}
+               \left(A_{k-1}\cdots A_{k_{\textup{min}}}\right)^{\top} \\
+               \left(A_{k-1}\cdots A_{k_{\textup{min}}+1}B_{k_{\textup{min}}}\right)^{\top} \\
+               \left(A_{k-1}\cdots A_{k_{\textup{min}}+2}B_{k_{\textup{min}}+1}\right)^{\top} \\
+               \vdots \\
+               \left(A_{k-1}A_{k-2}B_{k-3}\right)^{\top} \\
+               \left(A_{k-1}B_{k-2}\right)^{\top} \\
+               B_{k-1}^{\top} \\
+               0_{n\times\left((k_{\textup{max}}+1-k)\bar{m}+m\right)}^{\top}
+           \end{bmatrix}^{\top}.
 
         **Parameters**
 
@@ -828,7 +916,8 @@ class Algorithm(ABC):
 
         **Returns**
 
-        - (:class:`numpy.ndarray`): The generated :math:`X_k` matrix.
+        - (:class:`numpy.ndarray`): The generated matrix
+          :math:`X_k^{k_{\textup{min}},k_{\textup{max}}}`.
 
         **Raises**
 
@@ -867,7 +956,7 @@ class Algorithm(ABC):
         parts.append(zeros_blk)
         return np.hstack(parts)
 
-    def get_Xs(self, k_min: int, k_max: int) -> XsDict:
+    def _get_Xs(self, k_min: int, k_max: int) -> XsDict:
         r"""
         Return a dictionary mapping each iteration index :math:`k`
         (for :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}} + 1\rrbracket`) to the corresponding
@@ -908,13 +997,13 @@ class Algorithm(ABC):
            \end{cases}.
 
         The :math:`X_k` matrices are constructed from system matrices returned by
-        :meth:`get_AsBsCsDs` (and therefore :meth:`get_ABCD`).
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_AsBsCsDs` (and therefore :meth:`~autolyap.algorithms.Algorithm.get_ABCD`).
 
         These matrices are used by the fixed-point residual helpers in
-        :class:`~autolyap.iteration_independent.SublinearConvergence` and
+        :class:`~autolyap.iteration_independent._SublinearConvergence` and
         :class:`~autolyap.iteration_dependent.IterationDependent` (see
-        :meth:`~autolyap.iteration_independent.SublinearConvergence.get_parameters_fixed_point_residual`
-        and :meth:`~autolyap.iteration_dependent.IterationDependent.get_parameters_fixed_point_residual`).
+        :meth:`~autolyap.iteration_independent._SublinearConvergence.get_parameters_fixed_point_residual`
+        and :meth:`~autolyap.IterationDependent.get_parameters_fixed_point_residual`).
 
         **Parameters**
 
@@ -940,7 +1029,7 @@ class Algorithm(ABC):
         cached = self._cache_get(self._cache_Xs, key)
         if cached is not None:
             return dict(cached)
-        sys_mats = self.get_AsBsCsDs(k_min, k_max)
+        sys_mats = self._get_AsBsCsDs(k_min, k_max)
         Xs: XsDict = {}
         for k in range(k_min, k_max + 2):
             Xs[k] = self._readonly_view(self._generate_X_k(sys_mats, k, k_min, k_max))
@@ -948,7 +1037,7 @@ class Algorithm(ABC):
         return dict(Xs)
 
     # --- PROJECTION MATRICES (P) ---
-    def get_Ps(self) -> PsDict:
+    def _get_Ps(self) -> PsDict:
         r"""
         Return a dictionary of projection matrices :math:`P`.
         In compact form:
@@ -981,9 +1070,9 @@ class Algorithm(ABC):
         .. math::
            P_{(i,\star)} = (e_i^{m})^\top.
 
-        These projection matrices are used by :meth:`compute_E` and by the metric
-        builders in :class:`~autolyap.iteration_independent.LinearConvergence`,
-        :class:`~autolyap.iteration_independent.SublinearConvergence`, and
+        These projection matrices are used by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_E` and by the metric
+        builders in :class:`~autolyap.iteration_independent._LinearConvergence`,
+        :class:`~autolyap.iteration_independent._SublinearConvergence`, and
         :class:`~autolyap.iteration_dependent.IterationDependent`.
 
         **Returns**
@@ -1018,21 +1107,28 @@ class Algorithm(ABC):
     def _generate_F(self, i: int, j: Optional[int] = None, k: Optional[int] = None,
                     star: bool = False, k_min: int = 0, k_max: int = 0) -> np.ndarray:
         r"""
-        Generate one row of the F matrix for a functional component indexed by :math:`i`.
-        The overall F row has dimension
+        Generate one row in the family used by
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`.
+
+        Let
 
         .. math::
-           \left( 1, \, ((k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m}_{\text{func}} + m_{\text{func}}) \right).
+           d = (k_{\textup{max}} - k_{\textup{min}} + 1)\bar{m}_{\text{func}} + m_{\text{func}},
 
-        For the non-star case (i.e. :math:`F_{(i,j,k)}`), a 1 is placed at the location corresponding to
-        the :math:`j`-th evaluation of component :math:`i`, shifted by the contributions of all preceding
-        functional components and by :math:`(k - k_{\textup{min}})` blocks of size
-        :math:`\bar{m}_{\text{func}}`.
-        For the star case (i.e. :math:`F_{(i,\star,\star)}`), a 1 is placed in the last
-        :math:`m_{\text{func}}` entries, specifically at index
+        and
 
         .. math::
-           (k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m}_{\text{func}} + (\kappa[i]-1).
+           \textup{offset}_i = \sum_{\substack{l \in \IndexFunc\\ l < i}} \bar{m}_l.
+
+        Then this method returns:
+
+        - ``star=False``: :math:`F_{(i,j,k)}^{k_{\textup{min}},k_{\textup{max}}}
+          = \left(e_{(k-k_{\textup{min}})\bar{m}_{\text{func}} + \textup{offset}_i + j}^{d}\right)^\top`.
+        - ``star=True``: :math:`F_{(i,\star,\star)}^{k_{\textup{min}},k_{\textup{max}}}
+          = \left(e_{(k_{\textup{max}}-k_{\textup{min}}+1)\bar{m}_{\text{func}} + \kappa(i)}^{d}\right)^\top`.
+
+        Here :math:`\kappa:\IndexFunc\to\llbracket 1,m_{\textup{func}}\rrbracket`
+        is the increasing bijection used to order functional components.
 
         **Parameters**
 
@@ -1084,7 +1180,7 @@ class Algorithm(ABC):
             F_nonstar[0, start_idx + j - 1] = 1
             return F_nonstar
 
-    def get_Fs(self, k_min: int, k_max: int) -> FsDict:
+    def _get_Fs(self, k_min: int, k_max: int) -> FsDict:
         r"""
         Return a dictionary of F matrices for all functional components.
         In compact form:
@@ -1121,10 +1217,10 @@ class Algorithm(ABC):
         :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`. For star F matrices, keys are of the form
         :math:`(i,\star,\star)` for each :math:`i \in \IndexFunc`.
 
-        These F matrices are used by :meth:`compute_F_aggregated` and by the
+        These F matrices are used by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_F_aggregated` and by the
         function-value suboptimality helpers in
-        :class:`~autolyap.iteration_independent.LinearConvergence`,
-        :class:`~autolyap.iteration_independent.SublinearConvergence`, and
+        :class:`~autolyap.iteration_independent._LinearConvergence`,
+        :class:`~autolyap.iteration_independent._SublinearConvergence`, and
         :class:`~autolyap.iteration_dependent.IterationDependent`.
 
         **Parameters**
@@ -1169,7 +1265,7 @@ class Algorithm(ABC):
         return dict(Fs)
 
     # --- LIFTED CONSTRAINT MATRICES ---
-    def compute_E(self, i: int, pairs: PairList,
+    def _compute_E(self, i: int, pairs: PairList,
                   k_min: int, k_max: int, validate: bool = True) -> np.ndarray:
         r"""
         Compute the E matrix for component :math:`i` from a list of :math:`(j, k)` pairs.
@@ -1177,9 +1273,9 @@ class Algorithm(ABC):
         :math:`P_{(i,j_\ell)}U_{k_\ell}^{k_{\textup{min}},k_{\textup{max}}}`
         for each pair :math:`(j_\ell,k_\ell)`.
 
-        The projection matrices :math:`P` are obtained from :meth:`get_Ps`. The
-        output matrices :math:`Y` are obtained from :meth:`get_Ys`, and the input
-        matrices :math:`U` are obtained from :meth:`get_Us`, using the same
+        The projection matrices :math:`P` are obtained from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`. The
+        output matrices :math:`Y` are obtained from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, and the input
+        matrices :math:`U` are obtained from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`, using the same
         iteration bounds :math:`k_{\textup{min}}, k_{\textup{max}}`.
 
         The E matrix is defined as:
@@ -1200,7 +1296,7 @@ class Algorithm(ABC):
         .. math::
            2 \cdot (\text{number of pairs}) \times \left[ n + (k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m} + m \right].
 
-        The resulting :math:`E` matrix is used by :meth:`compute_W`.
+        The resulting :math:`E` matrix is used by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_W`.
 
         **Parameters**
 
@@ -1227,8 +1323,8 @@ class Algorithm(ABC):
             self._validate_pairs_container(pairs)
             k_min, k_max = self._validate_k_bounds(k_min, k_max)
 
-        Ys = self.get_Ys(k_min, k_max)
-        Us = self.get_Us(k_min, k_max)
+        Ys = self._get_Ys(k_min, k_max)
+        Us = self._get_Us(k_min, k_max)
         total_cols = self.n + (k_max - k_min + 1) * self.m_bar + self.m
         num_pairs = len(pairs)
         E = np.empty((2 * num_pairs, total_cols))
@@ -1249,7 +1345,7 @@ class Algorithm(ABC):
 
         return E
 
-    def compute_W(self, i: int, pairs: PairList,
+    def _compute_W(self, i: int, pairs: PairList,
                   k_min: int, k_max: int, M: np.ndarray, validate: bool = True) -> np.ndarray:
         r"""
         Compute the W matrix for component :math:`i`.
@@ -1261,7 +1357,7 @@ class Algorithm(ABC):
            M_{(i,o)}^{\textup{type}}\,
            E_{(i,j_1,k_1,\dots,j_{n_{i,o}},k_{n_{i,o}})}^{k_{\textup{min}},k_{\textup{max}}},
 
-        where :math:`E` is produced by :meth:`compute_E`.
+        where :math:`E` is produced by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_E`.
         Here :math:`o` indexes the chosen interpolation constraint and
         :math:`\textup{type} \in \{\textup{func-ineq}, \textup{func-eq}, \textup{op}\}`.
 
@@ -1279,9 +1375,9 @@ class Algorithm(ABC):
           :math:`[2 \cdot (\text{number of pairs}) \times 2 \cdot (\text{number of pairs})]`.
           This comes from the interpolation data of the function/operator class
           (e.g., :math:`M_{(i,o)}^{\textup{func-ineq}}`, :math:`M_{(i,o)}^{\textup{func-eq}}`, or
-          :math:`M_{(i,o)}^{\textup{op}}`) for the chosen constraint. See
-          :meth:`~autolyap.problemclass.InterpolationCondition.get_data` or
-          :meth:`~autolyap.problemclass.InclusionProblem.get_component_data`.
+          :math:`M_{(i,o)}^{\textup{op}}`) for the chosen constraint. See the
+          interpolation-condition `get_data` contract or
+          `InclusionProblem._get_component_data`.
 
         - `validate` (:class:`bool`): Whether to validate inputs.
 
@@ -1308,10 +1404,10 @@ class Algorithm(ABC):
             if not np.allclose(M, M.T, atol=1e-8):
                 raise ValueError("M must be symmetric.")
 
-        E = self.compute_E(i, pairs, k_min, k_max, validate=validate)
+        E = self._compute_E(i, pairs, k_min, k_max, validate=validate)
         return E.T @ M @ E
 
-    def compute_F_aggregated(self, i: int, pairs: PairList,
+    def _compute_F_aggregated(self, i: int, pairs: PairList,
                              k_min: int, k_max: int, a: np.ndarray, validate: bool = True) -> np.ndarray:
         r"""
         Compute the aggregated F vector for component :math:`i`.
@@ -1325,7 +1421,7 @@ class Algorithm(ABC):
            \left(F_{(i,j_n,k_n)}^{k_{\textup{min}},k_{\textup{max}}}\right)^{\top}
            \end{bmatrix} a_{(i,o)}^{\textup{type}}.
 
-        Each F row is obtained from the F matrices (via :meth:`get_Fs`), transposed, and
+        Each F row is obtained from the F matrices (via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`), transposed, and
         horizontally stacked. The resulting matrix has shape :math:`(\text{total_dim}, b)`, where
         :math:`b` is the number of pairs, and is then multiplied by the weight vector :math:`a`
         to yield a column vector of shape :math:`(\text{total_dim}, 1)`.
@@ -1349,9 +1445,9 @@ class Algorithm(ABC):
         - `a` (:class:`numpy.ndarray`): weight vector :math:`a \in \mathbb{R}^{\text{number of pairs}}`.
           This comes from the functional interpolation data
           (e.g., :math:`a_{(i,o)}^{\textup{func-ineq}}` or :math:`a_{(i,o)}^{\textup{func-eq}}`)
-          for the chosen constraint. See
-          :meth:`~autolyap.problemclass.FunctionInterpolationCondition.get_data` or
-          :meth:`~autolyap.problemclass.InclusionProblem.get_component_data`.
+          for the chosen constraint. See the functional interpolation-condition
+          `get_data` contract or
+          `InclusionProblem._get_component_data`.
 
         - `validate` (:class:`bool`): Whether to validate inputs.
 
@@ -1392,7 +1488,7 @@ class Algorithm(ABC):
                 raise ValueError("a must be a 1D numpy array with length equal to the number of pairs.")
             ensure_finite_array(a, "a")
 
-        Fs_dict = self.get_Fs(k_min, k_max)
+        Fs_dict = self._get_Fs(k_min, k_max)
         aggregated_F = np.zeros((total_dim, 1))
         for weight, (j, k) in zip(a, pairs):
             key = (i, 'star', 'star') if self._is_star_pair(j, k) else (i, j, k)

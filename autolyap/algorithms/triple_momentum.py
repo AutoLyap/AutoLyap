@@ -43,8 +43,11 @@ class TripleMomentum(Algorithm):
     --------------------------
 
     The update can be written in the algorithm representation with
-    :math:`\bx^k = (x^k, x^{k-1})`, :math:`\bu^k = \nabla f(y^k)`, and
-    :math:`\by^k = y^k`.
+
+    .. math::
+        \bx^k = (x^k, x^{k-1}), \qquad
+        \bu^k = \nabla f(y^k), \qquad
+        \by^k = y^k.
 
     Let :math:`q = \mu/L`, and define
 
@@ -53,7 +56,7 @@ class TripleMomentum(Algorithm):
         \beta_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{1+\sqrt{q}}, \qquad
         \gamma_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{(2-\sqrt{q})(1+\sqrt{q})}.
 
-    In :meth:`get_ABCD`, the matrices are
+    With this representation, the system matrices are
 
     .. math::
         \begin{aligned}
@@ -73,10 +76,27 @@ class TripleMomentum(Algorithm):
             \end{bmatrix}, &
             D_k &= \begin{bmatrix} 0 \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        n = 2,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (1),\quad \bar{m} = 1.
+
+    .. math::
+        I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
     def __init__(self, mu, L):
         r"""
         Initialize the triple-momentum method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+
+        .. math::
+            n = 2,\quad m = 1,\quad (\bar m_i)_{i=1}^{m} = (1),\quad \bar m = 1,\quad
+            I_{\mathrm{func}} = \{1\},\quad I_{\mathrm{op}} = \varnothing.
         """
         super().__init__(2, 1, [1], [1], [])
         self.set_L(L)

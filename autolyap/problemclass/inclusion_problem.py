@@ -1,23 +1,23 @@
 """Inclusion-problem container and validation logic."""
 
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 
 from autolyap.problemclass.base import (
-    FunctionInterpolationCondition,
-    InterpolationCondition,
-    OperatorInterpolationCondition,
+    _FunctionInterpolationCondition,
+    _InterpolationCondition,
+    _OperatorInterpolationCondition,
 )
 from autolyap.problemclass.functions import GradientDominated
-from autolyap.problemclass.indices import InterpolationIndices
+from autolyap.problemclass.indices import _InterpolationIndices
 from autolyap.problemclass.operators import WeakMintyVariationalInequality
 from autolyap.utils.validation import ensure_finite_array, ensure_integral
 
-OperatorData = Tuple[np.ndarray, InterpolationIndices]
-FunctionData = Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]
+OperatorData = Tuple[np.ndarray, _InterpolationIndices]
+FunctionData = Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]
 ComponentData = Union[OperatorData, FunctionData]
-ComponentInput = Union[InterpolationCondition, List[InterpolationCondition]]
+ComponentInput = Union[_InterpolationCondition, List[_InterpolationCondition]]
 
 class InclusionProblem:
     r"""
@@ -42,12 +42,13 @@ class InclusionProblem:
 
     **Parameters**
 
-    - `components` (:class:`~typing.List`\[:class:`~typing.Union`\[:class:`~autolyap.problemclass.problemclass.InterpolationCondition`, :class:`~typing.List`\[:class:`~autolyap.problemclass.problemclass.InterpolationCondition`\]\]\]): A list of
-      components indexed by :math:`\llbracket 1, m\rrbracket`, where :math:`m` equals `len(components)`.
-      Entry `components[i-1]` defines component :math:`i`. Each entry is either a single
-      interpolation condition instance or a list
-      of such instances. All conditions for a given component must be of the same type
-      (either all operator conditions or all function conditions).
+    - `components` (:class:`list`): A list of components indexed by
+      :math:`\llbracket 1, m\rrbracket`, where :math:`m = \text{len(components)}`.
+      Entry `components[i-1]` defines component :math:`i`. Each entry is either
+      one interpolation-condition instance or a list of such instances.
+      All conditions for a given component must be of the same type (all
+      operator conditions or all function conditions). Condition classes are
+      documented in :doc:`/function_classes` and :doc:`/operator_classes`.
 
     **Raises**
 
@@ -63,11 +64,23 @@ class InclusionProblem:
     )
 
     def __init__(self, components: List[ComponentInput]):
+        r"""
+        Build an inclusion problem from user-provided interpolation conditions.
+
+        **Parameters**
+
+        - `components` (:class:`list`): One entry per component. Each entry is either a
+          single interpolation-condition instance or a list of them.
+
+        **Raises**
+
+        - `ValueError`: If no components are provided or if a component payload is invalid.
+        """
         if not components or len(components) < 1:
             raise ValueError("Error in InclusionProblem __init__: At least one component is required.")
 
         self.m = len(components)
-        self.components: Dict[int, List[InterpolationCondition]] = {}
+        self.components: Dict[int, List[_InterpolationCondition]] = {}
         self._component_data_cache: Dict[int, Tuple[ComponentData, ...]] = {}
 
         # Convert the list to a dictionary with 1-indexed keys.
@@ -83,14 +96,47 @@ class InclusionProblem:
 
     @staticmethod
     def _readonly_view(array: np.ndarray) -> np.ndarray:
+        r"""
+        Return a read-only view of an array used in cached interpolation payloads.
+
+        **Parameters**
+
+        - `array` (:class:`numpy.ndarray`): Input array.
+
+        **Returns**
+
+        - (:class:`numpy.ndarray`): Read-only view of `array`.
+        """
         view = array.view()
         view.setflags(write=False)
         return view
 
     def _freeze_component_data(self, data: List[ComponentData]) -> Tuple[ComponentData, ...]:
+        r"""
+        Freeze component data into an immutable tuple of read-only payload items.
+
+        **Parameters**
+
+        - `data` (:class:`~typing.List`\[:class:`~typing.Union`\[:class:`~typing.Tuple`, :class:`~typing.Tuple`\]\]): Raw component data list.
+
+        **Returns**
+
+        - (:class:`tuple`): Tuple of frozen component data entries.
+        """
         return tuple(self._freeze_data_item(item) for item in data)
 
     def _freeze_data_item(self, item: ComponentData) -> ComponentData:
+        r"""
+        Freeze one interpolation data item by converting arrays to read-only views.
+
+        **Parameters**
+
+        - `item` (:class:`~typing.Union`\[:class:`~typing.Tuple`, :class:`~typing.Tuple`\]): Operator or function interpolation tuple.
+
+        **Returns**
+
+        - (:class:`~typing.Union`\[:class:`~typing.Tuple`, :class:`~typing.Tuple`\]): Frozen interpolation tuple.
+        """
         if len(item) == 2:
             matrix, interp_idx = item
             return self._readonly_view(matrix), interp_idx
@@ -98,25 +144,41 @@ class InclusionProblem:
         matrix, vector, eq, interp_idx = item
         return self._readonly_view(matrix), self._readonly_view(vector), eq, interp_idx
 
-    def _normalize_init_component(self, index: int, component: ComponentInput) -> List[InterpolationCondition]:
+    def _normalize_init_component(self, index: int, component: ComponentInput) -> List[_InterpolationCondition]:
+        r"""
+        Normalize one constructor component entry into a non-empty condition list.
+
+        **Parameters**
+
+        - `index` (:class:`int`): 1-indexed component position.
+        - `component` (:class:`~typing.Union`\[:class:`~autolyap.problemclass.base._InterpolationCondition`, :class:`~typing.List`\[:class:`~autolyap.problemclass.base._InterpolationCondition`\]\]): Input component payload.
+
+        **Returns**
+
+        - (:class:`~typing.List`\[:class:`~autolyap.problemclass.base._InterpolationCondition`\]): Normalized condition list.
+
+        **Raises**
+
+        - `ValueError`: If `component` is empty or contains invalid condition types.
+        """
         if isinstance(component, list):
             if not component:
                 raise ValueError(
                     f"Error in InclusionProblem __init__: Component {index} must contain "
-                    "at least one InterpolationCondition instance."
+                    "at least one _InterpolationCondition instance."
                 )
             for condition in component:
-                if not isinstance(condition, InterpolationCondition):
+                if not isinstance(condition, _InterpolationCondition):
                     raise ValueError(
                         f"Error in InclusionProblem __init__: Component {index} must contain only "
-                        f"InterpolationCondition instances. Got {type(condition)}."
+                        f"_InterpolationCondition instances. Got {type(condition)}."
                     )
             return list(component)
 
-        if not isinstance(component, InterpolationCondition):
+        if not isinstance(component, _InterpolationCondition):
             raise ValueError(
                 f"Error in InclusionProblem __init__: Component {index} must be an "
-                f"InterpolationCondition instance. Got {type(component)}."
+                f"_InterpolationCondition instance. Got {type(component)}."
             )
         return [component]
 
@@ -124,29 +186,60 @@ class InclusionProblem:
         self,
         index: int,
         new_instances: ComponentInput,
-    ) -> List[InterpolationCondition]:
+    ) -> List[_InterpolationCondition]:
+        r"""
+        Normalize replacement instances for a component to a validated list.
+
+        **Parameters**
+
+        - `index` (:class:`int`): 1-indexed component position.
+        - `new_instances` (:class:`~typing.Union`\[:class:`~autolyap.problemclass.base._InterpolationCondition`, :class:`~typing.List`\[:class:`~autolyap.problemclass.base._InterpolationCondition`\]\]): Replacement payload.
+
+        **Returns**
+
+        - (:class:`~typing.List`\[:class:`~autolyap.problemclass.base._InterpolationCondition`\]): Normalized replacement list.
+
+        **Raises**
+
+        - `ValueError`: If `new_instances` is empty or contains invalid condition types.
+        """
         if isinstance(new_instances, list):
             if not new_instances:
                 raise ValueError(
                     f"Error: New instances for component {index} must contain at least one "
-                    "InterpolationCondition instance."
+                    "_InterpolationCondition instance."
                 )
             for inst in new_instances:
-                if not isinstance(inst, InterpolationCondition):
+                if not isinstance(inst, _InterpolationCondition):
                     raise ValueError(
                         f"Error: All new instances for component {index} must be "
-                        "InterpolationCondition instances."
+                        "_InterpolationCondition instances."
                     )
             return list(new_instances)
 
-        if not isinstance(new_instances, InterpolationCondition):
+        if not isinstance(new_instances, _InterpolationCondition):
             raise ValueError(
                 f"Error: New instance for component {index} must be an "
-                "InterpolationCondition instance."
+                "_InterpolationCondition instance."
             )
         return [new_instances]
 
     def _validate_single_component_constraints(self) -> None:
+        r"""
+        Enforce global restrictions for conditions that require `m == 1`.
+
+        **Parameters**
+
+        - `None`.
+
+        **Returns**
+
+        - `None`: Validates current component set in place.
+
+        **Raises**
+
+        - `ValueError`: If a single-component-only condition is used with `m > 1`.
+        """
         if self.m == 1:
             return
 
@@ -165,17 +258,36 @@ class InclusionProblem:
         Component conventions follow the class-level reference in
         :class:`~autolyap.problemclass.InclusionProblem`.
 
+        **Parameters**
+
+        - `None`.
+
         **Returns**
 
         - `None`: This method updates :attr:`I_op` and :attr:`I_func` in place.
 
         """
         self.I_op = [k for k, conds in self.components.items()
-                     if isinstance(conds[0], OperatorInterpolationCondition)]
+                     if isinstance(conds[0], _OperatorInterpolationCondition)]
         self.I_func = [k for k, conds in self.components.items()
-                       if isinstance(conds[0], FunctionInterpolationCondition)]
+                       if isinstance(conds[0], _FunctionInterpolationCondition)]
 
     def _validate_component_index(self, index: int) -> int:
+        r"""
+        Validate and normalize a 1-indexed component identifier.
+
+        **Parameters**
+
+        - `index` (:class:`int`): Candidate component index.
+
+        **Returns**
+
+        - (:class:`int`): Validated component index.
+
+        **Raises**
+
+        - `ValueError`: If `index` is outside `1, ..., m`.
+        """
         index = ensure_integral(
             index,
             "Index",
@@ -187,7 +299,7 @@ class InclusionProblem:
             )
         return index
     
-    def _validate_component_uniformity(self, index: int, conditions: List[InterpolationCondition]) -> None:
+    def _validate_component_uniformity(self, index: int, conditions: List[_InterpolationCondition]) -> None:
         r"""
         Ensure all conditions for a component are of the same type.
 
@@ -197,15 +309,19 @@ class InclusionProblem:
         **Parameters**
 
         - `index` (:class:`int`): The component index (1-indexed).
-        - `conditions` (:class:`~typing.List`\[:class:`~autolyap.problemclass.problemclass.InterpolationCondition`\]): A list of interpolation conditions.
+        - `conditions` (:class:`~typing.List`\[:class:`~autolyap.problemclass.base._InterpolationCondition`\]): A list of interpolation conditions.
+
+        **Returns**
+
+        - `None`: Validation only.
 
         **Raises**
 
         - `ValueError`: If the conditions contain a mix of operator and function conditions.
         """
-        first_is_operator = isinstance(conditions[0], OperatorInterpolationCondition)
+        first_is_operator = isinstance(conditions[0], _OperatorInterpolationCondition)
         has_mixed_types = any(
-            isinstance(condition, OperatorInterpolationCondition) != first_is_operator
+            isinstance(condition, _OperatorInterpolationCondition) != first_is_operator
             for condition in conditions[1:]
         )
         if has_mixed_types:
@@ -214,7 +330,7 @@ class InclusionProblem:
                 "interpolation conditions."
             )
     
-    def _validate_condition_data(self, cond: InterpolationCondition) -> None:
+    def _validate_condition_data(self, cond: _InterpolationCondition) -> None:
         r"""
         Validate the data returned by an interpolation condition.
 
@@ -223,7 +339,11 @@ class InclusionProblem:
 
         **Parameters**
 
-        - `cond` (:class:`~autolyap.problemclass.problemclass.InterpolationCondition`): An interpolation condition instance.
+        - `cond` (:class:`~autolyap.problemclass.base._InterpolationCondition`): An interpolation condition instance.
+
+        **Returns**
+
+        - `None`: Validation only.
 
         **Raises**
 
@@ -233,12 +353,12 @@ class InclusionProblem:
         if not condition_data:
             raise ValueError("Error: Interpolation condition data must be non-empty.")
 
-        if isinstance(cond, OperatorInterpolationCondition):
+        if isinstance(cond, _OperatorInterpolationCondition):
             for item in condition_data:
                 self._validate_operator_data_item(item)
             return
 
-        if isinstance(cond, FunctionInterpolationCondition):
+        if isinstance(cond, _FunctionInterpolationCondition):
             for item in condition_data:
                 self._validate_function_data_item(item)
             return
@@ -247,6 +367,22 @@ class InclusionProblem:
 
     @staticmethod
     def _validate_square_symmetric_matrix(matrix: np.ndarray, matrix_name: str) -> None:
+        r"""
+        Validate that a matrix is a finite square symmetric NumPy array.
+
+        **Parameters**
+
+        - `matrix` (:class:`numpy.ndarray`): Matrix to validate.
+        - `matrix_name` (:class:`str`): Logical name for error messages.
+
+        **Returns**
+
+        - `None`: Validation only.
+
+        **Raises**
+
+        - `ValueError`: If shape, finiteness, or symmetry checks fail.
+        """
         if not isinstance(matrix, np.ndarray):
             raise ValueError(f"Error: {matrix_name} must be a numpy array.")
         if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]:
@@ -255,7 +391,22 @@ class InclusionProblem:
         if not np.allclose(matrix, matrix.T, atol=1e-8):
             raise ValueError(f"Error: {matrix_name} must be symmetric.")
 
-    def _validate_operator_data_item(self, item: object) -> None:
+    def _validate_operator_data_item(self, item: Any) -> None:
+        r"""
+        Validate one operator interpolation tuple `(matrix, interpolation_indices)`.
+
+        **Parameters**
+
+        - `item` (:class:`~typing.Any`): Candidate operator interpolation tuple.
+
+        **Returns**
+
+        - `None`: Validation only.
+
+        **Raises**
+
+        - `ValueError`: If tuple structure or field types are invalid.
+        """
         if not (isinstance(item, tuple) and len(item) == 2):
             raise ValueError(
                 f"Error: Operator condition data must be a tuple of 2 elements. Received: {item}"
@@ -263,12 +414,27 @@ class InclusionProblem:
 
         matrix, interp_idx = item
         self._validate_square_symmetric_matrix(matrix, "Operator interpolation matrix")
-        if not isinstance(interp_idx, InterpolationIndices):
+        if not isinstance(interp_idx, _InterpolationIndices):
             raise ValueError(
-                "Error: Operator interpolation indices must be an instance of InterpolationIndices."
+                "Error: Operator interpolation indices must be an instance of _InterpolationIndices."
             )
 
-    def _validate_function_data_item(self, item: object) -> None:
+    def _validate_function_data_item(self, item: Any) -> None:
+        r"""
+        Validate one function interpolation tuple `(matrix, vector, eq, interpolation_indices)`.
+
+        **Parameters**
+
+        - `item` (:class:`~typing.Any`): Candidate function interpolation tuple.
+
+        **Returns**
+
+        - `None`: Validation only.
+
+        **Raises**
+
+        - `ValueError`: If tuple structure, dimensions, or field types are invalid.
+        """
         if not (isinstance(item, tuple) and len(item) == 4):
             raise ValueError(
                 f"Error: Function condition data must be a tuple of 4 elements. Received: {item}"
@@ -287,12 +453,12 @@ class InclusionProblem:
             )
         if not isinstance(eq, (bool, np.bool_)):
             raise ValueError("Error: Function interpolation eq flag must be a boolean.")
-        if not isinstance(interp_idx, InterpolationIndices):
+        if not isinstance(interp_idx, _InterpolationIndices):
             raise ValueError(
-                "Error: Function interpolation indices must be an instance of InterpolationIndices."
+                "Error: Function interpolation indices must be an instance of _InterpolationIndices."
             )
     
-    def _validate_component_data(self, index: int, conditions: List[InterpolationCondition]) -> None:
+    def _validate_component_data(self, index: int, conditions: List[_InterpolationCondition]) -> None:
         r"""
         Validate the data of all conditions for a component.
 
@@ -302,7 +468,11 @@ class InclusionProblem:
         **Parameters**
 
         - `index` (:class:`int`): The component index (1-indexed).
-        - `conditions` (:class:`~typing.List`\[:class:`~autolyap.problemclass.problemclass.InterpolationCondition`\]): A list of interpolation conditions.
+        - `conditions` (:class:`~typing.List`\[:class:`~autolyap.problemclass.base._InterpolationCondition`\]): A list of interpolation conditions.
+
+        **Returns**
+
+        - `None`: Validation only.
 
         **Raises**
 
@@ -311,7 +481,7 @@ class InclusionProblem:
         for cond in conditions:
             self._validate_condition_data(cond)
     
-    def get_component_data(self, index: int) -> List[ComponentData]:
+    def _get_component_data(self, index: int) -> List[ComponentData]:
         r"""
         Return the raw interpolation data for a component.
 
@@ -324,7 +494,7 @@ class InclusionProblem:
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]\]):
+        - (:class:`~typing.List`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]\]):
           A list of tuples containing the interpolation data. For operator conditions, each tuple is
           `(matrix, interpolation_indices)`; for function conditions, each tuple is
           `(matrix, vector, eq, interpolation_indices)`.
@@ -344,7 +514,7 @@ class InclusionProblem:
         self._component_data_cache[index] = frozen
         return list(frozen)
     
-    def get_component(self, index: int) -> List[InterpolationCondition]:
+    def _get_component(self, index: int) -> List[_InterpolationCondition]:
         r"""
         Return the interpolation condition instances for a component.
 
@@ -357,7 +527,7 @@ class InclusionProblem:
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~autolyap.problemclass.problemclass.InterpolationCondition`\]): A list of interpolation condition instances.
+        - (:class:`~typing.List`\[:class:`~autolyap.problemclass.base._InterpolationCondition`\]): A list of interpolation condition instances.
 
         **Raises**
 
@@ -366,7 +536,7 @@ class InclusionProblem:
         index = self._validate_component_index(index)
         return list(self.components[index])
     
-    def update_component_instances(
+    def _update_component_instances(
         self,
         index: int,
         new_instances: ComponentInput,
@@ -382,8 +552,12 @@ class InclusionProblem:
         **Parameters**
 
         - `index` (:class:`int`): The component index (1-indexed).
-        - `new_instances` (:class:`~typing.Union`\[:class:`~autolyap.problemclass.problemclass.InterpolationCondition`, :class:`~typing.List`\[:class:`~autolyap.problemclass.problemclass.InterpolationCondition`\]\]): A single
+        - `new_instances` (:class:`~typing.Union`\[:class:`~autolyap.problemclass.base._InterpolationCondition`, :class:`~typing.List`\[:class:`~autolyap.problemclass.base._InterpolationCondition`\]\]): A single
           interpolation condition instance or a list of them.
+
+        **Returns**
+
+        - `None`: Component instances and cached metadata are updated in place.
 
         **Raises**
 

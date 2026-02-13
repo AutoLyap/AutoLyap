@@ -3,14 +3,15 @@
 import numpy as np
 from typing import List, Union, Tuple
 
-from autolyap.problemclass.base import FunctionInterpolationCondition
-from autolyap.problemclass.indices import InterpolationIndices
+from autolyap.problemclass.base import _FunctionInterpolationCondition
+from autolyap.problemclass.indices import _InterpolationIndices
 from autolyap.utils.validation import ensure_real_number
 
 INF = float("inf")
 
 
 def _ensure_positive_finite(value: Union[int, float], parameter_name: str, error_message: str) -> float:
+    r"""Return `value` as float after enforcing strict positivity and finiteness."""
     numeric_value = ensure_real_number(value, parameter_name)
     if not np.isfinite(numeric_value) or numeric_value <= 0:
         raise ValueError(error_message)
@@ -18,6 +19,12 @@ def _ensure_positive_finite(value: Union[int, float], parameter_name: str, error
 
 
 def _ensure_positive_mu_tilde(mu_tilde: Union[int, float], context_name: str) -> Tuple[float, float]:
+    r"""
+    Validate :math:`\tilde{\mu} > 0` and return both :math:`(\tilde{\mu}, -\tilde{\mu})`.
+
+    Many weakly-convex templates are written with :math:`\mu=-\tilde{\mu}`.
+    This helper keeps that conversion explicit and centralized.
+    """
     validated = _ensure_positive_finite(
         mu_tilde,
         "Parameter mu_tilde",
@@ -26,7 +33,7 @@ def _ensure_positive_mu_tilde(mu_tilde: Union[int, float], context_name: str) ->
     return validated, -validated
 
 
-class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition):
+class _ParametrizedFunctionInterpolationCondition(_FunctionInterpolationCondition):
     r"""
     Base class for function interpolation conditions parameterized by :math:`\mu` and :math:`L`.
 
@@ -109,6 +116,12 @@ class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition)
 
     @staticmethod
     def _validate_mu_L(mu: Union[int, float], L: Union[int, float]) -> Tuple[float, float]:
+        r"""
+        Validate interpolation parameters and return normalized ``(mu, L)``.
+
+        Enforces the admissible region ``-inf < mu < L <= +inf`` with the
+        additional requirement that finite ``L`` values are strictly positive.
+        """
         mu = ensure_real_number(mu, "Parameter mu")
         L = ensure_real_number(L, "Parameter L")
         if L != INF and L <= 0:
@@ -120,12 +133,12 @@ class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition)
         return mu, L
 
     @staticmethod
-    def _compute_interpolation_data(mu: float, L: float) -> Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]:
+    def _compute_interpolation_data(mu: float, L: float) -> Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]:
         r"""
         Compute the interpolation data based on mu and L.
 
         The tuple format and notation follow the class-level reference in
-        :class:`~autolyap.problemclass.ParametrizedFunctionInterpolationCondition`.
+        :class:`~autolyap.problemclass.functions._ParametrizedFunctionInterpolationCondition`.
 
         When L is infinite, the condition is nonsmooth and a simpler interpolation matrix is used.
         When L is finite, the interpolation data follows the formula for smooth functions.
@@ -137,7 +150,7 @@ class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition)
 
         **Returns**
 
-        - (:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]): A tuple containing the
+        - (:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]): A tuple containing the
           matrix, vector, eq flag, and interpolation indices.
 
         """
@@ -157,25 +170,25 @@ class ParametrizedFunctionInterpolationCondition(FunctionInterpolationCondition)
             ])
         vector = np.array([-1, 1])
         eq = False
-        interp_idx = InterpolationIndices("r1!=r2")
+        interp_idx = _InterpolationIndices("r1!=r2")
         return matrix, vector, eq, interp_idx
 
-    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]]:
         r"""
         Return interpolation data for the function condition.
 
         The tuple format and notation follow the class-level reference in
-        :class:`~autolyap.problemclass.ParametrizedFunctionInterpolationCondition`.
+        :class:`~autolyap.problemclass.functions._ParametrizedFunctionInterpolationCondition`.
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing one
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing one
           tuple with the matrix, vector, eq flag, and interpolation indices.
 
         """
         return [self._interpolation_data]
 
-class Convex(ParametrizedFunctionInterpolationCondition):
+class Convex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for proper, lower semicontinuous, and convex functions.
 
@@ -213,7 +226,7 @@ class Convex(ParametrizedFunctionInterpolationCondition):
     def __init__(self):
         super().__init__(mu=0.0, L=INF)
 
-class StronglyConvex(ParametrizedFunctionInterpolationCondition):
+class StronglyConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for proper, lower semicontinuous, and strongly convex functions.
 
@@ -259,7 +272,7 @@ class StronglyConvex(ParametrizedFunctionInterpolationCondition):
         mu = _ensure_positive_finite(mu, "Parameter mu", "For StronglyConvex, mu must be > 0 and finite.")
         super().__init__(mu=mu, L=INF)
 
-class WeaklyConvex(ParametrizedFunctionInterpolationCondition):
+class WeaklyConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for proper, lower semicontinuous, and weakly convex functions.
 
@@ -306,7 +319,7 @@ class WeaklyConvex(ParametrizedFunctionInterpolationCondition):
         super().__init__(mu=mu, L=INF)
         self.mu_tilde = mu_tilde
 
-class Smooth(ParametrizedFunctionInterpolationCondition):
+class Smooth(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for smooth functions.
 
@@ -345,7 +358,7 @@ class Smooth(ParametrizedFunctionInterpolationCondition):
         L = _ensure_positive_finite(L, "Parameter L", "For Smooth, L must be > 0 and finite.")
         super().__init__(mu=-L, L=L)
 
-class SmoothConvex(ParametrizedFunctionInterpolationCondition):
+class SmoothConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for smooth and convex functions.
 
@@ -389,7 +402,7 @@ class SmoothConvex(ParametrizedFunctionInterpolationCondition):
         L = _ensure_positive_finite(L, "Parameter L", "For SmoothConvex, L must be > 0 and finite.")
         super().__init__(mu=0.0, L=L)
 
-class SmoothStronglyConvex(ParametrizedFunctionInterpolationCondition):
+class SmoothStronglyConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for smooth and strongly convex functions.
 
@@ -446,7 +459,7 @@ class SmoothStronglyConvex(ParametrizedFunctionInterpolationCondition):
             raise ValueError("For SmoothStronglyConvex, mu must be less than L.")
         super().__init__(mu=mu, L=L)
 
-class SmoothWeaklyConvex(ParametrizedFunctionInterpolationCondition):
+class SmoothWeaklyConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for smooth and weakly convex functions.
 
@@ -497,7 +510,7 @@ class SmoothWeaklyConvex(ParametrizedFunctionInterpolationCondition):
         super().__init__(mu=mu, L=L)
         self.mu_tilde = mu_tilde
 
-class IndicatorFunctionOfClosedConvexSet(FunctionInterpolationCondition):
+class IndicatorFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
     r"""
     Function interpolation condition for indicator functions of nonempty, closed, and convex sets.
 
@@ -543,7 +556,7 @@ class IndicatorFunctionOfClosedConvexSet(FunctionInterpolationCondition):
     This condition has no parameters.
 
     """
-    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]]:
         r"""
         Return interpolation data for the indicator function.
 
@@ -552,11 +565,11 @@ class IndicatorFunctionOfClosedConvexSet(FunctionInterpolationCondition):
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing two
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing two
           tuples with the interpolation data.
 
         """
-        interp_idx_ineq = InterpolationIndices("r1!=r2")
+        interp_idx_ineq = _InterpolationIndices("r1!=r2")
         matrix_ineq = 0.5 * np.array([
             [0, 0, 0, 1],
             [0, 0, 0, -1],
@@ -564,7 +577,7 @@ class IndicatorFunctionOfClosedConvexSet(FunctionInterpolationCondition):
             [1, -1, 0, 0]
         ])
         vector_ineq = np.array([0, 0])
-        interp_idx_eq = InterpolationIndices("r1")
+        interp_idx_eq = _InterpolationIndices("r1")
         matrix_eq = np.array([[0, 0], [0, 0]])
         vector_eq = np.array([1])
         return [
@@ -572,7 +585,7 @@ class IndicatorFunctionOfClosedConvexSet(FunctionInterpolationCondition):
             (matrix_eq, vector_eq, True, interp_idx_eq)
         ]
 
-class SupportFunctionOfClosedConvexSet(FunctionInterpolationCondition):
+class SupportFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
     r"""
     Function interpolation condition for support functions of nonempty, closed, and convex sets.
 
@@ -603,7 +616,7 @@ class SupportFunctionOfClosedConvexSet(FunctionInterpolationCondition):
     This condition has no parameters.
 
     """
-    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]]:
         r"""
         Return interpolation data for the support function.
 
@@ -612,11 +625,11 @@ class SupportFunctionOfClosedConvexSet(FunctionInterpolationCondition):
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing two
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing two
           tuples with the interpolation data.
 
         """
-        interp_idx_ineq = InterpolationIndices("r1!=r2")
+        interp_idx_ineq = _InterpolationIndices("r1!=r2")
         matrix_ineq = 0.5 * np.array([
             [0, 0, 0, 0],
             [0, 0, 1, -1],
@@ -624,7 +637,7 @@ class SupportFunctionOfClosedConvexSet(FunctionInterpolationCondition):
             [0, -1, 0, 0]
         ])
         vector_ineq = np.array([0, 0])
-        interp_idx_eq = InterpolationIndices("r1")
+        interp_idx_eq = _InterpolationIndices("r1")
         matrix_eq = 0.5 * np.array([[0, 1], [1, 0]])
         vector_eq = np.array([-1])
         return [
@@ -632,7 +645,7 @@ class SupportFunctionOfClosedConvexSet(FunctionInterpolationCondition):
             (matrix_eq, vector_eq, True, interp_idx_eq)
         ]
 
-class GradientDominated(FunctionInterpolationCondition):
+class GradientDominated(_FunctionInterpolationCondition):
     r"""
     Function interpolation condition for gradient-dominated functions.
 
@@ -680,7 +693,7 @@ class GradientDominated(FunctionInterpolationCondition):
         )
         self.mu_gd = mu_gd
 
-    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]]:
         r"""
         Return interpolation data for gradient-dominated functions.
 
@@ -689,7 +702,7 @@ class GradientDominated(FunctionInterpolationCondition):
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing two
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing two
           tuples with the interpolation data.
 
         """
@@ -700,7 +713,7 @@ class GradientDominated(FunctionInterpolationCondition):
         M2 = np.zeros((4, 4))
         M2[2, 2] = -1 / (2 * self.mu_gd)
         
-        interp_idx = InterpolationIndices("r1!=star")
+        interp_idx = _InterpolationIndices("r1!=star")
         eq_flag = False
         return [
             (M1, a1, eq_flag, interp_idx),

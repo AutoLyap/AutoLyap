@@ -3,12 +3,13 @@
 import numpy as np
 from typing import List, Union, Tuple
 
-from autolyap.problemclass.base import OperatorInterpolationCondition
-from autolyap.problemclass.indices import InterpolationIndices
+from autolyap.problemclass.base import _OperatorInterpolationCondition
+from autolyap.problemclass.indices import _InterpolationIndices
 from autolyap.utils.validation import ensure_real_number
 
 
 def _ensure_positive_finite(value: Union[int, float], parameter_name: str, error_message: str) -> float:
+    r"""Return `value` as float after enforcing strict positivity and finiteness."""
     numeric_value = ensure_real_number(value, parameter_name)
     if not np.isfinite(numeric_value) or numeric_value <= 0:
         raise ValueError(error_message)
@@ -16,13 +17,14 @@ def _ensure_positive_finite(value: Union[int, float], parameter_name: str, error
 
 
 def _ensure_finite(value: Union[int, float], parameter_name: str, error_message: str) -> float:
+    r"""Return `value` as float after enforcing finiteness."""
     numeric_value = ensure_real_number(value, parameter_name)
     if not np.isfinite(numeric_value):
         raise ValueError(error_message)
     return numeric_value
 
 
-class MaximallyMonotone(OperatorInterpolationCondition):
+class MaximallyMonotone(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for maximally monotone operators.
 
@@ -54,7 +56,7 @@ class MaximallyMonotone(OperatorInterpolationCondition):
     This condition has no parameters.
 
     """
-    def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, _InterpolationIndices]]:
         r"""
         Return interpolation data for a maximally monotone operator.
 
@@ -63,7 +65,7 @@ class MaximallyMonotone(OperatorInterpolationCondition):
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing one tuple with the
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing one tuple with the
           interpolation matrix and indices.
 
         """
@@ -73,10 +75,10 @@ class MaximallyMonotone(OperatorInterpolationCondition):
             [-1, 1,  0, 0],
             [1, -1,  0, 0]
         ])
-        interp_idx = InterpolationIndices("r1<r2")
+        interp_idx = _InterpolationIndices("r1<r2")
         return [(matrix, interp_idx)]
 
-class StronglyMonotone(OperatorInterpolationCondition):
+class StronglyMonotone(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for strongly and maximally monotone operators.
 
@@ -118,7 +120,7 @@ class StronglyMonotone(OperatorInterpolationCondition):
         )
         self.mu = mu
 
-    def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, _InterpolationIndices]]:
         r"""
         Return interpolation data for the strongly monotone operator.
 
@@ -127,7 +129,7 @@ class StronglyMonotone(OperatorInterpolationCondition):
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing one tuple with the
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing one tuple with the
           interpolation matrix and indices.
 
         """
@@ -137,10 +139,10 @@ class StronglyMonotone(OperatorInterpolationCondition):
             [-1, 1, 0, 0],
             [1, -1, 0, 0]
         ])
-        interp_idx = InterpolationIndices("r1<r2")
+        interp_idx = _InterpolationIndices("r1<r2")
         return [(matrix, interp_idx)]
 
-class LipschitzOperator(OperatorInterpolationCondition):
+class LipschitzOperator(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for Lipschitz operators.
 
@@ -178,7 +180,7 @@ class LipschitzOperator(OperatorInterpolationCondition):
         )
         self.L = L
 
-    def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, _InterpolationIndices]]:
         r"""
         Return interpolation data for the Lipschitz operator.
 
@@ -187,7 +189,7 @@ class LipschitzOperator(OperatorInterpolationCondition):
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing one tuple with the
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing one tuple with the
           interpolation matrix and indices.
 
         """
@@ -197,10 +199,10 @@ class LipschitzOperator(OperatorInterpolationCondition):
             [0, 0, 1, -1],
             [0, 0, -1, 1]
         ])
-        interp_idx = InterpolationIndices("r1<r2")
+        interp_idx = _InterpolationIndices("r1<r2")
         return [(matrix, interp_idx)]
 
-class Cocoercive(OperatorInterpolationCondition):
+class Cocoercive(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for cocoercive operators.
 
@@ -238,7 +240,7 @@ class Cocoercive(OperatorInterpolationCondition):
         )
         self.beta = beta
 
-    def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, _InterpolationIndices]]:
         r"""
         Return interpolation data for the cocoercive operator.
 
@@ -247,7 +249,7 @@ class Cocoercive(OperatorInterpolationCondition):
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing one tuple with the
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing one tuple with the
           interpolation matrix and indices.
 
         """
@@ -257,10 +259,10 @@ class Cocoercive(OperatorInterpolationCondition):
             [-1, 1, 2 * self.beta, -2 * self.beta],
             [1, -1, -2 * self.beta, 2 * self.beta]
         ])
-        interp_idx = InterpolationIndices("r1<r2")
+        interp_idx = _InterpolationIndices("r1<r2")
         return [(matrix, interp_idx)]
 
-class WeakMintyVariationalInequality(OperatorInterpolationCondition):
+class WeakMintyVariationalInequality(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for operators that fulfill the weak Minty variational inequality.
 
@@ -303,7 +305,7 @@ class WeakMintyVariationalInequality(OperatorInterpolationCondition):
         )
         self.rho_minty = rho_minty
 
-    def get_data(self) -> List[Tuple[np.ndarray, InterpolationIndices]]:
+    def get_data(self) -> List[Tuple[np.ndarray, _InterpolationIndices]]:
         r"""
         Return interpolation data for the weak Minty variational inequality condition.
 
@@ -312,7 +314,7 @@ class WeakMintyVariationalInequality(OperatorInterpolationCondition):
 
         **Returns**
 
-        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.problemclass.InterpolationIndices`\]\]): A list containing one tuple with the
+        - (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~autolyap.problemclass.indices._InterpolationIndices`\]\]): A list containing one tuple with the
           interpolation matrix and indices.
 
         """
@@ -322,5 +324,5 @@ class WeakMintyVariationalInequality(OperatorInterpolationCondition):
             [-1, 1, 2 * self.rho_minty, 0],
             [0, 0, 0, 0]
         ])
-        interp_idx = InterpolationIndices("r1!=star")
+        interp_idx = _InterpolationIndices("r1!=star")
         return [(matrix, interp_idx)]

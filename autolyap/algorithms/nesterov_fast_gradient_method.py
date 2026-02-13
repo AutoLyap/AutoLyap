@@ -41,7 +41,7 @@ class NesterovFastGradientMethod(Algorithm):
     State-space representation
     --------------------------
 
-    The update is represented with
+    The update can be written in the algorithm representation with
 
     .. math::
         \bx^k = (x^k, x^{k-1}), \qquad
@@ -49,8 +49,8 @@ class NesterovFastGradientMethod(Algorithm):
         \by^k = (y^k, x^k).
 
     With :math:`\lambda_0 = 1`, :math:`\lambda_{k+1} = \frac{1+\sqrt{1+4\lambda_k^2}}{2}`,
-    and :math:`\alpha_k = \frac{\lambda_k - 1}{\lambda_{k+1}}`. In
-    :meth:`get_ABCD`, the matrices are
+    and :math:`\alpha_k = \frac{\lambda_k - 1}{\lambda_{k+1}}`, the system
+    matrices are
 
     .. math::
         \begin{aligned}
@@ -75,10 +75,27 @@ class NesterovFastGradientMethod(Algorithm):
             0 & 0
             \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        n = 2,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (2),\quad \bar{m} = 2.
+
+    .. math::
+        I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
     def __init__(self, gamma):
         r"""
         Initialize the fast gradient method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+
+        .. math::
+            n = 2,\quad m = 1,\quad (\bar m_i)_{i=1}^{m} = (2),\quad \bar m = 2,\quad
+            I_{\mathrm{func}} = \{1\},\quad I_{\mathrm{op}} = \varnothing.
         """
         super().__init__(2, 1, [2], [1], [])
         self.gamma = gamma

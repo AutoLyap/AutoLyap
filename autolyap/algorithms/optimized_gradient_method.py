@@ -48,11 +48,14 @@ class OptimizedGradientMethod(Algorithm):
     --------------------------
 
     The update can be written in the algorithm representation with
-    :math:`\bx^k = (x^k, y^k)`, :math:`\bu^k = \nabla f(x^k)`, and
-    :math:`\by^k = x^k`.
+
+    .. math::
+        \bx^k = (x^k, y^k), \qquad
+        \bu^k = \nabla f(x^k), \qquad
+        \by^k = x^k.
 
     For :math:`k \in \llbracket 0, K-1 \rrbracket`, with :math:`\theta_k` as in
-    the standard form, :meth:`get_ABCD` returns
+    the standard form, the system matrices are
 
     .. math::
         \begin{aligned}
@@ -70,7 +73,10 @@ class OptimizedGradientMethod(Algorithm):
             D_k &= \begin{bmatrix} 0 \end{bmatrix}.
         \end{aligned}
 
-    For :math:`k = K`, :meth:`get_ABCD` returns
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD` for
+    :math:`k \in \llbracket 0, K-1 \rrbracket`.
+
+    For :math:`k = K`, the system matrices are chosen for convenience as
 
     .. math::
         \begin{aligned}
@@ -87,10 +93,28 @@ class OptimizedGradientMethod(Algorithm):
             C_K &= \begin{bmatrix} 1 & 0 \end{bmatrix}, &
             D_K &= \begin{bmatrix} 0 \end{bmatrix}.
         \end{aligned}
+
+    These are the terminal system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD` for
+    :math:`k = K`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        n = 2,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (1),\quad \bar{m} = 1.
+
+    .. math::
+        I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
     def __init__(self, L, K):
         r"""
         Initialize the optimized gradient method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+
+        .. math::
+            n = 2,\quad m = 1,\quad (\bar m_i)_{i=1}^{m} = (1),\quad \bar m = 1,\quad
+            I_{\mathrm{func}} = \{1\},\quad I_{\mathrm{op}} = \varnothing.
         """
         super().__init__(2, 1, [1], [1], [])
         self.set_L(L)
@@ -132,7 +156,26 @@ class OptimizedGradientMethod(Algorithm):
         K = self._validate_nonnegative_integral(K, "K")
         self._set_dynamic_parameter("K", K)
     
-    def _compute_theta(self, k: int, K: int) -> float:
+    def compute_theta(self, k: int, K: int) -> float:
+        r"""
+        Compute :math:`\theta_k` for horizon :math:`K`.
+
+        Shared notation follows the class-level reference in
+        :class:`~autolyap.algorithms.OptimizedGradientMethod`.
+
+        **Parameters**
+
+        - `k` (:class:`int`): Target index :math:`k`, with :math:`0 \le k \le K`.
+        - `K` (:class:`int`): Horizon index :math:`K`.
+
+        **Returns**
+
+        - (:class:`float`): The scalar :math:`\theta_k` defined by the OGM recurrence.
+
+        **Raises**
+
+        - `ValueError`: If `k` or `K` are invalid, or if `k > K`.
+        """
         k = self._validate_nonnegative_integral(k, "k")
         K = self._validate_nonnegative_integral(K, "K")
         if k > K:
@@ -150,8 +193,8 @@ class OptimizedGradientMethod(Algorithm):
         k = self._validate_nonnegative_integral(k, "k")
 
         if k < self.K:
-            theta_k = self._compute_theta(k, self.K)
-            theta_kp1 = self._compute_theta(k + 1, self.K)
+            theta_k = self.compute_theta(k, self.K)
+            theta_kp1 = self.compute_theta(k + 1, self.K)
             
             A = np.array([[1+(theta_k-1)/theta_kp1, (1-theta_k)/theta_kp1],
                           [1, 0]])

@@ -123,8 +123,14 @@ class SolverOptions:
     cvxpy_accept_inaccurate: bool = True
 
 
-def normalize_solver_options(options: Optional[SolverOptions]) -> SolverOptions:
-    r"""Validate and normalize solver options, filling defaults when omitted."""
+def _normalize_solver_options(options: Optional[SolverOptions]) -> SolverOptions:
+    r"""
+    Validate and normalize user-provided solver options.
+
+    If `options` is `None`, returns the default ``SolverOptions()`` profile.
+    Otherwise, this routine checks backend names, normalizes mapping fields,
+    and returns a sanitized immutable `SolverOptions` instance.
+    """
     if options is None:
         return SolverOptions()
 
@@ -160,8 +166,17 @@ def normalize_solver_options(options: Optional[SolverOptions]) -> SolverOptions:
     )
 
 
-def get_cvxpy_solve_kwargs(options: SolverOptions) -> Dict[str, Any]:
-    r"""Build keyword arguments for `cvxpy.Problem.solve(...)`."""
+def _get_cvxpy_solve_kwargs(options: SolverOptions) -> Dict[str, Any]:
+    r"""
+    Build keyword arguments for ``cvxpy.Problem.solve(...)``.
+
+    Merges:
+    1. Selected solver name (`solver`).
+    2. Built-in defaults for known solvers.
+    3. User overrides from ``cvxpy_solver_params``.
+
+    Always defaults ``warm_start=True`` unless explicitly overridden.
+    """
     kwargs: Dict[str, Any] = {}
     if options.cvxpy_solver is not None:
         solver_name = options.cvxpy_solver
@@ -175,8 +190,13 @@ def get_cvxpy_solve_kwargs(options: SolverOptions) -> Dict[str, Any]:
     return kwargs
 
 
-def get_cvxpy_accepted_statuses(cp, options: SolverOptions) -> set:
-    r"""Return accepted CVXPY solve statuses for the given options."""
+def _get_cvxpy_accepted_statuses(cp, options: SolverOptions) -> set:
+    r"""
+    Return CVXPY statuses treated as successful solves.
+
+    Always includes ``OPTIMAL``; optionally includes
+    ``OPTIMAL_INACCURATE`` when enabled by solver options.
+    """
     statuses = {cp.OPTIMAL}
     if options.cvxpy_accept_inaccurate:
         statuses.add(cp.OPTIMAL_INACCURATE)
@@ -184,6 +204,7 @@ def get_cvxpy_accepted_statuses(cp, options: SolverOptions) -> set:
 
 
 def _normalize_mapping(mapping: Optional[Mapping[str, Any]], name: str) -> Optional[Dict[str, Any]]:
+    r"""Validate an optional mapping and return it as a plain dict copy."""
     if mapping is None:
         return None
     if not isinstance(mapping, Mapping):
@@ -192,6 +213,11 @@ def _normalize_mapping(mapping: Optional[Mapping[str, Any]], name: str) -> Optio
 
 
 def _normalize_named_mapping(mapping: Optional[Mapping[str, Any]], name: str) -> Optional[Dict[str, Any]]:
+    r"""
+    Validate an optional mapping with string keys and return a dict copy.
+
+    Keys must be non-empty strings after stripping whitespace.
+    """
     if mapping is None:
         return None
     if not isinstance(mapping, Mapping):

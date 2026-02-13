@@ -6,9 +6,9 @@ import mosek.fusion.pythonic  # noqa: F401  # required to enable Fusion operator
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
 from autolyap.solver_options import (
     SolverOptions,
-    normalize_solver_options,
-    get_cvxpy_solve_kwargs,
-    get_cvxpy_accepted_statuses,
+    _normalize_solver_options,
+    _get_cvxpy_solve_kwargs,
+    _get_cvxpy_accepted_statuses,
 )
 from autolyap.utils.validation import (
     ensure_finite_array,
@@ -136,7 +136,21 @@ class IterationDependent:
     """
     @staticmethod
     def _import_cvxpy():
-        r"""Import cvxpy lazily so MOSEK-only workflows stay lightweight."""
+        r"""
+        Import CVXPY lazily for the optional CVXPY backend.
+
+        **Parameters**
+
+        - `None`.
+
+        **Returns**
+
+        - Module: The imported `cvxpy` module.
+
+        **Raises**
+
+        - `ImportError`: If CVXPY is not installed.
+        """
         try:
             import cvxpy as cp
         except ImportError as exc:
@@ -148,14 +162,41 @@ class IterationDependent:
 
     @staticmethod
     def _apply_mosek_solver_params(mod: Model, solver_options: SolverOptions) -> None:
-        r"""Apply user-provided MOSEK Fusion parameters to a model."""
+        r"""
+        Apply user-provided MOSEK Fusion parameters to `mod`.
+
+        **Parameters**
+
+        - `mod` (:class:`mosek.fusion.Model`): Target Fusion model.
+        - `solver_options` (:class:`~autolyap.solver_options.SolverOptions`): Solver option container.
+
+        **Returns**
+
+        - `None`: Parameters are applied in place.
+        """
         params = solver_options.mosek_params or {}
         for name, value in params.items():
             mod.setSolverParam(name, value)
 
     @staticmethod
-    def _extract_scalar_variable_value(var: object) -> float:
-        r"""Extract a scalar value from either a Fusion variable or a CVXPY variable."""
+    def _extract_scalar_variable_value(var: Any) -> float:
+        r"""
+        Extract a scalar value from a backend variable handle.
+
+        Supports Fusion handles exposing `level()` and CVXPY handles exposing `value`.
+
+        **Parameters**
+
+        - `var` (:class:`~typing.Any`): Backend scalar variable/expression handle.
+
+        **Returns**
+
+        - (:class:`float`): Extracted scalar value.
+
+        **Raises**
+
+        - `ValueError`: If `var` is not a supported backend handle.
+        """
         if hasattr(var, "level"):
             value_arr = np.asarray(var.level(), dtype=float).reshape(-1)
         elif hasattr(var, "value"):
@@ -166,7 +207,20 @@ class IterationDependent:
 
     @staticmethod
     def _pairs_from_readable(pairs_readable: List[Dict[str, Union[int, str]]]) -> PairTuple:
-        r"""Convert readable pair dictionaries back into internal tuple form."""
+        r"""
+        Convert readable interpolation-pair records to internal tuple form.
+
+        **Parameters**
+
+        - `pairs_readable` (:class:`~typing.List`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Union`\[:class:`int`, :class:`str`\]\]\]):
+          Readable pairs of the form `{"j": ..., "k": ...}` where each entry is an
+          integer or `"star"`.
+
+        **Returns**
+
+        - (:class:`~typing.Tuple`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`int`, :class:`int`\], :class:`~typing.Tuple`\[:class:`str`, :class:`str`\]\], ...\]):
+          Internal pair tuple used by solver-building helpers.
+        """
         pairs: List[Pair] = []
         for pair in pairs_readable:
             j_val = pair["j"]
@@ -179,7 +233,17 @@ class IterationDependent:
 
     @staticmethod
     def _min_symmetric_eigenvalue(matrix: np.ndarray) -> float:
-        r"""Return the smallest eigenvalue of a symmetrized matrix."""
+        r"""
+        Return the smallest eigenvalue of a symmetrized matrix.
+
+        **Parameters**
+
+        - `matrix` (:class:`numpy.ndarray`): Matrix to symmetrize and analyze.
+
+        **Returns**
+
+        - (:class:`float`): Minimum eigenvalue of :math:`(matrix + matrix^\top)/2`.
+        """
         symmetric_matrix = 0.5 * (matrix + matrix.T)
         try:
             eigvals = np.linalg.eigvalsh(symmetric_matrix)
@@ -196,7 +260,22 @@ class IterationDependent:
             c_K_value: float,
             certificate: Dict[str, Any],
     ) -> Dict[str, Any]:
-        r"""Compute post-solve diagnostics for nonnegativity, PSD, and equality constraints."""
+        r"""
+        Compute post-solve diagnostics for constrained scalars, PSD blocks, and equalities.
+
+        **Parameters**
+
+        - `prob` (:class:`~autolyap.problemclass.InclusionProblem`): Inclusion problem instance.
+        - `algo` (:class:`~autolyap.algorithms.Algorithm`): Algorithm instance.
+        - `K` (:class:`int`): Horizon parameter.
+        - `c_K_value` (:class:`float`): Solved objective value :math:`c_K`.
+        - `certificate` (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Extracted solver certificate.
+
+        **Returns**
+
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Diagnostic dictionary with
+          `nonnegative`, `psd`, and `equality` summaries.
+        """
         Q_sequence = [np.asarray(Q_k, dtype=float) for Q_k in certificate["Q_sequence"]]
         q_sequence_raw = certificate["q_sequence"]
         q_sequence = None
@@ -232,7 +311,7 @@ class IterationDependent:
             + multipliers["function_lambda"]
             + multipliers["function_nu"]
         )
-        component_data = {i: prob.get_component_data(i) for i in range(1, algo.m + 1)}
+        component_data = {i: prob._get_component_data(i) for i in range(1, algo.m + 1)}
 
         for record in all_psd_multiplier_records:
             k = int(record["iteration"])
@@ -248,7 +327,7 @@ class IterationDependent:
                 continue
 
             pairs = IterationDependent._pairs_from_readable(record["pairs"])
-            E_matrix = algo.compute_E(i, list(pairs), k, k + 1, validate=False)
+            E_matrix = algo._compute_E(i, list(pairs), k, k + 1, validate=False)
             W_matrix = E_matrix.T @ M @ E_matrix
             psd_constraint_sums[k] = psd_constraint_sums[k] + value * W_matrix
 
@@ -298,10 +377,23 @@ class IterationDependent:
             lifted_F_basis_cache: Dict[Tuple[int, int, PairTuple], np.ndarray] = {}
 
             def _get_lifted_F_basis(k_idx: int, i: int, pairs: PairTuple) -> np.ndarray:
+                r"""
+                Return cached lifted F basis for one iteration/component/pair pattern.
+
+                **Parameters**
+
+                - `k_idx` (:class:`int`): Iteration index.
+                - `i` (:class:`int`): Component index.
+                - `pairs` (:class:`PairTuple`): Pair pattern to lift.
+
+                **Returns**
+
+                - (:class:`numpy.ndarray`): Lifted F basis matrix.
+                """
                 cache_key = (k_idx, i, pairs)
                 F_basis = lifted_F_basis_cache.get(cache_key)
                 if F_basis is None:
-                    Fs_dict = algo.get_Fs(k_idx, k_idx + 1)
+                    Fs_dict = algo._get_Fs(k_idx, k_idx + 1)
                     total_dim = 2 * m_bar_func + m_func
                     F_basis = np.empty((total_dim, len(pairs)))
                     for col_idx, (j, k_pair) in enumerate(pairs):
@@ -310,7 +402,7 @@ class IterationDependent:
                     lifted_F_basis_cache[cache_key] = F_basis
                 return F_basis
 
-            component_data = {i: prob.get_component_data(i) for i in range(1, algo.m + 1)}
+            component_data = {i: prob._get_component_data(i) for i in range(1, algo.m + 1)}
             for record in eq_multiplier_records:
                 k = int(record["iteration"])
                 if k not in eq_constraint_sums:
@@ -394,7 +486,22 @@ class IterationDependent:
             backend: str,
             verbosity: int,
     ) -> None:
-        r"""Print user-facing diagnostics for iteration-dependent verification."""
+        r"""
+        Print user-facing diagnostics for iteration-dependent verification.
+
+        **Parameters**
+
+        - `diagnostics` (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Diagnostic payload from
+          :meth:`~autolyap.iteration_dependent.IterationDependent._compute_iteration_dependent_diagnostics`.
+        - `K` (:class:`int`): Horizon parameter.
+        - `c_K_value` (:class:`float`): Solved objective value :math:`c_K`.
+        - `backend` (:class:`str`): Solver backend label.
+        - `verbosity` (:class:`int`): Output level (`0`, `1`, or `2+`).
+
+        **Returns**
+
+        - `None`: Prints diagnostics to stdout.
+        """
         if verbosity <= 0:
             return
 
@@ -485,13 +592,33 @@ class IterationDependent:
             q_0: Optional[np.ndarray],
             q_K: Optional[np.ndarray],
         ) -> Tuple[int, int, int, int, int, int, int, int, int, Optional[int]]:
-        # -------------------------------------------------------------------------
+        r"""
+        Validate problem/algo consistency and endpoint Lyapunov parameter shapes.
+
+        **Parameters**
+
+        - `prob` (:class:`~autolyap.problemclass.InclusionProblem`): Inclusion problem instance.
+        - `algo` (:class:`~autolyap.algorithms.Algorithm`): Algorithm instance.
+        - `K` (:class:`int`): Candidate horizon.
+        - `Q_0` (:class:`numpy.ndarray`): Endpoint Lyapunov matrix at iteration `0`.
+        - `Q_K` (:class:`numpy.ndarray`): Endpoint Lyapunov matrix at iteration `K`.
+        - `q_0` (:class:`~typing.Optional`\[:class:`numpy.ndarray`\]): Endpoint linear term at iteration `0`.
+        - `q_K` (:class:`~typing.Optional`\[:class:`numpy.ndarray`\]): Endpoint linear term at iteration `K`.
+
+        **Returns**
+
+        - (:class:`~typing.Tuple`\[:class:`int`, :class:`int`, :class:`int`, :class:`int`, :class:`int`, :class:`int`, :class:`int`, :class:`int`, :class:`int`, :class:`~typing.Optional`\[:class:`int`\]\]):
+          Normalized tuple `(K, n, m_bar, m, m_bar_func, m_func, m_op, m_bar_op, dim_Q, dim_q)`.
+
+        **Raises**
+
+        - `ValueError`: If dimensions, symmetry, finiteness, or component-index compatibility checks fail.
+        """
         # Validate consistency between the problem and the algorithm.
-        # -------------------------------------------------------------------------
         if prob.m != algo.m:
             raise ValueError("Mismatch in number of components: prob.m and algo.m must be the same")
         
-        # Check that the functional and operator component indices are identical.
+        # Check that functional/operator component indices are identical.
         if set(prob.I_func) != set(algo.I_func):
             raise ValueError("Mismatch in functional component indices between prob and algo")
         if set(prob.I_op) != set(algo.I_op):
@@ -500,9 +627,7 @@ class IterationDependent:
         # Ensure K is positive.
         K = ensure_integral(K, "K", minimum=1)
         
-        # -------------------------------------------------------------------------
         # Retrieve dimensions from the algorithm instance.
-        # -------------------------------------------------------------------------
         n = algo.n                      # State dimension.
         m_bar = algo.m_bar              # Total evaluations per iteration.
         m = algo.m                      # Total number of components.
@@ -511,7 +636,7 @@ class IterationDependent:
         m_op = algo.m_op                # Number of operator components.
         m_bar_op = algo.m_bar_op        # Total evaluations for operator components.
         
-        # Expected dimension for matrices Q: [n + m_bar + m] x [n + m_bar + m].
+        # Expected dimension for Q matrices: [n + m_bar + m] x [n + m_bar + m].
         dim_Q = n + m_bar + m
         if not (isinstance(Q_0, np.ndarray) and Q_0.ndim == 2 and Q_0.shape[0] == Q_0.shape[1] == dim_Q):
             raise ValueError(
@@ -560,7 +685,21 @@ class IterationDependent:
 
     @staticmethod
     def _expected_pairs_len(interp_key: str) -> int:
-        r"""Return the expected interpolation-pair arity for a pattern key."""
+        r"""
+        Return the expected interpolation-pair arity for one index-pattern key.
+
+        **Parameters**
+
+        - `interp_key` (:class:`str`): Interpolation index key such as `"r1"` or `"r1<r2"`.
+
+        **Returns**
+
+        - (:class:`int`): Expected number of pairs for that key.
+
+        **Raises**
+
+        - `ValueError`: If `interp_key` is unknown.
+        """
         if interp_key == 'r1':
             return 1
         if interp_key in ('r1<r2', 'r1!=r2', 'r1!=star'):
@@ -574,7 +713,26 @@ class IterationDependent:
             pairs_no_star: List[Tuple[int, int]],
             star_pair: Pair,
     ) -> Iterator[PairTuple]:
-        r"""Yield concrete pair tuples matching one interpolation-index pattern."""
+        r"""
+        Yield concrete pair tuples that satisfy one interpolation-index pattern.
+
+        **Parameters**
+
+        - `interp_key` (:class:`str`): Pattern key (`"r1"`, `"r1<r2"`, `"r1!=r2"`, `"r1!=star"`).
+        - `pairs_with_star` (:class:`~typing.List`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`int`, :class:`int`\], :class:`~typing.Tuple`\[:class:`str`, :class:`str`\]\]\]):
+          Candidate non-star pairs plus the star pair.
+        - `pairs_no_star` (:class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`int`, :class:`int`\]\]): Candidate non-star pairs only.
+        - `star_pair` (:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`int`, :class:`int`\], :class:`~typing.Tuple`\[:class:`str`, :class:`str`\]\]): Star pair token.
+
+        **Yields**
+
+        - (:class:`~typing.Tuple`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`int`, :class:`int`\], :class:`~typing.Tuple`\[:class:`str`, :class:`str`\]\], ...\]):
+          Pair tuples compatible with `interp_key`.
+
+        **Raises**
+
+        - `ValueError`: If `interp_key` is unknown.
+        """
         if interp_key == 'r1':
             for pair in pairs_with_star:
                 yield (pair,)
@@ -607,11 +765,28 @@ class IterationDependent:
             m: int,
             op_components: set,
     ) -> Dict[int, List[Tuple[InterpolationData, str, bool, bool]]]:
-        r"""Validate interpolation payloads and cache per-component metadata."""
+        r"""
+        Validate interpolation payloads and cache per-component metadata.
+
+        **Parameters**
+
+        - `prob` (:class:`~autolyap.problemclass.InclusionProblem`): Inclusion problem instance.
+        - `m` (:class:`int`): Number of components.
+        - `op_components` (:class:`set`): Set of operator-component indices.
+
+        **Returns**
+
+        - (:class:`~typing.Dict`\[:class:`int`, :class:`~typing.List`\[:class:`~typing.Tuple`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`~typing.Any`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`bool`, :class:`~typing.Any`\]\], :class:`str`, :class:`bool`, :class:`bool`\]\]\]):
+          Per-component validated metadata used by SDP builders.
+
+        **Raises**
+
+        - `ValueError`: If interpolation matrix/vector shapes are inconsistent with interpolation indices.
+        """
         component_data: Dict[int, List[Tuple[InterpolationData, str, bool, bool]]] = {}
         for i in range(1, m + 1):
             is_op = i in op_components
-            data = prob.get_component_data(i)
+            data = prob._get_component_data(i)
             validated: List[Tuple[InterpolationData, str, bool, bool]] = []
             for o, interp_data in enumerate(data):
                 if is_op:
@@ -667,21 +842,46 @@ class IterationDependent:
             m_func: int,
             m_op: int,
             model: Optional[Model] = None,
-        ) -> Tuple[Model, Dict[str, Any]]:
+    ) -> Tuple[Model, Dict[str, Any]]:
+        r"""
+        Assemble the iteration-dependent MOSEK Fusion model.
+
+        This routine creates optimization variables, accumulates PSD/equality
+        constraints from interpolation conditions, and returns solver handles used
+        for certificate extraction.
+
+        **Parameters**
+
+        - `prob` (:class:`~autolyap.problemclass.InclusionProblem`): Inclusion problem instance.
+        - `algo` (:class:`~autolyap.algorithms.Algorithm`): Algorithm instance.
+        - `K` (:class:`int`): Horizon parameter.
+        - `Q_0`, `Q_K`: Endpoint Lyapunov matrices.
+        - `q_0`, `q_K`: Endpoint linear terms (or `None` when no functional components).
+        - `dim_Q` (:class:`int`): Dimension of each `Q_k`.
+        - `dim_q` (:class:`~typing.Optional`\[:class:`int`\]): Dimension of each `q_k`.
+        - `m_func` (:class:`int`): Number of functional components.
+        - `m_op` (:class:`int`): Number of operator components.
+        - `model` (:class:`~typing.Optional`\[:class:`mosek.fusion.Model`\]): Optional existing model.
+
+        **Returns**
+
+        - (:class:`~typing.Tuple`\[:class:`mosek.fusion.Model`, :class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
+          The built model and extraction handles.
+        """
         Mod = model if model is not None else Model()
         c_K = Mod.variable("c_K", 1, Domain.greaterThan(0.0))
         
         Qs = {}
         Qs[0] = Q_0
         Qs[K] = Q_K
-        Qij_vars: Dict[int, object] = {}
+        Qij_vars: Dict[int, Any] = {}
         for k in range(1, K):
             Qij = Mod.variable(f"Q_{k}", dim_Q * (dim_Q + 1) // 2, Domain.unbounded())
             Q_k = create_symmetric_matrix_expression(Qij, dim_Q)
             Qs[k] = Q_k
             Qij_vars[k] = Qij
         
-        q_vars: Dict[int, object] = {}
+        q_vars: Dict[int, Any] = {}
         if m_func > 0:
             qs = {}
             qs[0] = q_0
@@ -691,10 +891,7 @@ class IterationDependent:
                 qs[k] = q_k
                 q_vars[k] = q_k
         
-        # ---------------------------------------------------------------------
-        # Build the main PSD (positive semidefinite) and equality constraint sums.
-        # These will later be constrained to be in the PSD cone or equal zero, respectively.
-        # ---------------------------------------------------------------------
+        # Build the main PSD and equality-constraint sums.
         Ws = {}
         (Theta0, Theta1) = IterationDependent._compute_Thetas(algo, 0)
         # First inequality uses the scaled Lyapunov decrease with multiplier c_K.
@@ -715,7 +912,7 @@ class IterationDependent:
                 w_k = theta1.T @ qs[k+1] - theta0.T @ qs[k]
                 ws[k] = w_k
 
-        # Initialize dictionaries to sum up the PSD and equality constraints.
+        # Initialize dictionaries to accumulate PSD and equality constraints.
         PSD_constraint_sums = {}
         eq_constraint_sums = {}
         for k in range(0, K):
@@ -723,23 +920,20 @@ class IterationDependent:
             if m_func > 0:
                 eq_constraint_sums[k] = -ws[k]
 
-        # Dictionaries to hold multipliers for interpolation conditions.
-        lambdas_op: Dict[Tuple[int, int, PairTuple, int], object] = {}
-        lambdas_func: Dict[Tuple[int, int, PairTuple, int], object] = {}
-        nus_func: Dict[Tuple[int, int, PairTuple, int], object] = {}
+        # Multipliers for interpolation conditions.
+        lambdas_op: Dict[Tuple[int, int, PairTuple, int], Any] = {}
+        lambdas_func: Dict[Tuple[int, int, PairTuple, int], Any] = {}
+        nus_func: Dict[Tuple[int, int, PairTuple, int], Any] = {}
 
-        # ---------------------------------------------------------------------
-        # Define inner helper functions for processing interpolation data.
-        # These functions handle both operator and function interpolation.
-        # ---------------------------------------------------------------------
+        # Inner helpers for processing interpolation data.
         n = algo.n
         m_bar = algo.m_bar
         m_bar_func = algo.m_bar_func
         op_components = set(algo.I_op)
         m = algo.m
         m_bar_is = algo.m_bar_is
-        compute_E = algo.compute_E
-        get_Fs = algo.get_Fs
+        _compute_E = algo._compute_E
+        _get_Fs = algo._get_Fs
         mod_variable = Mod.variable
         domain_ge0 = Domain.greaterThan(0.0)
         domain_unbounded = Domain.unbounded()
@@ -748,18 +942,44 @@ class IterationDependent:
         lifted_F_basis_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
 
         def _get_lifted_E(k, i, pairs):
+            r"""
+            Return cached lifted E matrix for one iteration/component/pair pattern.
+
+            **Parameters**
+
+            - `k` (:class:`int`): Iteration index.
+            - `i` (:class:`int`): Component index.
+            - `pairs` (:class:`PairTuple`): Pair pattern to lift.
+
+            **Returns**
+
+            - (:class:`numpy.ndarray`): Lifted E matrix.
+            """
             cache_key = (k, i, pairs)
             E_matrix = lifted_E_cache.get(cache_key)
             if E_matrix is None:
-                E_matrix = compute_E(i, list(pairs), k, k + 1, validate=False)
+                E_matrix = _compute_E(i, list(pairs), k, k + 1, validate=False)
                 lifted_E_cache[cache_key] = E_matrix
             return E_matrix
 
         def _get_lifted_F_basis(k, i, pairs):
+            r"""
+            Return cached lifted F basis for one iteration/component/pair pattern.
+
+            **Parameters**
+
+            - `k` (:class:`int`): Iteration index.
+            - `i` (:class:`int`): Component index.
+            - `pairs` (:class:`PairTuple`): Pair pattern to lift.
+
+            **Returns**
+
+            - (:class:`numpy.ndarray`): Lifted F basis matrix.
+            """
             cache_key = (k, i, pairs)
             F_basis = lifted_F_basis_cache.get(cache_key)
             if F_basis is None:
-                Fs_dict = get_Fs(k, k + 1)
+                Fs_dict = _get_Fs(k, k + 1)
                 total_dim = 2 * m_bar_func + m_func
                 F_basis = np.empty((total_dim, len(pairs)))
                 for col_idx, (j, k_idx) in enumerate(pairs):
@@ -781,6 +1001,21 @@ class IterationDependent:
 
             Creates multiplier variables and accumulates contributions to the
             PSD/equality constraints at iteration :math:`k`.
+
+            **Parameters**
+
+            - `k` (:class:`int`): Iteration index.
+            - `i` (:class:`int`): Component index.
+            - `o` (:class:`int`): Interpolation condition index.
+            - `interpolation_data` (:class:`InterpolationData`): Interpolation payload.
+            - `pairs` (:class:`PairTuple`): Concrete pair pattern.
+            - `comp_type` (:class:`str`): `"op"` or `"func"`.
+            - `has_quadratic` (:class:`bool`): Whether quadratic terms are present.
+            - `has_linear` (:class:`bool`): Whether linear terms are present.
+
+            **Returns**
+
+            - `None`: Accumulates constraint contributions in place.
             """
             key = (k, i, pairs, o)
 
@@ -793,7 +1028,6 @@ class IterationDependent:
                 if not has_quadratic and not has_linear:
                     return
 
-            # Compute the lifted matrix W for the given pairs.
             W_matrix = None
             if has_quadratic:
                 E_matrix = _get_lifted_E(k, i, pairs)
@@ -804,7 +1038,6 @@ class IterationDependent:
                 lambdas_op[key] = lambda_var
                 PSD_constraint_sums[k] = PSD_constraint_sums[k] + lambda_var[0] * W_matrix
             else:
-                # For functional components, compute the aggregated F vector.
                 F_vector = None
                 if has_linear:
                     F_basis = _get_lifted_F_basis(k, i, pairs)
@@ -851,19 +1084,11 @@ class IterationDependent:
                             has_linear,
                         )
 
-        # ---------------------------------------------------------------------
-        # Add final constraints to the model.
-        # ---------------------------------------------------------------------
         for k in range(0, K):
-            # Enforce that the PSD constraint sums belong to the PSD cone.
             Mod.constraint(PSD_constraint_sums[k], Domain.inPSDCone(n + 2 * m_bar + m))
-            # For functional components, enforce the equality constraint.
             if m_func > 0:
                 Mod.constraint(eq_constraint_sums[k] == 0)
 
-        # ---------------------------------------------------------------------
-        # Add the objective function to the model.
-        # ---------------------------------------------------------------------
         Mod.objective("obj", ObjectiveSense.Minimize, c_K)
 
         solution_handles: Dict[str, Any] = {
@@ -899,17 +1124,37 @@ class IterationDependent:
             m_op: int,
             cp,
     ) -> Tuple[Any, Dict[str, Any]]:
-        r"""Assemble and return the CVXPY problem and variable handles."""
+        r"""
+        Assemble the CVXPY iteration-dependent problem and extraction handles.
+
+        **Parameters**
+
+        - `prob` (:class:`~autolyap.problemclass.InclusionProblem`): Inclusion problem instance.
+        - `algo` (:class:`~autolyap.algorithms.Algorithm`): Algorithm instance.
+        - `K` (:class:`int`): Horizon parameter.
+        - `Q_0`, `Q_K`: Endpoint Lyapunov matrices.
+        - `q_0`, `q_K`: Endpoint linear terms (or `None` when no functional components).
+        - `dim_Q` (:class:`int`): Dimension of each `Q_k`.
+        - `dim_q` (:class:`~typing.Optional`\[:class:`int`\]): Dimension of each `q_k`.
+        - `m_func` (:class:`int`): Number of functional components.
+        - `m_op` (:class:`int`): Number of operator components.
+        - `cp`: Imported CVXPY module.
+
+        **Returns**
+
+        - (:class:`~typing.Tuple`\[:class:`~typing.Any`, :class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
+          The CVXPY problem and extraction handles.
+        """
         c_K = cp.Variable(nonneg=True)
 
         Qs: Dict[int, Any] = {0: Q_0, K: Q_K}
-        Q_vars: Dict[int, object] = {}
+        Q_vars: Dict[int, Any] = {}
         for k in range(1, K):
             Q_k = cp.Variable((dim_Q, dim_Q), symmetric=True)
             Qs[k] = Q_k
             Q_vars[k] = Q_k
 
-        q_vars: Dict[int, object] = {}
+        q_vars: Dict[int, Any] = {}
         if m_func > 0:
             qs: Dict[int, Any] = {0: q_0, K: q_K}
             for k in range(1, K):
@@ -938,33 +1183,59 @@ class IterationDependent:
             if m_func > 0:
                 eq_constraint_sums[k] = -ws[k]
 
-        lambdas_op: Dict[Tuple[int, int, PairTuple, int], object] = {}
-        lambdas_func: Dict[Tuple[int, int, PairTuple, int], object] = {}
-        nus_func: Dict[Tuple[int, int, PairTuple, int], object] = {}
+        lambdas_op: Dict[Tuple[int, int, PairTuple, int], Any] = {}
+        lambdas_func: Dict[Tuple[int, int, PairTuple, int], Any] = {}
+        nus_func: Dict[Tuple[int, int, PairTuple, int], Any] = {}
 
         m_bar_func = algo.m_bar_func
         op_components = set(algo.I_op)
         m = algo.m
         m_bar_is = algo.m_bar_is
-        compute_E = algo.compute_E
-        get_Fs = algo.get_Fs
+        _compute_E = algo._compute_E
+        _get_Fs = algo._get_Fs
         star_pair = ('star', 'star')
         lifted_E_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
         lifted_F_basis_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
 
         def _get_lifted_E(k, i, pairs):
+            r"""
+            Return cached lifted E matrix for one iteration/component/pair pattern.
+
+            **Parameters**
+
+            - `k` (:class:`int`): Iteration index.
+            - `i` (:class:`int`): Component index.
+            - `pairs` (:class:`PairTuple`): Pair pattern to lift.
+
+            **Returns**
+
+            - (:class:`numpy.ndarray`): Lifted E matrix.
+            """
             cache_key = (k, i, pairs)
             E_matrix = lifted_E_cache.get(cache_key)
             if E_matrix is None:
-                E_matrix = compute_E(i, list(pairs), k, k + 1, validate=False)
+                E_matrix = _compute_E(i, list(pairs), k, k + 1, validate=False)
                 lifted_E_cache[cache_key] = E_matrix
             return E_matrix
 
         def _get_lifted_F_basis(k, i, pairs):
+            r"""
+            Return cached lifted F basis for one iteration/component/pair pattern.
+
+            **Parameters**
+
+            - `k` (:class:`int`): Iteration index.
+            - `i` (:class:`int`): Component index.
+            - `pairs` (:class:`PairTuple`): Pair pattern to lift.
+
+            **Returns**
+
+            - (:class:`numpy.ndarray`): Lifted F basis matrix.
+            """
             cache_key = (k, i, pairs)
             F_basis = lifted_F_basis_cache.get(cache_key)
             if F_basis is None:
-                Fs_dict = get_Fs(k, k + 1)
+                Fs_dict = _get_Fs(k, k + 1)
                 total_dim = 2 * m_bar_func + m_func
                 F_basis = np.empty((total_dim, len(pairs)))
                 for col_idx, (j, k_idx) in enumerate(pairs):
@@ -982,6 +1253,7 @@ class IterationDependent:
                 comp_type: str,
                 has_quadratic: bool,
                 has_linear: bool) -> None:
+            r"""Accumulate interpolation contributions for one CVXPY pair pattern."""
             key = (k, i, pairs, o)
 
             if comp_type == 'op':
@@ -1076,14 +1348,41 @@ class IterationDependent:
 
     @staticmethod
     def _pairs_to_readable(pairs: PairTuple) -> List[Dict[str, Union[int, str]]]:
-        r"""Convert interpolation-pair tuples into readable dictionaries."""
+        r"""
+        Convert internal interpolation pairs to readable dictionary records.
+
+        **Parameters**
+
+        - `pairs` (:class:`~typing.Tuple`\[:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`int`, :class:`int`\], :class:`~typing.Tuple`\[:class:`str`, :class:`str`\]\], ...\]):
+          Internal pair tuple.
+
+        **Returns**
+
+        - (:class:`~typing.List`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Union`\[:class:`int`, :class:`str`\]\]\]):
+          Readable pair list using keys `"j"` and `"k"`.
+        """
         return [{"j": pair[0], "k": pair[1]} for pair in pairs]
 
     @staticmethod
     def _serialize_iteration_dependent_multipliers(
-            multiplier_vars: Dict[Tuple[int, int, PairTuple, int], object]
+            multiplier_vars: Dict[Tuple[int, int, PairTuple, int], Any]
     ) -> List[Dict[str, Any]]:
-        r"""Convert scalar multiplier variables into readable records."""
+        r"""
+        Convert scalar multiplier variables into sorted, readable records.
+
+        Sorting is deterministic by `(iteration, component, interpolation_index, pairs)`
+        so downstream diagnostics stay stable across runs.
+
+        **Parameters**
+
+        - `multiplier_vars` (:class:`~typing.Dict`\[:class:`~typing.Tuple`\[:class:`int`, :class:`int`, :class:`~typing.Tuple`, :class:`int`\], :class:`~typing.Any`\]):
+          Internal multiplier-variable mapping.
+
+        **Returns**
+
+        - (:class:`~typing.List`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
+          Sorted readable multiplier records.
+        """
         records: List[Dict[str, Any]] = []
         for key, var in sorted(
                 multiplier_vars.items(),
@@ -1101,7 +1400,19 @@ class IterationDependent:
 
     @staticmethod
     def _extract_iteration_dependent_certificate(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
-        r"""Extract a solved iteration-dependent certificate into NumPy/Python values."""
+        r"""
+        Extract a solved iteration-dependent certificate into NumPy/Python values.
+
+        **Parameters**
+
+        - `solution_handles` (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]):
+          Handle dictionary returned by the MOSEK builder.
+
+        **Returns**
+
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Certificate with keys
+          `Q_sequence`, `q_sequence`, and `multipliers`.
+        """
         K = int(solution_handles["K"])
         dim_Q = int(solution_handles["dim_Q"])
         m_func = int(solution_handles["m_func"])
@@ -1150,7 +1461,22 @@ class IterationDependent:
 
     @staticmethod
     def _extract_iteration_dependent_certificate_cvxpy(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
-        r"""Extract a solved CVXPY-backed iteration-dependent certificate."""
+        r"""
+        Extract a solved CVXPY-backed iteration-dependent certificate.
+
+        Converts CVXPY variable values to NumPy arrays and preserves the same
+        output schema as the MOSEK-based extractor.
+
+        **Parameters**
+
+        - `solution_handles` (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]):
+          Handle dictionary returned by the CVXPY builder.
+
+        **Returns**
+
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Certificate with keys
+          `Q_sequence`, `q_sequence`, and `multipliers`.
+        """
         K = int(solution_handles["K"])
         m_func = int(solution_handles["m_func"])
         Q_0 = solution_handles["Q_0"]
@@ -1288,13 +1614,13 @@ class IterationDependent:
 
         **Returns**
 
-        - (:class:`~typing.Dict`\[:class:`str`, :class:`object`\]): Result dictionary
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Union`\[:class:`bool`, :class:`~typing.Optional`\[:class:`float`\], :class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]\]\]): Result dictionary
           with keys `success`, `c_K`, and `certificate`.
 
           - `success` (:class:`bool`): `True` iff the SDP is feasible.
           - `c_K` (:class:`~typing.Optional`\[:class:`float`\]): Optimal objective value when
             `success` is `True`; otherwise `None`. This is the horizon-dependent scalar.
-          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`object`\]\]):
+          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
             `None` when `success` is `False`; otherwise a feasible certificate.
 
           When `success` is `True`, `certificate` has:
@@ -1334,8 +1660,10 @@ class IterationDependent:
             :math:`\text{enumerate}(\text{prob.get_component_data}(i))`, so
             :math:`o \in \llbracket 0, \text{len}(\text{prob.get_component_data}(i)) - 1 \rrbracket`.
           - `pairs` is the concrete interpolation-pair list used by that multiplier.
-            Its length is 1 (pattern `"r1"`) or 2 (patterns `"r1<r2"`,
-            `"r1!=r2"`, `"r1!=star"`). Typical examples are
+            Its length is determined by
+            :class:`~autolyap.problemclass.indices._InterpolationIndices`:
+            1 for `"r1"` and 2 for `"r1<r2"`, `"r1!=r2"`, `"r1!=star"`.
+            Typical examples are
             `[{"j": 2, "k": 5}]` and
             `[{"j": 1, "k": 5}, {"j": "star", "k": "star"}]`.
 
@@ -1363,7 +1691,7 @@ class IterationDependent:
             prob, algo, K, Q_0, Q_K, q_0, q_K
         )
         verbosity = ensure_integral(verbosity, "verbosity", minimum=0)
-        solver_options = normalize_solver_options(solver_options)
+        solver_options = _normalize_solver_options(solver_options)
 
         if solver_options.backend == "mosek_fusion":
             Mod = Model()
@@ -1452,8 +1780,8 @@ class IterationDependent:
             m_op,
             cp=cp,
         )
-        solve_kwargs = get_cvxpy_solve_kwargs(solver_options)
-        accepted_statuses = get_cvxpy_accepted_statuses(cp, solver_options)
+        solve_kwargs = _get_cvxpy_solve_kwargs(solver_options)
+        accepted_statuses = _get_cvxpy_accepted_statuses(cp, solver_options)
         if verbosity > 0:
             print(
                 f"[AutoLyap][INFO] Solving iteration-dependent SDP "
@@ -1529,7 +1857,7 @@ class IterationDependent:
         - :math:`n` is given by `algo.n`.
         - :math:`\NumEval` is given by `algo.m_bar`.
         - :math:`m` is given by `algo.m`.
-        - :math:`X_{k+1}^{k,k+1}` is retrieved via :meth:`~autolyap.algorithms.Algorithm.get_Xs` with
+        - :math:`X_{k+1}^{k,k+1}` is retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs` with
           `k_min = k` and `k_max = k+1`, using key :math:`k+1`.
 
         **Parameters**
@@ -1559,8 +1887,8 @@ class IterationDependent:
             [np.zeros((m, n + m_bar)), np.zeros((m, m_bar)), np.eye(m)]
         ])
 
-        # Retrieve X_{k+1}^{k,k+1} using algo.get_Xs(k, k+1)
-        Xs = algo.get_Xs(k, k+1)
+        # Retrieve X_{k+1}^{k,k+1} using algo._get_Xs(k, k+1)
+        Xs = algo._get_Xs(k, k+1)
         if (k + 1) not in Xs:
             raise ValueError(f"Expected key {k+1} in X matrices, but it was not found.")
         X_block = Xs[k + 1]
@@ -1659,9 +1987,9 @@ class IterationDependent:
             \left(P_{(i,j)}Y_k^{k,k} - P_{(i,\star)}Y_\star^{k,k}\right),
 
         where :math:`Y_k^{k,k}` and :math:`Y_\star^{k,k}` come from
-        :meth:`~autolyap.algorithms.Algorithm.get_Ys` with `k_min = k`, `k_max = k`,
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys` with `k_min = k`, `k_max = k`,
         and :math:`P_{(i,j)}` and :math:`P_{(i,\star)}` come from
-        :meth:`~autolyap.algorithms.Algorithm.get_Ps`.
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
 
         If `algo.m_func > 0`, the method also returns :math:`q_k = 0`.
 
@@ -1675,8 +2003,8 @@ class IterationDependent:
         **Parameters**
 
         - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): Algorithm instance providing `m`, `m_bar_is`,
-          :meth:`~autolyap.algorithms.Algorithm.get_Ys`, and
-          :meth:`~autolyap.algorithms.Algorithm.get_Ps`.
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, and
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
         - `k` (:class:`int`): Nonnegative iteration index :math:`k`.
         - `i` (:class:`int`): Component index, with
           :math:`i \in \llbracket 1, m\rrbracket`.
@@ -1713,13 +2041,13 @@ class IterationDependent:
             raise ValueError(f"For component {i}, evaluation index j must be in [1, {algo.m_bar_is[i - 1]}]. Got {j}.")
 
         # ----- Compute Q_k -----
-        Ys = algo.get_Ys(k, k)
+        Ys = algo._get_Ys(k, k)
         if k not in Ys:
             raise ValueError(f"Y matrix for iteration k = {k} not found.")
         if 'star' not in Ys:
             raise ValueError("Y star matrix ('star') not found.")
         
-        Ps = algo.get_Ps()
+        Ps = algo._get_Ps()
         if (i, j) not in Ps:
             raise ValueError(f"Projection matrix for component {i}, evaluation {j} not found.")
         if (i, 'star') not in Ps:
@@ -1758,7 +2086,7 @@ class IterationDependent:
             q_k = \left(F_{(1,j,k)}^{k,k} - F_{(1,\star,\star)}^{k,k}\right)^\top,
 
         where both :math:`F` matrices are retrieved from
-        :meth:`~autolyap.algorithms.Algorithm.get_Fs` with `k_min = k`, `k_max = k`.
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs` with `k_min = k`, `k_max = k`.
 
         **Resulting lower bound**
 
@@ -1770,7 +2098,7 @@ class IterationDependent:
         **Parameters**
 
         - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): Algorithm instance with `m = m_func = 1`,
-          `m_bar_is`, and :meth:`~autolyap.algorithms.Algorithm.get_Fs`.
+          `m_bar_is`, and :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`.
         - `k` (:class:`int`): Nonnegative iteration index :math:`k`.
         - `j` (:class:`int`): Evaluation index for component 1, with
           :math:`j \in \llbracket 1, \NumEval_1\rrbracket`.
@@ -1804,7 +2132,7 @@ class IterationDependent:
         Q_k = np.zeros((dim_Q_k, dim_Q_k))
 
         # ----- Compute q_k -----
-        Fs = algo.get_Fs(k, k)
+        Fs = algo._get_Fs(k, k)
         key_nonstar = (1, j, k)
         key_star = (1, 'star', 'star')
         if key_nonstar not in Fs:
@@ -1838,7 +2166,7 @@ class IterationDependent:
             \left(X_{k+1}^{k,k} - X_k^{k,k}\right),
 
         using :math:`X_k^{k,k}` and :math:`X_{k+1}^{k,k}` from
-        :meth:`~autolyap.algorithms.Algorithm.get_Xs` with `k_min = k`, `k_max = k`.
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs` with `k_min = k`, `k_max = k`.
 
         If `algo.m_func > 0`, the method also returns :math:`q_k = 0`.
 
@@ -1852,7 +2180,7 @@ class IterationDependent:
         **Parameters**
 
         - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): Algorithm instance providing dimensions and
-          :meth:`~autolyap.algorithms.Algorithm.get_Xs`.
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`.
         - `k` (:class:`int`): Nonnegative iteration index :math:`k`.
 
         **Returns**
@@ -1879,7 +2207,7 @@ class IterationDependent:
         k = ensure_integral(k, "k", minimum=0)
 
         # ----- Retrieve X matrices -----
-        Xs = algo.get_Xs(k, k)
+        Xs = algo._get_Xs(k, k)
         if k not in Xs or (k + 1) not in Xs:
             raise ValueError(f"X matrices for iterations {k} and {k+1} not found.")
 
@@ -1922,9 +2250,9 @@ class IterationDependent:
             \end{cases}
 
         using :math:`U_k^{k,k}`, :math:`Y_k^{k,k}`, and projection matrices from
-        :meth:`~autolyap.algorithms.Algorithm.get_Us`,
-        :meth:`~autolyap.algorithms.Algorithm.get_Ys`, and
-        :meth:`~autolyap.algorithms.Algorithm.get_Ps`.
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`,
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, and
+        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
 
         If `algo.m_func > 0`, the method also returns :math:`q_k = 0`.
 
@@ -1945,9 +2273,9 @@ class IterationDependent:
         **Parameters**
 
         - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): Algorithm instance providing `m`, `m_bar`, `m_bar_is`,
-          :meth:`~autolyap.algorithms.Algorithm.get_Us`,
-          :meth:`~autolyap.algorithms.Algorithm.get_Ys`, and
-          :meth:`~autolyap.algorithms.Algorithm.get_Ps`.
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`,
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, and
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
         - `k` (:class:`int`): Nonnegative iteration index :math:`k`.
 
         **Returns**
@@ -1974,15 +2302,15 @@ class IterationDependent:
         k = ensure_integral(k, "k", minimum=0)
 
         # ----- Retrieve U and Y matrices -----
-        Us = algo.get_Us(k, k)
-        Ys = algo.get_Ys(k, k)
+        Us = algo._get_Us(k, k)
+        Ys = algo._get_Ys(k, k)
         if k not in Us:
             raise ValueError(f"U matrix for iteration {k} not found.")
         if k not in Ys:
             raise ValueError(f"Y matrix for iteration {k} not found.")
         
         # ----- Retrieve Projection matrices -----
-        Ps = algo.get_Ps()
+        Ps = algo._get_Ps()
 
         # ----- Compute Q_k -----
         if algo.m == 1:

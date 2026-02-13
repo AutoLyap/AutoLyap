@@ -39,11 +39,19 @@ class DavisYin(Algorithm):
     --------------------------
 
     The update can be written in the algorithm representation with
-    :math:`\bx^k = x^k`,
-    :math:`\bu^k = \left((x^k-v^k)/\gamma,\; \nabla f_2(v^k),\; (2v^k-x^k-\gamma\nabla f_2(v^k)-w^k)/\gamma\right)`,
-    and :math:`\by^k = (v^k, v^k, w^k)`.
 
-    In :meth:`get_ABCD`, the matrices are
+    .. math::
+        \begin{aligned}
+            \bx^k &= x^k, \\
+            \bu^k &= \left(
+            \frac{x^k-v^k}{\gamma},\;
+            \nabla f_2(v^k),\;
+            \frac{2v^k-x^k-\gamma\nabla f_2(v^k)-w^k}{\gamma}
+            \right), \\
+            \by^k &= (v^k, v^k, w^k).
+        \end{aligned}
+
+    With this representation, the system matrices are
 
     .. math::
         \begin{aligned}
@@ -62,10 +70,27 @@ class DavisYin(Algorithm):
             -2\gamma & -\gamma & -\gamma
             \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        n = 1,\quad m = 3,\quad (\bar{m}_i)_{i=1}^{m} = (1,1,1),\quad \bar{m} = 3.
+
+    .. math::
+        I_{\text{func}} = \{1,2,3\},\quad I_{\text{op}} = \varnothing.
     """
     def __init__(self, gamma, lambda_value):
         r"""
         Initialize the Davis--Yin method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+
+        .. math::
+            n = 1,\quad m = 3,\quad (\bar m_i)_{i=1}^{m} = (1,1,1),\quad \bar m = 3,\quad
+            I_{\mathrm{func}} = \{1,2,3\},\quad I_{\mathrm{op}} = \varnothing.
         """
         super().__init__(1, 3, [1, 1, 1], [1, 2, 3], [])
         self.gamma = gamma

@@ -41,10 +41,13 @@ class AcceleratedProximalPoint(Algorithm):
     --------------------------
 
     The update can be written in the algorithm representation with
-    :math:`\bx^k = (x^k, y^k, y^{k-1})`, :math:`\by^k = y^k`, and
-    :math:`\bu^k = (y^k - x^{k+1})/\gamma`.
 
-    With :math:`\lambda_k = k/(k+2)`, :meth:`get_ABCD` returns
+    .. math::
+        \bx^k = (x^k, y^k, y^{k-1}), \qquad
+        \bu^k = \frac{y^k - x^{k+1}}{\gamma}, \qquad
+        \by^k = y^k.
+
+    With :math:`\lambda_k = k/(k+2)`, the system matrices are
 
     .. math::
         \begin{aligned}
@@ -63,10 +66,40 @@ class AcceleratedProximalPoint(Algorithm):
             C_k &= \begin{bmatrix} 0 & 1 & 0 \end{bmatrix}, &
             D_k &= \begin{bmatrix} -\gamma \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        \text{type}=\text{"operator"}:\quad
+        n = 3,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (1),\quad \bar{m} = 1,\quad
+        I_{\text{func}} = \varnothing,\quad I_{\text{op}} = \{1\}.
+
+    .. math::
+        \text{type}=\text{"function"}:\quad
+        n = 3,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (1),\quad \bar{m} = 1,\quad
+        I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
     def __init__(self, gamma, type: str = "operator"):
         r"""
         Initialize the accelerated proximal point method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+        case-dependent:
+
+        - If `type = operator`:
+
+          .. math::
+              n = 3,\quad m = 1,\quad (\bar m_i)_{i=1}^{m} = (1),\quad \bar m = 1,\quad
+              I_{\mathrm{func}} = \varnothing,\quad I_{\mathrm{op}} = \{1\}.
+
+        - If `type = function`:
+
+          .. math::
+              n = 3,\quad m = 1,\quad (\bar m_i)_{i=1}^{m} = (1),\quad \bar m = 1,\quad
+              I_{\mathrm{func}} = \{1\},\quad I_{\mathrm{op}} = \varnothing.
         """
         if type == "operator":
             super().__init__(3, 1, [1], [], [1])

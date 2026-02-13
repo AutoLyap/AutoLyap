@@ -48,7 +48,9 @@ class Extragradient(Algorithm):
     --------------------------
 
     The update can be written in the algorithm representation with
-    :math:`\bx^k = x^k`.
+
+    .. math::
+        \bx^k = x^k.
 
     If `type = unconstrained`, use
 
@@ -56,7 +58,7 @@ class Extragradient(Algorithm):
         \bu^k = (G_1(x^k), G_1(\bar{x}^k)), \qquad
         \by^k = (x^k, \bar{x}^k),
 
-    with
+    with the system matrices
 
     .. math::
         \begin{aligned}
@@ -74,6 +76,9 @@ class Extragradient(Algorithm):
             \end{bmatrix}.
         \end{aligned}
 
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD` when
+    `type = unconstrained`.
+
     If `type = constrained`, use
 
     .. math::
@@ -87,7 +92,7 @@ class Extragradient(Algorithm):
     .. math::
         \by^k = (x^k, \bar{x}^k, \bar{x}^k, x^{k+1}),
 
-    with
+    with the system matrices
 
     .. math::
         \begin{aligned}
@@ -108,10 +113,41 @@ class Extragradient(Algorithm):
             0 & -\delta & 0 & -\delta
             \end{bmatrix}.
         \end{aligned}
+
+    These are the system matrices returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD` when
+    `type = constrained`.
+
+    Structural parameters
+    ---------------------
+
+    .. math::
+        \text{type}=\text{"unconstrained"}:\quad
+        n = 1,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (2),\quad \bar{m} = 2,\quad
+        I_{\text{func}} = \varnothing,\quad I_{\text{op}} = \{1\}.
+
+    .. math::
+        \text{type}=\text{"constrained"}:\quad
+        n = 1,\quad m = 2,\quad (\bar{m}_i)_{i=1}^{m} = (2,2),\quad \bar{m} = 4,\quad
+        I_{\text{func}} = \{2\},\quad I_{\text{op}} = \{1\}.
     """
     def __init__(self, gamma: float, delta: float, type: str = "unconstrained"):
         r"""
         Initialize the extragradient method.
+
+        Structural inputs passed to :class:`~autolyap.algorithms.Algorithm` are
+        case-dependent:
+
+        - If `type = unconstrained`:
+
+          .. math::
+              n = 1,\quad m = 1,\quad (\bar m_i)_{i=1}^{m} = (2),\quad \bar m = 2,\quad
+              I_{\mathrm{func}} = \varnothing,\quad I_{\mathrm{op}} = \{1\}.
+
+        - If `type = constrained`:
+
+          .. math::
+              n = 1,\quad m = 2,\quad (\bar m_i)_{i=1}^{m} = (2,2),\quad \bar m = 4,\quad
+              I_{\mathrm{func}} = \{2\},\quad I_{\mathrm{op}} = \{1\}.
         """
         if type == "unconstrained":
             super().__init__(1, 1, [2], [], [1]) 
