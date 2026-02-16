@@ -32,7 +32,7 @@ def test_convergence_douglas_rachford_function_smooth_strong_plus_convex_giselss
             algorithm,
             solver_options=cvxpy_clarabel_solver_options,
         )
-        assert result["success"]
+        assert result["status"] == "feasible"
         rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = giselsson_boyd_rate_sq(lambda_value, mu, L, gamma)

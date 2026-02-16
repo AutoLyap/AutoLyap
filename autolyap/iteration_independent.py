@@ -1,8 +1,6 @@
 import numpy as np
 from typing import Any, Optional, Tuple, Union, List, Dict, Iterator, cast
 from itertools import combinations
-from mosek.fusion import Model, Domain, OptimizeError, Expr
-import mosek.fusion.pythonic  # noqa: F401  # required to enable Fusion operator overloads
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
 from autolyap.solver_options import (
     SolverOptions,
@@ -23,6 +21,73 @@ PairTuple = Tuple[Pair, ...]
 OperatorInterpolationData = Tuple[np.ndarray, Any]
 FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, Any]
 InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
+
+_MOSEK_LICENSE_ERROR_MARKERS = (
+    "err_license_expired",
+    "err_license_max",
+    "err_license_server",
+    "err_missing_license_file",
+)
+
+_RESULT_STATUS_FEASIBLE = "feasible"
+_RESULT_STATUS_INFEASIBLE = "infeasible"
+_RESULT_STATUS_NOT_SOLVED = "not_solved"
+
+
+def _is_mosek_license_error(exc: Exception) -> bool:
+    error_text = str(exc).lower()
+    return any(marker in error_text for marker in _MOSEK_LICENSE_ERROR_MARKERS)
+
+
+def _normalize_mosek_status(status: Any) -> str:
+    return "".join(ch for ch in str(status).lower() if ch.isalnum())
+
+
+def _is_mosek_primal_feasible_status(status: Any) -> bool:
+    normalized = _normalize_mosek_status(status)
+    return (
+        "primalanddualfeasible" in normalized
+        or ("primalfeasible" in normalized and "infeasible" not in normalized)
+    )
+
+
+def _classify_mosek_problem_status(status: Any) -> str:
+    if _is_mosek_primal_feasible_status(status):
+        return _RESULT_STATUS_FEASIBLE
+    normalized = _normalize_mosek_status(status)
+    if "infeasible" in normalized:
+        return _RESULT_STATUS_INFEASIBLE
+    return _RESULT_STATUS_NOT_SOLVED
+
+
+def _classify_cvxpy_problem_status(status: Any, cp, accepted_statuses: set) -> str:
+    if status in accepted_statuses:
+        return _RESULT_STATUS_FEASIBLE
+
+    infeasible_statuses = {
+        getattr(cp, "INFEASIBLE", None),
+        getattr(cp, "INFEASIBLE_INACCURATE", None),
+        getattr(cp, "UNBOUNDED", None),
+        getattr(cp, "UNBOUNDED_INACCURATE", None),
+    }
+    if status in infeasible_statuses:
+        return _RESULT_STATUS_INFEASIBLE
+    return _RESULT_STATUS_NOT_SOLVED
+
+
+def _make_iteration_independent_result(
+    status: str,
+    solve_status: Optional[str],
+    rho: Optional[float],
+    certificate: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    return {
+        "status": status,
+        "solve_status": solve_status,
+        "rho": rho,
+        "certificate": certificate,
+    }
+
 
 class _LinearConvergence:
     r"""
@@ -323,7 +388,7 @@ class _LinearConvergence:
             upper_bound: float = 1.0,
             tol: float = 1e-12,
             solver_options: Optional[SolverOptions] = None,
-            verbosity: int = 0,
+            verbosity: int = 1,
         ) -> Dict[str, Any]:
         r"""
         Perform a bisection search to find the minimum contraction parameter :math:`\rho`.
@@ -367,21 +432,23 @@ class _LinearConvergence:
         - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
           Optional backend and parameter settings. Defaults to
           `SolverOptions(backend="mosek_fusion")`.
-        - `verbosity` (:class:`int`): Nonnegative output level. `0` disables user-facing
-          diagnostics, `1` prints concise summaries, and `2` adds per-constraint detail.
+        - `verbosity` (:class:`int`): Nonnegative output level. Defaults to `1`.
+          Set `0` to disable user-facing diagnostics, `1` for concise summaries,
+          and `2` for per-constraint detail.
 
         **Returns**
 
-        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Union`\[:class:`bool`, :class:`~typing.Optional`\[:class:`float`\], :class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]\]\]): Result dictionary
-          with keys `success`, `rho`, and `certificate`.
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Result dictionary
+          with keys `status`, `solve_status`, `rho`, and `certificate`.
 
-          - `success` (:class:`bool`): `True` iff the bisection finds a feasible
-            contraction factor.
+          - `status` (:class:`str`): One of `"feasible"`, `"infeasible"`, or
+            `"not_solved"`.
+          - `solve_status` (:class:`~typing.Optional`\[:class:`str`\]): Raw backend
+            solve status for the terminal check (`None` when unavailable).
           - `rho` (:class:`~typing.Optional`\[:class:`float`\]): Best feasible
-            bisection value when `success` is `True`; otherwise `None`.
+            bisection value when `status == "feasible"`; otherwise `None`.
           - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
-            Feasibility certificate at the returned `rho` when `success` is
-            `True`; otherwise `None`.
+            Feasibility certificate when `status == "feasible"`; otherwise `None`.
 
           The `certificate` schema is exactly the same as in
           :meth:`~autolyap.IterationIndependent.search_lyapunov`.
@@ -413,7 +480,9 @@ class _LinearConvergence:
             )
 
         if solver_options.backend == "mosek_fusion":
-            Mod = Model()
+            mf = IterationIndependent._import_mosek_fusion()
+            OptimizeError = mf.OptimizeError
+            Mod = mf.Model()
             rho_param = Mod.parameter(1)
             rho_scalar = rho_param.index(0)
             Mod, solution_handles = IterationIndependent._build_iteration_independent_model(
@@ -437,14 +506,10 @@ class _LinearConvergence:
             )
             IterationIndependent._apply_mosek_solver_params(Mod, solver_options)
 
-            licence_markers = (
-                "err_license_max",         # 1016 – all floating tokens in use
-                "err_license_server",      # 1015 – server unreachable / down
-                "err_missing_license_file" # 1008 – no licence file / server path
-            )
             feasibility_checks = 0
+            not_solved_checks = 0
 
-            def _check_rho(rho_value: float) -> bool:
+            def _check_rho(rho_value: float) -> Tuple[str, Optional[str], Optional[str]]:
                 r"""
                 Solve a feasibility check for a candidate :math:`\rho`.
 
@@ -454,48 +519,69 @@ class _LinearConvergence:
 
                 **Returns**
 
-                - (:class:`bool`): `True` if the SDP is feasible for `rho_value`.
+                - (:class:`~typing.Tuple`\[:class:`str`, :class:`~typing.Optional`\[:class:`str`\], :class:`~typing.Optional`\[:class:`str`\]\]):
+                  A tuple `(status, solve_status, error_message)` where `status` is one of
+                  `"feasible"`, `"infeasible"`, or `"not_solved"`.
 
                 **Raises**
 
-                - `OptimizeError`: Re-raised for license-related MOSEK errors.
+                - `mosek.fusion.OptimizeError`: Re-raised for license-related MOSEK errors.
                 """
                 nonlocal feasibility_checks
                 feasibility_checks += 1
                 rho_param.setValue([rho_value])
                 try:
                     Mod.solve()
-                    Mod.primalObjValue()
                 except OptimizeError as e:
-                    if any(mark in str(e) for mark in licence_markers):
+                    if _is_mosek_license_error(e):
                         raise
                     if verbosity >= 2:
                         print(
                             f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
-                            f"rho={rho_value:.12g} -> infeasible."
+                            f"rho={rho_value:.12g} -> not solved (OptimizeError: {e})."
                         )
-                    return False
-                except Exception:
-                    if verbosity >= 2:
-                        print(
-                            f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
-                            f"rho={rho_value:.12g} -> infeasible."
-                        )
-                    return False
+                    return _RESULT_STATUS_NOT_SOLVED, "optimize_error", str(e)
+                status = Mod.getProblemStatus()
+                solve_status = str(status)
+                classified_status = _classify_mosek_problem_status(status)
                 if verbosity >= 2:
+                    if classified_status == _RESULT_STATUS_FEASIBLE:
+                        status_text = "feasible"
+                    elif classified_status == _RESULT_STATUS_INFEASIBLE:
+                        status_text = f"infeasible (status={status})"
+                    else:
+                        status_text = f"not solved (status={status})"
                     print(
                         f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
-                        f"rho={rho_value:.12g} -> feasible."
+                        f"rho={rho_value:.12g} -> {status_text}."
                     )
-                return True
+                return classified_status, solve_status, None
 
             try:
-                if not _check_rho(upper_bound):
+                upper_status, upper_solve_status, upper_error = _check_rho(upper_bound)
+                if upper_status == _RESULT_STATUS_NOT_SOLVED:
+                    if verbosity > 0:
+                        print(
+                            f"[AutoLyap][INFO] Bisection aborted: upper_bound={upper_bound:.12g} could not be solved "
+                            f"(solve_status={upper_solve_status}, error={upper_error})."
+                        )
+                    return _make_iteration_independent_result(
+                        status=_RESULT_STATUS_NOT_SOLVED,
+                        solve_status=upper_solve_status,
+                        rho=None,
+                        certificate=None,
+                    )
+                if upper_status == _RESULT_STATUS_INFEASIBLE:
                     if verbosity > 0:
                         print(
                             f"[AutoLyap][INFO] Bisection aborted: upper_bound={upper_bound:.12g} is infeasible."
                         )
-                    return {"success": False, "rho": None, "certificate": None}
+                    return _make_iteration_independent_result(
+                        status=_RESULT_STATUS_INFEASIBLE,
+                        solve_status=upper_solve_status,
+                        rho=None,
+                        certificate=None,
+                    )
 
                 lower = lower_bound
                 upper = upper_bound
@@ -503,7 +589,18 @@ class _LinearConvergence:
                 while (upper - lower) > tol:
                     iterations += 1
                     mid = (lower + upper) / 2.0
-                    if _check_rho(mid):
+                    mid_status, mid_solve_status, mid_error = _check_rho(mid)
+                    if mid_status == _RESULT_STATUS_NOT_SOLVED:
+                        not_solved_checks += 1
+                        if verbosity >= 2:
+                            print(
+                                f"[AutoLyap][DETAIL] Bisection iteration {iterations}: "
+                                f"rho={mid:.12g} not solved (solve_status={mid_solve_status}, error={mid_error}); "
+                                "treated conservatively as infeasible for interval update."
+                            )
+                        lower = mid
+                        continue
+                    if mid_status == _RESULT_STATUS_FEASIBLE:
                         upper = mid
                     else:
                         lower = mid
@@ -512,18 +609,41 @@ class _LinearConvergence:
                             f"[AutoLyap][DETAIL] Bisection iteration {iterations}: "
                             f"interval=[{lower:.12g}, {upper:.12g}] (width={upper - lower:.3e})."
                         )
-                if not _check_rho(upper):
+                terminal_status, terminal_solve_status, terminal_error = _check_rho(upper)
+                if terminal_status == _RESULT_STATUS_NOT_SOLVED:
+                    if verbosity > 0:
+                        print(
+                            f"[AutoLyap][INFO] Bisection finished with terminal solve failure at rho={upper:.12g} "
+                            f"(solve_status={terminal_solve_status}, error={terminal_error})."
+                        )
+                    return _make_iteration_independent_result(
+                        status=_RESULT_STATUS_NOT_SOLVED,
+                        solve_status=terminal_solve_status,
+                        rho=None,
+                        certificate=None,
+                    )
+                if terminal_status == _RESULT_STATUS_INFEASIBLE:
                     if verbosity > 0:
                         print(
                             "[AutoLyap][INFO] Bisection finished without a feasible terminal rho."
                         )
-                    return {"success": False, "rho": None, "certificate": None}
+                    return _make_iteration_independent_result(
+                        status=_RESULT_STATUS_INFEASIBLE,
+                        solve_status=terminal_solve_status,
+                        rho=None,
+                        certificate=None,
+                    )
 
                 certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
                 if verbosity > 0:
+                    extra = (
+                        f" ({not_solved_checks} intermediate checks not solved and treated conservatively)."
+                        if not_solved_checks > 0
+                        else "."
+                    )
                     print(
                         f"[AutoLyap][INFO] Bisection succeeded in {iterations} iterations "
-                        f"with {feasibility_checks} feasibility checks. Final rho={upper:.12g}."
+                        f"with {feasibility_checks} feasibility checks. Final rho={upper:.12g}{extra}"
                     )
                     try:
                         diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(
@@ -551,7 +671,12 @@ class _LinearConvergence:
                         print(
                             f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                         )
-                return {"success": True, "rho": float(upper), "certificate": certificate}
+                return _make_iteration_independent_result(
+                    status=_RESULT_STATUS_FEASIBLE,
+                    solve_status=terminal_solve_status,
+                    rho=float(upper),
+                    certificate=certificate,
+                )
             finally:
                 Mod.dispose()
 
@@ -578,9 +703,11 @@ class _LinearConvergence:
         )
         solve_kwargs = _get_cvxpy_solve_kwargs(solver_options)
         accepted_statuses = _get_cvxpy_accepted_statuses(cp, solver_options)
+        cvxpy_solver_error = getattr(getattr(cp, "error", None), "SolverError", None)
         feasibility_checks = 0
+        not_solved_checks = 0
 
-        def _check_rho_cvxpy(rho_value: float) -> bool:
+        def _check_rho_cvxpy(rho_value: float) -> Tuple[str, Optional[str], Optional[str]]:
             r"""
             Solve a feasibility check for a candidate :math:`\rho` using CVXPY.
 
@@ -590,35 +717,63 @@ class _LinearConvergence:
 
             **Returns**
 
-            - (:class:`bool`): `True` if the SDP is feasible for `rho_value`.
+            - (:class:`~typing.Tuple`\[:class:`str`, :class:`~typing.Optional`\[:class:`str`\], :class:`~typing.Optional`\[:class:`str`\]\]):
+              A tuple `(status, solve_status, error_message)` where `status` is one of
+              `"feasible"`, `"infeasible"`, or `"not_solved"`.
             """
             nonlocal feasibility_checks
             feasibility_checks += 1
             rho_param.value = rho_value
             try:
                 problem.solve(**solve_kwargs)
-            except Exception:
-                if verbosity >= 2:
-                    print(
-                        f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
-                        f"rho={rho_value:.12g} -> infeasible."
-                    )
-                return False
-            feasible = problem.status in accepted_statuses
+            except Exception as exc:
+                if cvxpy_solver_error is not None and isinstance(exc, cvxpy_solver_error):
+                    if verbosity >= 2:
+                        print(
+                            f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
+                            f"rho={rho_value:.12g} -> not solved (SolverError: {exc})."
+                        )
+                    return _RESULT_STATUS_NOT_SOLVED, "solver_error", str(exc)
+                raise
+            solve_status = str(problem.status)
+            classified_status = _classify_cvxpy_problem_status(problem.status, cp, accepted_statuses)
             if verbosity >= 2:
-                status_text = "feasible" if feasible else f"infeasible (status={problem.status})"
+                if classified_status == _RESULT_STATUS_FEASIBLE:
+                    status_text = "feasible"
+                elif classified_status == _RESULT_STATUS_INFEASIBLE:
+                    status_text = f"infeasible (status={problem.status})"
+                else:
+                    status_text = f"not solved (status={problem.status})"
                 print(
                     f"[AutoLyap][DETAIL] Feasibility check {feasibility_checks}: "
                     f"rho={rho_value:.12g} -> {status_text}."
                 )
-            return feasible
+            return classified_status, solve_status, None
 
-        if not _check_rho_cvxpy(upper_bound):
+        upper_status, upper_solve_status, upper_error = _check_rho_cvxpy(upper_bound)
+        if upper_status == _RESULT_STATUS_NOT_SOLVED:
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Bisection aborted: upper_bound={upper_bound:.12g} could not be solved "
+                    f"(solve_status={upper_solve_status}, error={upper_error})."
+                )
+            return _make_iteration_independent_result(
+                status=_RESULT_STATUS_NOT_SOLVED,
+                solve_status=upper_solve_status,
+                rho=None,
+                certificate=None,
+            )
+        if upper_status == _RESULT_STATUS_INFEASIBLE:
             if verbosity > 0:
                 print(
                     f"[AutoLyap][INFO] Bisection aborted: upper_bound={upper_bound:.12g} is infeasible."
                 )
-            return {"success": False, "rho": None, "certificate": None}
+            return _make_iteration_independent_result(
+                status=_RESULT_STATUS_INFEASIBLE,
+                solve_status=upper_solve_status,
+                rho=None,
+                certificate=None,
+            )
 
         lower = lower_bound
         upper = upper_bound
@@ -626,7 +781,18 @@ class _LinearConvergence:
         while (upper - lower) > tol:
             iterations += 1
             mid = (lower + upper) / 2.0
-            if _check_rho_cvxpy(mid):
+            mid_status, mid_solve_status, mid_error = _check_rho_cvxpy(mid)
+            if mid_status == _RESULT_STATUS_NOT_SOLVED:
+                not_solved_checks += 1
+                if verbosity >= 2:
+                    print(
+                        f"[AutoLyap][DETAIL] Bisection iteration {iterations}: "
+                        f"rho={mid:.12g} not solved (solve_status={mid_solve_status}, error={mid_error}); "
+                        "treated conservatively as infeasible for interval update."
+                    )
+                lower = mid
+                continue
+            if mid_status == _RESULT_STATUS_FEASIBLE:
                 upper = mid
             else:
                 lower = mid
@@ -635,18 +801,41 @@ class _LinearConvergence:
                     f"[AutoLyap][DETAIL] Bisection iteration {iterations}: "
                     f"interval=[{lower:.12g}, {upper:.12g}] (width={upper - lower:.3e})."
                 )
-        if not _check_rho_cvxpy(upper):
+        terminal_status, terminal_solve_status, terminal_error = _check_rho_cvxpy(upper)
+        if terminal_status == _RESULT_STATUS_NOT_SOLVED:
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Bisection finished with terminal solve failure at rho={upper:.12g} "
+                    f"(solve_status={terminal_solve_status}, error={terminal_error})."
+                )
+            return _make_iteration_independent_result(
+                status=_RESULT_STATUS_NOT_SOLVED,
+                solve_status=terminal_solve_status,
+                rho=None,
+                certificate=None,
+            )
+        if terminal_status == _RESULT_STATUS_INFEASIBLE:
             if verbosity > 0:
                 print(
                     "[AutoLyap][INFO] Bisection finished without a feasible terminal rho."
                 )
-            return {"success": False, "rho": None, "certificate": None}
+            return _make_iteration_independent_result(
+                status=_RESULT_STATUS_INFEASIBLE,
+                solve_status=terminal_solve_status,
+                rho=None,
+                certificate=None,
+            )
 
         certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(solution_handles)
         if verbosity > 0:
+            extra = (
+                f" ({not_solved_checks} intermediate checks not solved and treated conservatively)."
+                if not_solved_checks > 0
+                else "."
+            )
             print(
                 f"[AutoLyap][INFO] Bisection succeeded in {iterations} iterations "
-                f"with {feasibility_checks} feasibility checks. Final rho={upper:.12g}."
+                f"with {feasibility_checks} feasibility checks. Final rho={upper:.12g}{extra}"
             )
             try:
                 diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(
@@ -674,7 +863,12 @@ class _LinearConvergence:
                 print(
                     f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                 )
-        return {"success": True, "rho": float(upper), "certificate": certificate}
+        return _make_iteration_independent_result(
+            status=_RESULT_STATUS_FEASIBLE,
+            solve_status=terminal_solve_status,
+            rho=float(upper),
+            certificate=certificate,
+        )
 
 class _SublinearConvergence:
     r"""
@@ -1468,7 +1662,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         """
         if isinstance(rho_term, (int, float, np.floating)):
             return rho_term * expr
-        return Expr.mul(rho_term, expr)
+        mf = IterationIndependent._import_mosek_fusion()
+        return mf.Expr.mul(rho_term, expr)
 
     @staticmethod
     def _import_cvxpy():
@@ -1500,7 +1695,34 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         return cp
 
     @staticmethod
-    def _apply_mosek_solver_params(mod: Model, solver_options: SolverOptions) -> None:
+    def _import_mosek_fusion():
+        r"""
+        Import MOSEK Fusion lazily for the optional MOSEK backend.
+
+        **Parameters**
+
+        - `None`.
+
+        **Returns**
+
+        - Module: The imported `mosek.fusion` module.
+
+        **Raises**
+
+        - `ImportError`: If MOSEK is not installed.
+        """
+        try:
+            import mosek.fusion as mf
+            import mosek.fusion.pythonic  # noqa: F401  # required for Fusion operator overloads
+        except ImportError as exc:
+            raise ImportError(
+                "MOSEK Fusion backend requested, but `mosek` is not installed. "
+                "Install it with `pip install autolyap[mosek]`."
+            ) from exc
+        return mf
+
+    @staticmethod
+    def _apply_mosek_solver_params(mod: Any, solver_options: SolverOptions) -> None:
         r"""
         Apply user-provided MOSEK Fusion solver parameters to `mod`.
 
@@ -2249,8 +2471,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             remove_C3: bool,
             remove_C4: bool,
             rho_term,
-            model: Optional[Model] = None,
-        ) -> Tuple[Model, Dict[str, Any]]:
+            model: Optional[Any] = None,
+        ) -> Tuple[Any, Dict[str, Any]]:
         r"""
         Assemble the iteration-independent MOSEK Fusion model.
 
@@ -2283,14 +2505,15 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         dim_p = (h + 1) * m_bar_func + m_func
         dim_t = (h + alpha + 2) * m_bar_func + m_func
 
-        Mod = model if model is not None else Model()
+        mf = IterationIndependent._import_mosek_fusion()
+        Mod = model if model is not None else mf.Model()
 
         # Q variable: either set equal to P or defined as a new symmetric variable.
         Qij = None
         if Q_equals_P:
             Q = P
         else:
-            Qij = Mod.variable("Q_upper_triangle_vars", dim_P * (dim_P + 1) // 2, Domain.unbounded())
+            Qij = Mod.variable("Q_upper_triangle_vars", dim_P * (dim_P + 1) // 2, mf.Domain.unbounded())
             Q = create_symmetric_matrix_expression(Qij, dim_P)
 
         # S variable: either set equal to T or defined as a new symmetric variable.
@@ -2298,7 +2521,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         if S_equals_T:
             S = T
         else:
-            Sij = Mod.variable("S_upper_triangle_vars", dim_T * (dim_T + 1) // 2, Domain.unbounded())
+            Sij = Mod.variable("S_upper_triangle_vars", dim_T * (dim_T + 1) // 2, mf.Domain.unbounded())
             S = create_symmetric_matrix_expression(Sij, dim_T)
         
         # For functional components, create variables q and s (or set them equal to p and t).
@@ -2310,12 +2533,12 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             if q_equals_p:
                 q = p
             else:
-                q_var = Mod.variable("q", dim_p, Domain.unbounded())
+                q_var = Mod.variable("q", dim_p, mf.Domain.unbounded())
                 q = q_var
             if s_equals_t:
                 s = t
             else:
-                s_var = Mod.variable("s", dim_t, Domain.unbounded())
+                s_var = Mod.variable("s", dim_t, mf.Domain.unbounded())
                 s = s_var
         
         # ---------------------------------------------------------------------
@@ -2327,8 +2550,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
 
         # For condition "C1": use _compute_Thetas with k_max = h + alpha + 1.
         Theta0_C1, Theta1_C1 = IterationIndependent._compute_Thetas(algo, h, alpha, condition='C1')
-        Ws["C1"] = Expr.add(
-            Expr.sub(
+        Ws["C1"] = mf.Expr.add(
+            mf.Expr.sub(
                 Theta1_C1.T @ Q @ Theta1_C1,
                 IterationIndependent._scale_by_rho(rho_term, Theta0_C1.T @ Q @ Theta0_C1),
             ),
@@ -2358,7 +2581,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             theta0_C1, theta1_C1 = IterationIndependent._compute_thetas(algo, h, alpha, condition='C1')
             term1 = theta1_C1.T @ q
             term2 = IterationIndependent._scale_by_rho(rho_term, theta0_C1.T @ q)
-            ws["C1"] = Expr.add(Expr.sub(term1, term2), s)
+            ws["C1"] = mf.Expr.add(mf.Expr.sub(term1, term2), s)
 
             if not remove_C2:
                 ws["C2"] = p - q
@@ -2401,8 +2624,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         _compute_E = algo._compute_E
         _get_Fs = algo._get_Fs
         mod_variable = Mod.variable
-        domain_ge0 = Domain.greaterThan(0.0)
-        domain_unbounded = Domain.unbounded()
+        domain_ge0 = mf.Domain.greaterThan(0.0)
+        domain_unbounded = mf.Domain.unbounded()
         star_pair = ('star', 'star')
         lifted_E_cache: Dict[Tuple[int, PairTuple, int], np.ndarray] = {}
         lifted_F_basis_cache: Dict[Tuple[int, PairTuple, int], np.ndarray] = {}
@@ -2553,7 +2776,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         # ---------------------------------------------------------------------
         for cond in conds:
             # Enforce that the PSD constraint sums belong to the PSD cone.
-            Mod.constraint(PSD_constraint_sums[cond], Domain.inPSDCone(n + (k_maxs[cond] + 1) * m_bar + m))
+            Mod.constraint(PSD_constraint_sums[cond], mf.Domain.inPSDCone(n + (k_maxs[cond] + 1) * m_bar + m))
             # For functional components, enforce the equality constraint.
             if m_func > 0:
                 Mod.constraint(eq_constraint_sums[cond] == 0)
@@ -3085,7 +3308,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             remove_C3: bool = False,
             remove_C4: bool = True,
             solver_options: Optional[SolverOptions] = None,
-            verbosity: int = 0,
+            verbosity: int = 1,
     ) -> Dict[str, Any]:
         r"""
         Search for a feasible iteration-independent Lyapunov certificate via an SDP.
@@ -3147,20 +3370,24 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
           Optional backend and parameter settings. Defaults to
           `SolverOptions(backend="mosek_fusion")`.
-        - `verbosity` (:class:`int`): Nonnegative output level. `0` disables user-facing
-          diagnostics, `1` prints concise summaries, and `2` adds per-constraint detail.
+        - `verbosity` (:class:`int`): Nonnegative output level. Defaults to `1`.
+          Set `0` to disable user-facing diagnostics, `1` for concise summaries,
+          and `2` for per-constraint detail.
 
         **Returns**
 
-        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Union`\[:class:`bool`, :class:`float`, :class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]\]\]): Result dictionary
-          with keys `success`, `rho`, and `certificate`.
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Result dictionary
+          with keys `status`, `solve_status`, `rho`, and `certificate`.
 
-          - `success` (:class:`bool`): `True` iff the SDP is feasible.
+          - `status` (:class:`str`): One of `"feasible"`, `"infeasible"`, or
+            `"not_solved"`.
+          - `solve_status` (:class:`~typing.Optional`\[:class:`str`\]): Raw backend
+            solve status (`None` when unavailable).
           - `rho` (:class:`float`): The input contraction factor.
           - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
-            `None` when `success` is `False`; otherwise a feasible certificate.
+            `None` unless `status == "feasible"`.
 
-          When `success` is `True`, `certificate` has:
+          When `status == "feasible"`, `certificate` has:
 
           .. code-block:: text
 
@@ -3247,6 +3474,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         solver_options = _normalize_solver_options(solver_options)
 
         if solver_options.backend == "mosek_fusion":
+            mf = IterationIndependent._import_mosek_fusion()
+            OptimizeError = mf.OptimizeError
             Mod, solution_handles = IterationIndependent._build_iteration_independent_model(
                 prob,
                 algo,
@@ -3272,14 +3501,35 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                     f"(backend={solver_options.backend}, rho={rho:.12g})."
                 )
 
-            licence_markers = (
-                "err_license_max",         # 1016 – all floating tokens in use
-                "err_license_server",      # 1015 – server unreachable / down
-                "err_missing_license_file" # 1008 – no licence file / server path
-            )
             try:
                 Mod.solve()
-                Mod.primalObjValue()
+                status = Mod.getProblemStatus()
+                solve_status = str(status)
+                classified_status = _classify_mosek_problem_status(status)
+                if classified_status == _RESULT_STATUS_INFEASIBLE:
+                    if verbosity > 0:
+                        print(
+                            f"[AutoLyap][INFO] Iteration-independent SDP status={status}; "
+                            f"no feasible certificate at rho={rho:.12g}."
+                        )
+                    return _make_iteration_independent_result(
+                        status=_RESULT_STATUS_INFEASIBLE,
+                        solve_status=solve_status,
+                        rho=float(rho),
+                        certificate=None,
+                    )
+                if classified_status == _RESULT_STATUS_NOT_SOLVED:
+                    if verbosity > 0:
+                        print(
+                            f"[AutoLyap][INFO] Iteration-independent SDP status={status}; "
+                            f"solver did not return a feasibility certificate at rho={rho:.12g}."
+                        )
+                    return _make_iteration_independent_result(
+                        status=_RESULT_STATUS_NOT_SOLVED,
+                        solve_status=solve_status,
+                        rho=float(rho),
+                        certificate=None,
+                    )
                 certificate = IterationIndependent._extract_iteration_independent_certificate(solution_handles)
                 if verbosity > 0:
                     try:
@@ -3308,21 +3558,25 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                         print(
                             f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                         )
-                return {"success": True, "rho": float(rho), "certificate": certificate}
+                return _make_iteration_independent_result(
+                    status=_RESULT_STATUS_FEASIBLE,
+                    solve_status=solve_status,
+                    rho=float(rho),
+                    certificate=certificate,
+                )
             except OptimizeError as e:
-                if any(mark in str(e) for mark in licence_markers):
+                if _is_mosek_license_error(e):
                     raise
                 if verbosity > 0:
                     print(
-                        f"[AutoLyap][INFO] Iteration-independent SDP is infeasible or not solved at rho={rho:.12g}."
+                        f"[AutoLyap][INFO] Iteration-independent SDP solve failed at rho={rho:.12g}: {e}."
                     )
-                return {"success": False, "rho": float(rho), "certificate": None}
-            except Exception:
-                if verbosity > 0:
-                    print(
-                        f"[AutoLyap][INFO] Iteration-independent SDP is infeasible or not solved at rho={rho:.12g}."
-                    )
-                return {"success": False, "rho": float(rho), "certificate": None}
+                return _make_iteration_independent_result(
+                    status=_RESULT_STATUS_NOT_SOLVED,
+                    solve_status="optimize_error",
+                    rho=float(rho),
+                    certificate=None,
+                )
             finally:
                 Mod.dispose()
 
@@ -3348,6 +3602,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         )
         solve_kwargs = _get_cvxpy_solve_kwargs(solver_options)
         accepted_statuses = _get_cvxpy_accepted_statuses(cp, solver_options)
+        cvxpy_solver_error = getattr(getattr(cp, "error", None), "SolverError", None)
         if verbosity > 0:
             print(
                 f"[AutoLyap][INFO] Solving iteration-independent SDP "
@@ -3355,19 +3610,45 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             )
         try:
             problem.solve(**solve_kwargs)
-        except Exception:
-            if verbosity > 0:
-                print(
-                    f"[AutoLyap][INFO] Iteration-independent SDP solve failed at rho={rho:.12g}."
+        except Exception as exc:
+            if cvxpy_solver_error is not None and isinstance(exc, cvxpy_solver_error):
+                if verbosity > 0:
+                    print(
+                        f"[AutoLyap][INFO] Iteration-independent SDP solver error at rho={rho:.12g}: {exc}."
+                    )
+                return _make_iteration_independent_result(
+                    status=_RESULT_STATUS_NOT_SOLVED,
+                    solve_status="solver_error",
+                    rho=float(rho),
+                    certificate=None,
                 )
-            return {"success": False, "rho": float(rho), "certificate": None}
+            raise
 
-        if problem.status not in accepted_statuses:
+        classified_status = _classify_cvxpy_problem_status(problem.status, cp, accepted_statuses)
+        solve_status = str(problem.status)
+        if classified_status == _RESULT_STATUS_INFEASIBLE:
             if verbosity > 0:
                 print(
                     f"[AutoLyap][INFO] Iteration-independent SDP status={problem.status}; no feasible certificate at rho={rho:.12g}."
                 )
-            return {"success": False, "rho": float(rho), "certificate": None}
+            return _make_iteration_independent_result(
+                status=_RESULT_STATUS_INFEASIBLE,
+                solve_status=solve_status,
+                rho=float(rho),
+                certificate=None,
+            )
+        if classified_status == _RESULT_STATUS_NOT_SOLVED:
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Iteration-independent SDP status={problem.status}; "
+                    f"solver did not return a feasibility certificate at rho={rho:.12g}."
+                )
+            return _make_iteration_independent_result(
+                status=_RESULT_STATUS_NOT_SOLVED,
+                solve_status=solve_status,
+                rho=float(rho),
+                certificate=None,
+            )
 
         certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(solution_handles)
         if verbosity > 0:
@@ -3397,7 +3678,12 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                 print(
                     f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                 )
-        return {"success": True, "rho": float(rho), "certificate": certificate}
+        return _make_iteration_independent_result(
+            status=_RESULT_STATUS_FEASIBLE,
+            solve_status=solve_status,
+            rho=float(rho),
+            certificate=certificate,
+        )
 
     @staticmethod
     def _compute_Thetas(algo: Algorithm, h: int, alpha: int, condition: str = 'C1') -> Tuple[np.ndarray, np.ndarray]:

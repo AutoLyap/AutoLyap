@@ -44,6 +44,6 @@ def test_convergence_item_c_matches_theoretical_bound_cvxpy_clarabel(
             solver_options=cvxpy_clarabel_solver_options,
         )
 
-        assert result["success"] is True
+        assert result["status"] == "feasible"
         assert result["c_K"] is not None
         assert result["c_K"] == pytest.approx(bound_theoretical, abs=1e-3)

@@ -22,8 +22,15 @@ setting ({math}`\rho = 1`) while enforcing condition (C4), yielding an
 
 ## Run the iteration-independent analysis with C4
 
+This example uses the MOSEK Fusion backend (`backend="mosek_fusion"`).
+Install the optional MOSEK dependency first:
+
+```bash
+pip install "autolyap[mosek]"
+```
+
 ```python
-from autolyap import IterationIndependent
+from autolyap import IterationIndependent, SolverOptions
 from autolyap.algorithms import HeavyBallMethod
 from autolyap.problemclass import InclusionProblem, SmoothConvex
 
@@ -33,6 +40,7 @@ delta = 0.4
 
 problem = InclusionProblem([SmoothConvex(L)])
 algorithm = HeavyBallMethod(gamma=gamma, delta=delta)
+solver_options = SolverOptions(backend="mosek_fusion")
 
 # V(P,p,k) = 0 and R(T,t,k) = function-value suboptimality
 P, p, T, t = IterationIndependent.SublinearConvergence.get_parameters_function_value_suboptimality(
@@ -49,9 +57,10 @@ result = IterationIndependent.search_lyapunov(
     t=t,
     rho=1.0,
     remove_C4=False,
+    solver_options=solver_options,
 )
 
-if not result["success"]:
+if result["status"] != "feasible":
     raise RuntimeError("No feasible Lyapunov certificate for this (gamma, delta) pair.")
 
 print("Feasible certificate found with C4 enabled.")

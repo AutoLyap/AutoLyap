@@ -22,9 +22,9 @@ def test_iteration_independent_verify_with_cvxpy_backend_smoke(
         rho=1.0,
         solver_options=cvxpy_open_source_solver_options,
     )
-    assert set(result.keys()) == {"success", "rho", "certificate"}
+    assert set(result.keys()) == {"status", "solve_status", "rho", "certificate"}
     assert np.isclose(result["rho"], 1.0)
-    if result["success"]:
+    if result["status"] == "feasible":
         assert result["certificate"] is not None
         assert "Q" in result["certificate"]
         assert "S" in result["certificate"]
@@ -50,8 +50,8 @@ def test_iteration_independent_bisection_with_cvxpy_backend_smoke(
         tol=1e-8,
         solver_options=cvxpy_open_source_solver_options,
     )
-    assert set(result.keys()) == {"success", "rho", "certificate"}
-    if result["success"]:
+    assert set(result.keys()) == {"status", "solve_status", "rho", "certificate"}
+    if result["status"] == "feasible":
         assert result["rho"] is not None
 
 
@@ -77,7 +77,7 @@ def test_iteration_independent_bisection_with_cvxpy_warm_start_override(
             extra_params={"warm_start": False},
         ),
     )
-    assert set(result.keys()) == {"success", "rho", "certificate"}
+    assert set(result.keys()) == {"status", "solve_status", "rho", "certificate"}
 
 
 def test_iteration_independent_verify_with_cvxpy_operator_only_schema(
@@ -95,9 +95,9 @@ def test_iteration_independent_verify_with_cvxpy_operator_only_schema(
         rho=1.0,
         solver_options=cvxpy_open_source_solver_options,
     )
-    assert set(result.keys()) == {"success", "rho", "certificate"}
+    assert set(result.keys()) == {"status", "solve_status", "rho", "certificate"}
     assert np.isclose(result["rho"], 1.0)
-    if result["success"]:
+    if result["status"] == "feasible":
         certificate = result["certificate"]
         assert certificate is not None
         assert certificate["q"] is None
@@ -126,7 +126,7 @@ def test_iteration_independent_verify_verbosity_reports_equality_section(
     )
     captured = capsys.readouterr()
     assert "Solving iteration-independent SDP" in captured.out
-    if result["success"]:
+    if result["status"] == "feasible":
         assert "Iteration-independent SDP diagnostics" in captured.out
         assert "Nonnegativity check:" in captured.out
         assert "PSD check:" in captured.out
@@ -138,7 +138,7 @@ def test_iteration_independent_verify_verbosity_reports_equality_section(
             or "Iteration-independent SDP solve failed"
             in captured.out
         )
-    assert set(result.keys()) == {"success", "rho", "certificate"}
+    assert set(result.keys()) == {"status", "solve_status", "rho", "certificate"}
 
 
 def test_iteration_independent_bisection_verbosity_reports_search_and_equality(
@@ -163,7 +163,7 @@ def test_iteration_independent_bisection_verbosity_reports_search_and_equality(
     )
     captured = capsys.readouterr()
     assert "Starting rho bisection" in captured.out
-    if result["success"]:
+    if result["status"] == "feasible":
         assert "Bisection succeeded" in captured.out
         assert "Iteration-independent SDP diagnostics" in captured.out
         assert "Equality check:" in captured.out
@@ -172,7 +172,7 @@ def test_iteration_independent_bisection_verbosity_reports_search_and_equality(
             "Bisection aborted" in captured.out
             or "Bisection finished without a feasible terminal rho." in captured.out
         )
-    assert set(result.keys()) == {"success", "rho", "certificate"}
+    assert set(result.keys()) == {"status", "solve_status", "rho", "certificate"}
 
 
 def test_iteration_independent_verify_operator_only_verbosity_reports_no_equalities(
@@ -193,7 +193,7 @@ def test_iteration_independent_verify_operator_only_verbosity_reports_no_equalit
     )
     captured = capsys.readouterr()
     assert "Solving iteration-independent SDP" in captured.out
-    if result["success"]:
+    if result["status"] == "feasible":
         assert "Iteration-independent SDP diagnostics" in captured.out
         assert "Equality check: no active equality constraints." in captured.out
     else:
@@ -203,4 +203,4 @@ def test_iteration_independent_verify_operator_only_verbosity_reports_no_equalit
             or "Iteration-independent SDP solve failed"
             in captured.out
         )
-    assert set(result.keys()) == {"success", "rho", "certificate"}
+    assert set(result.keys()) == {"status", "solve_status", "rho", "certificate"}

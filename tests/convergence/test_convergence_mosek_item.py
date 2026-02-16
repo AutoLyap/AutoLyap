@@ -47,7 +47,7 @@ def test_convergence_item_c_matches_theoretical_bound():
             q_K=q_k,
         )
 
-        assert result["success"] is True
+        assert result["status"] == "feasible"
         assert result["c_K"] is not None
         assert result["certificate"] is not None
         certificate = result["certificate"]

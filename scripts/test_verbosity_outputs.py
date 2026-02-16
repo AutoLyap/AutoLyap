@@ -155,15 +155,18 @@ def _main() -> int:
             print("=" * 80)
             try:
                 result = case_runner(solver_options, verbosity)
-                success = bool(result.get("success", False))
+                status = str(result.get("status", ""))
+                feasible = status == "feasible"
                 scalar_value = result.get(scalar_key, None)
                 print(
-                    f"[SCRIPT] Result: success={success}, {scalar_key}={scalar_value}, "
+                    f"[SCRIPT] Result: status={status}, {scalar_key}={scalar_value}, "
                     f"certificate_present={result.get('certificate') is not None}"
                 )
-                if not success:
+                if not feasible:
                     failures += 1
-                    print(f"[SCRIPT][WARN] {case_name} returned success=False at verbosity={verbosity}.")
+                    print(
+                        f"[SCRIPT][WARN] {case_name} returned status={status!r} at verbosity={verbosity}."
+                    )
             except Exception as exc:
                 failures += 1
                 print(f"[SCRIPT][ERROR] {case_name} raised an exception at verbosity={verbosity}: {exc}")
@@ -171,7 +174,7 @@ def _main() -> int:
     print()
     print("-" * 80)
     if failures == 0:
-        print("[SCRIPT] Completed successfully. All runs returned success=True.")
+        print("[SCRIPT] Completed successfully. All runs returned status='feasible'.")
         return 0
 
     print(f"[SCRIPT] Completed with {failures} failing run(s).")

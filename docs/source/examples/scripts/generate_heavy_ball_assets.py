@@ -161,7 +161,7 @@ def _run_smooth_convex_scan(
                 )
                 continue
 
-            if result.get("success", False):
+            if result.get("status") == "feasible":
                 feasible.append((float(gamma), float(delta)))
                 row_feasible += 1
 

@@ -42,7 +42,7 @@ def test_docs_example_proximal_gradient_workflow_matches_theory_cvxpy_clarabel(
         solver_options=cvxpy_clarabel_solver_options,
     )
 
-    assert result["success"]
+    assert result["status"] == "feasible"
     rho_autolyap = result["rho"]
     assert rho_autolyap is not None
     rho_taylor = max(abs(1.0 - L * gamma), abs(1.0 - mu * gamma)) ** 2

@@ -31,9 +31,17 @@ x^{k+1} &= x^k + \lambda (w^k - v^k).
 
 ## Run the iteration-independent analysis
 
+This example uses the MOSEK Fusion backend (`backend="mosek_fusion"`).
+Install the optional MOSEK dependency first:
+
+```bash
+pip install "autolyap[mosek]"
+```
+
 ```python
 import numpy as np
 
+from autolyap import SolverOptions
 from autolyap.algorithms import DouglasRachford
 from autolyap.problemclass import (
     InclusionProblem,
@@ -53,6 +61,7 @@ problem = InclusionProblem(
     [MaximallyMonotone(), [StronglyMonotone(mu=mu), LipschitzOperator(L=L)]]
 )
 algorithm = DouglasRachford(gamma=gamma, lambda_value=lambda_value, type="operator")
+solver_options = SolverOptions(backend="mosek_fusion")
 
 P, T = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
     algorithm
@@ -66,9 +75,10 @@ result = IterationIndependent.LinearConvergence.bisection_search_rho(
     S_equals_T=True,
     s_equals_t=True,
     remove_C3=True,
+    solver_options=solver_options,
 )
 
-if not result["success"]:
+if result["status"] != "feasible":
     raise RuntimeError("No feasible Lyapunov certificate in the requested rho interval.")
 
 rho_autolyap = result["rho"]

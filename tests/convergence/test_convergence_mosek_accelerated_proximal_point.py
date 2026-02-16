@@ -39,7 +39,7 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
             Q_k_operator,
         )
 
-        assert result["success"] is True
+        assert result["status"] == "feasible"
         assert result["c_K"] is not None
         assert result["certificate"] is not None
         certificate = result["certificate"]
@@ -83,7 +83,7 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
             q_K=q_k_function,
         )
 
-        assert result["success"] is True
+        assert result["status"] == "feasible"
         assert result["c_K"] is not None
         assert result["certificate"] is not None
         certificate = result["certificate"]
