@@ -32,7 +32,7 @@ def test_convergence_douglas_rachford_function_smooth_strong_plus_convex_giselss
             continue
         algorithm.set_gamma(float(gamma))
         result = bisection_rho(problem, algorithm)
-        assert result["success"]
+        assert result["status"] == "feasible"
         assert result["certificate"] is not None
         rho_al = result["rho"]
         assert rho_al is not None

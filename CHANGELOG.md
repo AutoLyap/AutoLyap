@@ -7,9 +7,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 Curated, user-facing summaries are available in
 [`docs/source/release_notes/`](docs/source/release_notes/).
 
-## [Unreleased]
-
-## [0.2.0] - 2026-02-11
+## [0.2.0] - 2026-02-16
 
 ### Added
 
@@ -33,6 +31,16 @@ Curated, user-facing summaries are available in
   validation and clearer error messages.
 - Updated Lyapunov search routines to return certificates in
   solver results.
+- Tightened Lyapunov result-status semantics across backends:
+  - `status="feasible"` only when a certificate is returned.
+  - `status="infeasible"` for genuine infeasibility.
+  - `status="not_solved"` for solver/interface failures or indeterminate
+    statuses.
+- Updated bisection search behavior to treat intermediate
+  `status="not_solved"` checks conservatively during interval updates, while
+  preserving terminal status reporting.
+- Set default Lyapunov-search verbosity to `verbosity=1` for concise
+  diagnostics.
 - Tightened algorithm constructor/setter validation and shared helper
   utilities for dimensions and matrix checks.
 - Improved documentation structure and navigation (quick start, API layout,
@@ -58,11 +66,16 @@ Curated, user-facing summaries are available in
   - `IterationDependent.verify_iteration_dependent_Lyapunov`
 - Updated public return shapes for Lyapunov APIs:
   - `IterationIndependent.search_lyapunov` now returns
-    `{"success", "rho", "certificate"}` (previously `bool`).
+    `{"status", "solve_status", "rho", "certificate"}`
+    (previously `bool`).
   - `IterationIndependent.LinearConvergence.bisection_search_rho` now returns
-    `{"success", "rho", "certificate"}` (previously `float | None`).
+    `{"status", "solve_status", "rho", "certificate"}`
+    (previously `float | None`).
   - `IterationDependent.search_lyapunov` now returns
-    `{"success", "c_K", "certificate"}` (previously `(bool, c)`).
+    `{"status", "solve_status", "c_K", "certificate"}`
+    (previously `(bool, c)`).
+- Removed legacy `success` boolean signaling from Lyapunov outputs; callers
+  should check `status == "feasible"` and inspect `solve_status`.
 
 [Unreleased]: https://github.com/AutoLyap/AutoLyap/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/AutoLyap/AutoLyap/releases/tag/v0.2.0

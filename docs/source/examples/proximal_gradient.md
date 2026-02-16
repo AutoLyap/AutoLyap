@@ -133,8 +133,15 @@ class ProximalGradientMethod(Algorithm):
 
 ## Step 5: Build {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>` and run the analysis
 
+This example uses the MOSEK Fusion backend (`backend="mosek_fusion"`).
+Install the optional MOSEK dependency first:
+
+```bash
+pip install "autolyap[mosek]"
+```
+
 ```python
-from autolyap import IterationIndependent
+from autolyap import IterationIndependent, SolverOptions
 from autolyap.problemclass import Convex, InclusionProblem, SmoothStronglyConvex
 
 
@@ -161,6 +168,7 @@ problem = InclusionProblem([
     Convex(),                       # component i=2: g
 ])
 algorithm = ProximalGradientMethod(gamma=gamma)
+solver_options = SolverOptions(backend="mosek_fusion")
 
 P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
     algorithm,
@@ -178,9 +186,10 @@ result = IterationIndependent.LinearConvergence.bisection_search_rho(
     S_equals_T=True,
     s_equals_t=True,
     remove_C3=True,
+    solver_options=solver_options,
 )
 
-if not result["success"]:
+if result["status"] != "feasible":
     raise RuntimeError("No feasible Lyapunov certificate in the requested rho interval.")
 
 rho_autolyap = result["rho"]

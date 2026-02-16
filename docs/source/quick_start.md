@@ -13,6 +13,12 @@ Install AutoLyap.
 pip install autolyap
 ```
 
+If you plan to use the MOSEK backend, install the optional MOSEK extra:
+
+```bash
+pip install "autolyap[mosek]"
+```
+
 ## Workflow
 
 Typical usage has four steps:
@@ -20,7 +26,8 @@ Typical usage has four steps:
 1. Build an {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>` from function and operator classes.
 2. Pick an algorithm or your own subclass of {py:class}`Algorithm <autolyap.algorithms.Algorithm>`.
 3. Select Lyapunov targets with helper constructors.
-4. Solve the SDP and inspect `result["success"]`, the scalar (`rho` or `c_K`), and `result["certificate"]`.
+4. Solve the SDP and inspect `result["status"]`/`result["solve_status"]`,
+   the scalar (`rho` or `c_K` when feasible), and `result["certificate"]`.
 
 ## Iteration-independent example: The gradient method
 
@@ -43,7 +50,7 @@ gamma = 0.2
 
 problem = InclusionProblem([SmoothStronglyConvex(mu, L)])
 algorithm = GradientMethod(gamma=gamma)
-solver_options = SolverOptions(backend="mosek_fusion")
+solver_options = SolverOptions(backend="mosek_fusion")  # requires `autolyap[mosek]`
 
 # License-free option
 #solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
@@ -65,7 +72,7 @@ result = IterationIndependent.LinearConvergence.bisection_search_rho(
     solver_options=solver_options,
 )
 
-if not result["success"]:
+if result["status"] != "feasible":
     raise RuntimeError("No feasible Lyapunov certificate in the requested rho interval.")
 
 rho = result["rho"]
@@ -142,7 +149,7 @@ K = 5
 
 problem = InclusionProblem([SmoothConvex(L)])
 algorithm = OptimizedGradientMethod(L=L, K=K)
-solver_options = SolverOptions(backend="mosek_fusion")
+solver_options = SolverOptions(backend="mosek_fusion")  # requires `autolyap[mosek]`
 
 # License-free option
 #solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
@@ -169,7 +176,7 @@ result = IterationDependent.search_lyapunov(
     solver_options=solver_options,
 )
 
-if not result["success"]:
+if result["status"] != "feasible":
     raise RuntimeError("No feasible chained Lyapunov certificate for this setup.")
 
 c_K = result["c_K"]
@@ -212,7 +219,8 @@ the theoretical bound in black and AutoLyap certificates as blue dots.
 
 ## What to inspect
 
-- `success`: whether the selected backend found a feasible certificate.
+- `status`: one of `feasible`, `infeasible`, or `not_solved`.
+- `solve_status`: backend-specific raw solver status (or `solver_error` / `optimize_error`).
 - `rho` (iteration-independent) or `c_K` (iteration-dependent): the main scalar output.
 - `certificate`: Matrices and vectors that parameterize the Lyapunov certificate.
 
@@ -226,8 +234,8 @@ All three SDP entry points support a `verbosity` argument:
 
 Set:
 
-- `verbosity=0` for silent mode (default).
-- `verbosity=1` for concise diagnostic summaries.
+- `verbosity=1` for concise diagnostic summaries (default).
+- `verbosity=0` for silent mode.
 - `verbosity=2` for detailed per-constraint/per-iteration diagnostics.
 
 The diagnostic summary reports:

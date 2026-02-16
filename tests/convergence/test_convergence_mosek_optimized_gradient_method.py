@@ -31,7 +31,7 @@ def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
             q_0=q_0,
             q_K=q_k,
         )
-        assert result["success"] is True
+        assert result["status"] == "feasible"
         assert result["c_K"] is not None
         assert result["certificate"] is not None
         certificate = result["certificate"]

@@ -31,7 +31,7 @@ def test_convergence_proximal_point_rho_matches_theory():
             s_equals_t=True,
             remove_C3=True,
         )
-        assert result["success"]
+        assert result["status"] == "feasible"
         assert result["certificate"] is not None
         assert "Q" in result["certificate"]
         assert "S" in result["certificate"]

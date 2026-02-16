@@ -44,4 +44,10 @@ git switch -c <feature-branch> upstream/main
 python -m pip install -e '.[test]'
 ```
 
+If you need to run MOSEK-backed tests or examples, also install:
+
+```bash
+python -m pip install -e '.[mosek]'
+```
+
 AutoLyap requires Python `>=3.9`.

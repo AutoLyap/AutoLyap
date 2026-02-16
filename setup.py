@@ -29,6 +29,9 @@ setup(
     packages=find_packages(include=["autolyap", "autolyap.*"]),
     install_requires=requirements,
     extras_require={
+        "mosek": [
+            "mosek",
+        ],
         "test": [
             "pytest>=7.4",
             "pytest-cov>=4.1",

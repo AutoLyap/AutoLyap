@@ -34,7 +34,7 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
             solver_options=cvxpy_clarabel_solver_options,
         )
 
-        assert result["success"] is True
+        assert result["status"] == "feasible"
         assert result["c_K"] is not None
         kim_bound = 1.0 / (k + 1) ** 2
         assert result["c_K"] == pytest.approx(kim_bound, abs=2e-4)
@@ -69,7 +69,7 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
             solver_options=cvxpy_clarabel_solver_options,
         )
 
-        assert result["success"] is True
+        assert result["status"] == "feasible"
         assert result["c_K"] is not None
         kim_bound = 1.0 / (k + 1) ** 2
         assert result["c_K"] == pytest.approx(kim_bound, abs=2e-4)

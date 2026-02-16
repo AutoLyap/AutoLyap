@@ -1,8 +1,6 @@
 import numpy as np
 from typing import Any, Optional, Tuple, Union, List, Dict, Iterator, cast
 from itertools import combinations
-from mosek.fusion import Model, Domain, ObjectiveSense, OptimizeError
-import mosek.fusion.pythonic  # noqa: F401  # required to enable Fusion operator overloads
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
 from autolyap.solver_options import (
     SolverOptions,
@@ -22,6 +20,72 @@ PairTuple = Tuple[Pair, ...]
 OperatorInterpolationData = Tuple[np.ndarray, Any]
 FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, Any]
 InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
+
+_MOSEK_LICENSE_ERROR_MARKERS = (
+    "err_license_expired",
+    "err_license_max",
+    "err_license_server",
+    "err_missing_license_file",
+)
+
+_RESULT_STATUS_FEASIBLE = "feasible"
+_RESULT_STATUS_INFEASIBLE = "infeasible"
+_RESULT_STATUS_NOT_SOLVED = "not_solved"
+
+
+def _is_mosek_license_error(exc: Exception) -> bool:
+    error_text = str(exc).lower()
+    return any(marker in error_text for marker in _MOSEK_LICENSE_ERROR_MARKERS)
+
+
+def _normalize_mosek_status(status: Any) -> str:
+    return "".join(ch for ch in str(status).lower() if ch.isalnum())
+
+
+def _is_mosek_primal_feasible_status(status: Any) -> bool:
+    normalized = _normalize_mosek_status(status)
+    return (
+        "primalanddualfeasible" in normalized
+        or ("primalfeasible" in normalized and "infeasible" not in normalized)
+    )
+
+
+def _classify_mosek_problem_status(status: Any) -> str:
+    if _is_mosek_primal_feasible_status(status):
+        return _RESULT_STATUS_FEASIBLE
+    normalized = _normalize_mosek_status(status)
+    if "infeasible" in normalized:
+        return _RESULT_STATUS_INFEASIBLE
+    return _RESULT_STATUS_NOT_SOLVED
+
+
+def _classify_cvxpy_problem_status(status: Any, cp, accepted_statuses: set) -> str:
+    if status in accepted_statuses:
+        return _RESULT_STATUS_FEASIBLE
+
+    infeasible_statuses = {
+        getattr(cp, "INFEASIBLE", None),
+        getattr(cp, "INFEASIBLE_INACCURATE", None),
+        getattr(cp, "UNBOUNDED", None),
+        getattr(cp, "UNBOUNDED_INACCURATE", None),
+    }
+    if status in infeasible_statuses:
+        return _RESULT_STATUS_INFEASIBLE
+    return _RESULT_STATUS_NOT_SOLVED
+
+
+def _make_iteration_dependent_result(
+    status: str,
+    solve_status: Optional[str],
+    c_K: Optional[float],
+    certificate: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    return {
+        "status": status,
+        "solve_status": solve_status,
+        "c_K": c_K,
+        "certificate": certificate,
+    }
 
 
 class _IterationDependentMeta(type):
@@ -174,7 +238,34 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         return cp
 
     @staticmethod
-    def _apply_mosek_solver_params(mod: Model, solver_options: SolverOptions) -> None:
+    def _import_mosek_fusion():
+        r"""
+        Import MOSEK Fusion lazily for the optional MOSEK backend.
+
+        **Parameters**
+
+        - `None`.
+
+        **Returns**
+
+        - Module: The imported `mosek.fusion` module.
+
+        **Raises**
+
+        - `ImportError`: If MOSEK is not installed.
+        """
+        try:
+            import mosek.fusion as mf
+            import mosek.fusion.pythonic  # noqa: F401  # required for Fusion operator overloads
+        except ImportError as exc:
+            raise ImportError(
+                "MOSEK Fusion backend requested, but `mosek` is not installed. "
+                "Install it with `pip install autolyap[mosek]`."
+            ) from exc
+        return mf
+
+    @staticmethod
+    def _apply_mosek_solver_params(mod: Any, solver_options: SolverOptions) -> None:
         r"""
         Apply user-provided MOSEK Fusion parameters to `mod`.
 
@@ -854,8 +945,8 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             dim_q: Optional[int],
             m_func: int,
             m_op: int,
-            model: Optional[Model] = None,
-    ) -> Tuple[Model, Dict[str, Any]]:
+            model: Optional[Any] = None,
+    ) -> Tuple[Any, Dict[str, Any]]:
         r"""
         Assemble the iteration-dependent MOSEK Fusion model.
 
@@ -881,15 +972,16 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         - (:class:`~typing.Tuple`\[:class:`mosek.fusion.Model`, :class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
           The built model and extraction handles.
         """
-        Mod = model if model is not None else Model()
-        c_K = Mod.variable("c_K", 1, Domain.greaterThan(0.0))
+        mf = IterationDependent._import_mosek_fusion()
+        Mod = model if model is not None else mf.Model()
+        c_K = Mod.variable("c_K", 1, mf.Domain.greaterThan(0.0))
         
         Qs = {}
         Qs[0] = Q_0
         Qs[K] = Q_K
         Qij_vars: Dict[int, Any] = {}
         for k in range(1, K):
-            Qij = Mod.variable(f"Q_{k}", dim_Q * (dim_Q + 1) // 2, Domain.unbounded())
+            Qij = Mod.variable(f"Q_{k}", dim_Q * (dim_Q + 1) // 2, mf.Domain.unbounded())
             Q_k = create_symmetric_matrix_expression(Qij, dim_Q)
             Qs[k] = Q_k
             Qij_vars[k] = Qij
@@ -900,7 +992,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             qs[0] = q_0
             qs[K] = q_K
             for k in range(1, K):
-                q_k = Mod.variable(f"q_{k}", dim_q, Domain.unbounded())
+                q_k = Mod.variable(f"q_{k}", dim_q, mf.Domain.unbounded())
                 qs[k] = q_k
                 q_vars[k] = q_k
         
@@ -948,8 +1040,8 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         _compute_E = algo._compute_E
         _get_Fs = algo._get_Fs
         mod_variable = Mod.variable
-        domain_ge0 = Domain.greaterThan(0.0)
-        domain_unbounded = Domain.unbounded()
+        domain_ge0 = mf.Domain.greaterThan(0.0)
+        domain_unbounded = mf.Domain.unbounded()
         star_pair = ('star', 'star')
         lifted_E_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
         lifted_F_basis_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
@@ -1098,11 +1190,11 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                         )
 
         for k in range(0, K):
-            Mod.constraint(PSD_constraint_sums[k], Domain.inPSDCone(n + 2 * m_bar + m))
+            Mod.constraint(PSD_constraint_sums[k], mf.Domain.inPSDCone(n + 2 * m_bar + m))
             if m_func > 0:
                 Mod.constraint(eq_constraint_sums[k] == 0)
 
-        Mod.objective("obj", ObjectiveSense.Minimize, c_K)
+        Mod.objective("obj", mf.ObjectiveSense.Minimize, c_K)
 
         solution_handles: Dict[str, Any] = {
             "K": K,
@@ -1544,7 +1636,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             q_0: Optional[np.ndarray] = None,
             q_K: Optional[np.ndarray] = None,
             solver_options: Optional[SolverOptions] = None,
-            verbosity: int = 0,
+            verbosity: int = 1,
     ) -> Dict[str, Any]:
         r"""
         Search for a feasible iteration-dependent Lyapunov certificate via an SDP.
@@ -1622,21 +1714,25 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
           Optional backend and parameter settings. Defaults to
           `SolverOptions(backend="mosek_fusion")`.
-        - `verbosity` (:class:`int`): Nonnegative output level. `0` disables user-facing
-          diagnostics, `1` prints concise summaries, and `2` adds per-iteration detail.
+        - `verbosity` (:class:`int`): Nonnegative output level. Defaults to `1`.
+          Set `0` to disable user-facing diagnostics, `1` for concise summaries,
+          and `2` for per-iteration detail.
 
         **Returns**
 
-        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Union`\[:class:`bool`, :class:`~typing.Optional`\[:class:`float`\], :class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]\]\]): Result dictionary
-          with keys `success`, `c_K`, and `certificate`.
+        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Result dictionary
+          with keys `status`, `solve_status`, `c_K`, and `certificate`.
 
-          - `success` (:class:`bool`): `True` iff the SDP is feasible.
+          - `status` (:class:`str`): One of `"feasible"`, `"infeasible"`, or
+            `"not_solved"`.
+          - `solve_status` (:class:`~typing.Optional`\[:class:`str`\]): Raw backend
+            solve status (`None` when unavailable).
           - `c_K` (:class:`~typing.Optional`\[:class:`float`\]): Optimal objective value when
-            `success` is `True`; otherwise `None`. This is the horizon-dependent scalar.
+            `status == "feasible"`; otherwise `None`. This is the horizon-dependent scalar.
           - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
-            `None` when `success` is `False`; otherwise a feasible certificate.
+            `None` unless `status == "feasible"`.
 
-          When `success` is `True`, `certificate` has:
+          When `status == "feasible"`, `certificate` has:
 
           .. code-block:: text
 
@@ -1707,7 +1803,9 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         solver_options = _normalize_solver_options(solver_options)
 
         if solver_options.backend == "mosek_fusion":
-            Mod = Model()
+            mf = IterationDependent._import_mosek_fusion()
+            OptimizeError = mf.OptimizeError
+            Mod = mf.Model()
             Mod, solution_handles = IterationDependent._build_iteration_dependent_model(
                 prob,
                 algo,
@@ -1732,7 +1830,33 @@ class IterationDependent(metaclass=_IterationDependentMeta):
 
             try:
                 Mod.solve()
-                Mod.primalObjValue()
+                status = Mod.getProblemStatus()
+                solve_status = str(status)
+                classified_status = _classify_mosek_problem_status(status)
+                if classified_status == _RESULT_STATUS_INFEASIBLE:
+                    if verbosity > 0:
+                        print(
+                            f"[AutoLyap][INFO] Iteration-dependent SDP status={status}; "
+                            f"no feasible certificate for K={K}."
+                        )
+                    return _make_iteration_dependent_result(
+                        status=_RESULT_STATUS_INFEASIBLE,
+                        solve_status=solve_status,
+                        c_K=None,
+                        certificate=None,
+                    )
+                if classified_status == _RESULT_STATUS_NOT_SOLVED:
+                    if verbosity > 0:
+                        print(
+                            f"[AutoLyap][INFO] Iteration-dependent SDP status={status}; "
+                            f"solver did not return a feasibility certificate for K={K}."
+                        )
+                    return _make_iteration_dependent_result(
+                        status=_RESULT_STATUS_NOT_SOLVED,
+                        solve_status=solve_status,
+                        c_K=None,
+                        certificate=None,
+                    )
                 c_K_val = IterationDependent._extract_scalar_variable_value(c_K_var)
                 certificate = IterationDependent._extract_iteration_dependent_certificate(solution_handles)
                 if verbosity > 0:
@@ -1755,26 +1879,25 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                         print(
                             f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                         )
-                return {"success": True, "c_K": c_K_val, "certificate": certificate}
-            except OptimizeError as e:
-                licence_markers = (
-                    "err_license_max",         # 1016 – all floating tokens in use
-                    "err_license_server",      # 1015 – server unreachable / down
-                    "err_missing_license_file" # 1008 – no licence file / server path
+                return _make_iteration_dependent_result(
+                    status=_RESULT_STATUS_FEASIBLE,
+                    solve_status=solve_status,
+                    c_K=c_K_val,
+                    certificate=certificate,
                 )
-                if any(mark in str(e) for mark in licence_markers):
+            except OptimizeError as e:
+                if _is_mosek_license_error(e):
                     raise
                 if verbosity > 0:
                     print(
-                        f"[AutoLyap][INFO] Iteration-dependent SDP is infeasible or not solved for K={K}."
+                        f"[AutoLyap][INFO] Iteration-dependent SDP solve failed for K={K}: {e}."
                     )
-                return {"success": False, "c_K": None, "certificate": None}
-            except Exception:
-                if verbosity > 0:
-                    print(
-                        f"[AutoLyap][INFO] Iteration-dependent SDP is infeasible or not solved for K={K}."
-                    )
-                return {"success": False, "c_K": None, "certificate": None}
+                return _make_iteration_dependent_result(
+                    status=_RESULT_STATUS_NOT_SOLVED,
+                    solve_status="optimize_error",
+                    c_K=None,
+                    certificate=None,
+                )
             finally:
                 Mod.dispose()
 
@@ -1795,6 +1918,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         )
         solve_kwargs = _get_cvxpy_solve_kwargs(solver_options)
         accepted_statuses = _get_cvxpy_accepted_statuses(cp, solver_options)
+        cvxpy_solver_error = getattr(getattr(cp, "error", None), "SolverError", None)
         if verbosity > 0:
             print(
                 f"[AutoLyap][INFO] Solving iteration-dependent SDP "
@@ -1802,19 +1926,45 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             )
         try:
             problem.solve(**solve_kwargs)
-        except Exception:
-            if verbosity > 0:
-                print(
-                    f"[AutoLyap][INFO] Iteration-dependent SDP solve failed for K={K}."
+        except Exception as exc:
+            if cvxpy_solver_error is not None and isinstance(exc, cvxpy_solver_error):
+                if verbosity > 0:
+                    print(
+                        f"[AutoLyap][INFO] Iteration-dependent SDP solver error for K={K}: {exc}."
+                    )
+                return _make_iteration_dependent_result(
+                    status=_RESULT_STATUS_NOT_SOLVED,
+                    solve_status="solver_error",
+                    c_K=None,
+                    certificate=None,
                 )
-            return {"success": False, "c_K": None, "certificate": None}
+            raise
 
-        if problem.status not in accepted_statuses:
+        classified_status = _classify_cvxpy_problem_status(problem.status, cp, accepted_statuses)
+        solve_status = str(problem.status)
+        if classified_status == _RESULT_STATUS_INFEASIBLE:
             if verbosity > 0:
                 print(
                     f"[AutoLyap][INFO] Iteration-dependent SDP status={problem.status}; no feasible certificate for K={K}."
                 )
-            return {"success": False, "c_K": None, "certificate": None}
+            return _make_iteration_dependent_result(
+                status=_RESULT_STATUS_INFEASIBLE,
+                solve_status=solve_status,
+                c_K=None,
+                certificate=None,
+            )
+        if classified_status == _RESULT_STATUS_NOT_SOLVED:
+            if verbosity > 0:
+                print(
+                    f"[AutoLyap][INFO] Iteration-dependent SDP status={problem.status}; "
+                    f"solver did not return a feasibility certificate for K={K}."
+                )
+            return _make_iteration_dependent_result(
+                status=_RESULT_STATUS_NOT_SOLVED,
+                solve_status=solve_status,
+                c_K=None,
+                certificate=None,
+            )
 
         c_K_val = IterationDependent._extract_scalar_variable_value(solution_handles["c_K_var"])
         certificate = IterationDependent._extract_iteration_dependent_certificate_cvxpy(solution_handles)
@@ -1838,7 +1988,12 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                 print(
                     f"[AutoLyap][WARN] Unable to compute diagnostic summary: {exc}."
                 )
-        return {"success": True, "c_K": c_K_val, "certificate": certificate}
+        return _make_iteration_dependent_result(
+            status=_RESULT_STATUS_FEASIBLE,
+            solve_status=solve_status,
+            c_K=c_K_val,
+            certificate=certificate,
+        )
 
     @staticmethod
     def _compute_Thetas(algo: Algorithm, k: int) -> Tuple[np.ndarray, np.ndarray]:

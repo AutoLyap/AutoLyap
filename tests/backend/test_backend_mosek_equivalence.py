@@ -43,7 +43,7 @@ def test_iteration_independent_verify_cross_backend_equivalence(
         solver_options=cvxpy_mosek_solver_options,
     )
 
-    assert result_mosek["success"] and result_cvxpy["success"]
+    assert result_mosek["status"] == "feasible" and result_cvxpy["status"] == "feasible"
     assert np.isclose(result_mosek["rho"], result_cvxpy["rho"], atol=1e-12)
 
     cert_mosek = result_mosek["certificate"]
@@ -88,7 +88,7 @@ def test_iteration_independent_bisection_cross_backend_equivalence(
         solver_options=cvxpy_mosek_solver_options,
     )
 
-    assert result_mosek["success"] and result_cvxpy["success"]
+    assert result_mosek["status"] == "feasible" and result_cvxpy["status"] == "feasible"
     assert result_mosek["rho"] is not None and result_cvxpy["rho"] is not None
     assert np.isclose(result_mosek["rho"], result_cvxpy["rho"], atol=1e-7)
 
@@ -131,7 +131,7 @@ def test_iteration_dependent_verify_cross_backend_equivalence(
         solver_options=cvxpy_mosek_solver_options,
     )
 
-    assert result_mosek["success"] and result_cvxpy["success"]
+    assert result_mosek["status"] == "feasible" and result_cvxpy["status"] == "feasible"
     assert result_mosek["c_K"] is not None
     assert result_cvxpy["c_K"] is not None
     assert np.isclose(result_mosek["c_K"], result_cvxpy["c_K"], atol=1e-7)

@@ -39,8 +39,15 @@ f(x^K)-f(x^\star)\le c_K\|x^0-x^\star\|^2.
 
 ## Run the iteration-dependent analysis
 
+This example uses the MOSEK Fusion backend (`backend="mosek_fusion"`).
+Install the optional MOSEK dependency first:
+
+```bash
+pip install "autolyap[mosek]"
+```
+
 ```python
-from autolyap import IterationDependent
+from autolyap import IterationDependent, SolverOptions
 from autolyap.algorithms import NesterovFastGradientMethod
 from autolyap.problemclass import InclusionProblem, SmoothConvex
 
@@ -48,6 +55,7 @@ L = 1.0
 K = 10
 
 problem = InclusionProblem([SmoothConvex(L)])
+solver_options = SolverOptions(backend="mosek_fusion")
 
 # Nesterov fast gradient method
 nfgm = NesterovFastGradientMethod(gamma=1.0 / L)
@@ -68,8 +76,9 @@ result_nf = IterationDependent.search_lyapunov(
     Q_K_nf,
     q_0=q_0_nf,
     q_K=q_K_nf,
+    solver_options=solver_options,
 )
-if not result_nf["success"]:
+if result_nf["status"] != "feasible":
     raise RuntimeError("No feasible chained Lyapunov certificate for Nesterov FGM.")
 
 def lambda_k(k: int) -> float:

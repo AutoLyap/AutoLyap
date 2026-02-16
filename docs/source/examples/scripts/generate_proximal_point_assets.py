@@ -193,7 +193,7 @@ def _run_scan(
             rho_autolyap = float("nan")
             print(f"[scan] solver error at gamma={gamma_float:.6f}: {exc}")
         else:
-            if result.get("success", False):
+            if result.get("status") == "feasible":
                 rho_autolyap = float(result["rho"])
             else:
                 errors += 1

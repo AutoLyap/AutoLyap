@@ -35,7 +35,7 @@ def test_convergence_douglas_rachford_operator_cocoercive_strong_ryu_thm41_lambd
             algorithm,
             solver_options=cvxpy_clarabel_solver_options,
         )
-        assert result["success"]
+        assert result["status"] == "feasible"
         rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = ryu_thm41_rate(mu, beta, lambda_value, gamma) ** 2
@@ -60,7 +60,7 @@ def test_convergence_douglas_rachford_operator_mm_lipschitz_strong_ryu_thm43_lam
             algorithm,
             solver_options=cvxpy_clarabel_solver_options,
         )
-        assert result["success"]
+        assert result["status"] == "feasible"
         rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = ryu_thm43_rate(mu, lambda_value, L, gamma) ** 2

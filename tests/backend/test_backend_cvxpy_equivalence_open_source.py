@@ -59,7 +59,7 @@ def test_iteration_independent_bisection_cvxpy_warm_start_equivalence_open_sourc
         solver_options=cold_options,
     )
 
-    assert result_warm["success"] and result_cold["success"]
+    assert result_warm["status"] == "feasible" and result_cold["status"] == "feasible"
     assert result_warm["rho"] is not None and result_cold["rho"] is not None
     assert np.isclose(
         result_warm["rho"],
@@ -106,7 +106,7 @@ def test_iteration_dependent_verify_cvxpy_warm_start_equivalence_open_source(
         solver_options=cold_options,
     )
 
-    assert result_warm["success"] and result_cold["success"]
+    assert result_warm["status"] == "feasible" and result_cold["status"] == "feasible"
     assert result_warm["c_K"] is not None and result_cold["c_K"] is not None
     assert np.isclose(
         result_warm["c_K"],

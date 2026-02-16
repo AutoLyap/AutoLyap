@@ -42,7 +42,7 @@ def test_convergence_douglas_rachford_operator_mm_strong_lipschitz_giselsson_thm
             continue
         algorithm.set_gamma(float(gamma))
         result = bisection_rho(problem, algorithm)
-        assert result["success"]
+        assert result["status"] == "feasible"
         assert result["certificate"] is not None
         rho_al = result["rho"]
         assert rho_al is not None
@@ -66,7 +66,7 @@ def test_convergence_douglas_rachford_operator_mm_strong_cocoercive_giselsson_th
             continue
         algorithm.set_gamma(float(gamma))
         result = bisection_rho(problem, algorithm)
-        assert result["success"]
+        assert result["status"] == "feasible"
         assert result["certificate"] is not None
         rho_al = result["rho"]
         assert rho_al is not None

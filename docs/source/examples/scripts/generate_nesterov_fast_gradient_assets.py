@@ -229,7 +229,7 @@ def _run_scan(
             c_k_autolyap = float("nan")
             print(f"[scan] solver error at K={k_int}: {exc}")
         else:
-            if result.get("success", False):
+            if result.get("status") == "feasible":
                 c_k_autolyap = float(result["c_K"])
             else:
                 errors += 1

@@ -1,5 +1,17 @@
 import numpy as np
-from mosek.fusion import Expr
+
+
+def _import_mosek_expr():
+    r"""Import MOSEK Fusion `Expr` lazily for MOSEK-backed model builders."""
+    try:
+        import mosek.fusion as mf
+        import mosek.fusion.pythonic  # noqa: F401  # enables Fusion operator overloads
+    except ImportError as exc:
+        raise ImportError(
+            "MOSEK Fusion backend requested, but `mosek` is not installed. "
+            "Install it with `pip install autolyap[mosek]`."
+        ) from exc
+    return mf.Expr
 
 
 def _upper_triangle_size(n: int) -> int:
@@ -20,6 +32,7 @@ def create_symmetric_matrix_expression(Xij, n):
 
     - Symmetric matrix expression of size :math:`n \times n`.
     """
+    Expr = _import_mosek_expr()
     # Keep upper-triangle ordering consistent with create_symmetric_matrix.
     X_expr = [[None] * n for _ in range(n)]
     idx = 0

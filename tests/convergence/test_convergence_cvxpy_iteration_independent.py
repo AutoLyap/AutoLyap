@@ -34,7 +34,7 @@ def test_convergence_gradient_method_rho_matches_theory_cvxpy_clarabel(
             remove_C3=True,
             solver_options=cvxpy_clarabel_solver_options,
         )
-        assert result["success"]
+        assert result["status"] == "feasible"
         rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = max(gamma * L - 1.0, 1.0 - gamma * mu) ** 2
@@ -65,7 +65,7 @@ def test_convergence_proximal_point_rho_matches_theory_cvxpy_clarabel(
             remove_C3=True,
             solver_options=cvxpy_clarabel_solver_options,
         )
-        assert result["success"]
+        assert result["status"] == "feasible"
         rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = (1.0 / (1.0 + gamma * mu)) ** 2

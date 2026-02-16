@@ -35,7 +35,7 @@ def test_convergence_douglas_rachford_operator_cocoercive_strong_ryu_thm41_lambd
     for lambda_value in np.linspace(0.01, 1.99, 5):
         algorithm.set_lambda(float(lambda_value))
         result = bisection_rho(problem, algorithm)
-        assert result["success"]
+        assert result["status"] == "feasible"
         assert result["certificate"] is not None
         rho_al = result["rho"]
         assert rho_al is not None
@@ -55,7 +55,7 @@ def test_convergence_douglas_rachford_operator_mm_lipschitz_strong_ryu_thm43_lam
     for lambda_value in np.linspace(0.01, 1.99, 5):
         algorithm.set_lambda(float(lambda_value))
         result = bisection_rho(problem, algorithm)
-        assert result["success"]
+        assert result["status"] == "feasible"
         assert result["certificate"] is not None
         rho_al = result["rho"]
         assert rho_al is not None

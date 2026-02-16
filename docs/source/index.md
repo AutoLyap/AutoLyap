@@ -12,11 +12,20 @@ tocdepth: 1
 pip install autolyap
 ```
 
-AutoLyap depends on:
+To enable the MOSEK backend, install the optional extra:
+
+```bash
+pip install "autolyap[mosek]"
+```
+
+AutoLyap core dependencies:
 
 * [NumPy](https://numpy.org/)
-* [MOSEK](https://www.mosek.com/) (academic license available)
 * [CVXPY](https://www.cvxpy.org/) (no MOSEK license required)
+
+Optional backend dependency:
+
+* [MOSEK](https://www.mosek.com/) (for `backend="mosek_fusion"`; academic license available)
 
 ## Companion paper
 

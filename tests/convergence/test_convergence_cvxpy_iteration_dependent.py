@@ -37,7 +37,7 @@ def test_convergence_optimized_gradient_method_c_matches_theory_cvxpy_clarabel(
             q_K=q_k,
             solver_options=cvxpy_clarabel_solver_options,
         )
-        assert result["success"] is True
+        assert result["status"] == "feasible"
         assert result["c_K"] is not None
 
         theta_k = algorithm.compute_theta(k, k)
