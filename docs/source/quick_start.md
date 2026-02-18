@@ -1,13 +1,18 @@
 # Quick start
 
-This page gives two end-to-end workflows:
+This page provides two end-to-end examples:
 
 1. Iteration-independent analysis with a bisection search on `rho`.
 2. Iteration-dependent analysis with chained Lyapunov inequalities.
 
-## Prerequisites
+Both examples follow the same modeling pattern and differ mainly in the
+Lyapunov construction and target metric.
 
-Install AutoLyap.
+## Setup
+
+For a high-level overview and navigation links, see {doc}`Home <index>`.
+
+Install AutoLyap:
 
 ```bash
 pip install autolyap
@@ -19,9 +24,19 @@ If you plan to use the MOSEK backend, install the optional MOSEK extra:
 pip install "autolyap[mosek]"
 ```
 
-## Workflow
+Backend notes:
 
-Typical usage has four steps:
+- `backend="mosek_fusion"` is recommended when a MOSEK license is available.
+- `backend="cvxpy"` is license-free.
+- MOSEK offers free academic licenses: [https://www.mosek.com/products/academic-licenses/](https://www.mosek.com/products/academic-licenses/).
+- If MOSEK is not licensed in your environment, run the same examples with
+  `backend="cvxpy"` (for example, with `cvxpy_solver="CLARABEL"`).
+- The examples below default to `backend="mosek_fusion"` and include a CVXPY
+  fallback line.
+
+## Workflow at a glance
+
+Most analyses follow four steps:
 
 1. Build an {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>` from function and operator classes.
 2. Pick an algorithm or your own subclass of {py:class}`Algorithm <autolyap.algorithms.Algorithm>`.
@@ -262,6 +277,7 @@ result = IterationIndependent.search_lyapunov(
 
 ## Next
 
+- For theoretical foundations, see {doc}`theory`.
 - For more worked walkthroughs, see {doc}`examples`.
 - For the full API, see {doc}`api_reference`.
 - For full mathematical context, see the companion paper {cite}`quick-upadhyaya2025autolyap`.

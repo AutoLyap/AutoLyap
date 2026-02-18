@@ -28,23 +28,7 @@ class MaximallyMonotone(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for maximally monotone operators.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`G: \calH \rightrightarrows \calH`.
-
-    - Graph:
-
-      :math:`\operatorname{gra} G = \{(x,u) \in \calH \times \calH \mid u \in G(x)\}`.
-
-    - Monotone:
-
-      .. math::
-          \langle u - v, x - y \rangle \geq 0
-          \quad \text{for each } (x,u),(y,v) \in \operatorname{gra} G.
-
-    - Maximally monotone:
-      It is monotone and there is no monotone operator
-      :math:`\widetilde{G}: \calH \rightrightarrows \calH` whose graph
-      strictly contains :math:`\operatorname{gra} G`.
+    Let :math:`G: \calH \rightrightarrows \calH` be maximally monotone.
 
     - Interpolation inequality:
 
@@ -52,6 +36,25 @@ class MaximallyMonotone(_OperatorInterpolationCondition):
 
     .. math::
         \langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge 0.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With an interpolation vector :math:`z` built from the stacked
+      variables in the inequality above, the same condition is encoded as
+
+      .. math::
+          \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          M = \frac{1}{2}
+          \begin{bmatrix}
+              0 & 0 & -1 & 1 \\
+              0 & 0 & 1 & -1 \\
+              -1 & 1 & 0 & 0 \\
+              1 & -1 & 0 & 0
+          \end{bmatrix}.
 
     This condition has no parameters.
 
@@ -82,19 +85,8 @@ class StronglyMonotone(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for strongly and maximally monotone operators.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space,
-    :math:`G: \calH \rightrightarrows \calH`, and
-    :math:`\mu \in \mathbb{R}_{++}`.
-
-    - Graph:
-
-      :math:`\operatorname{gra} G = \{(x,u) \in \calH \times \calH \mid u \in G(x)\}`.
-
-    - :math:`\mu`-strongly monotone:
-
-      .. math::
-          \langle u - v, x - y \rangle \geq \mu \|x - y\|^2
-          \quad \text{for each } (x,u),(y,v) \in \operatorname{gra} G.
+    Let :math:`\mu \in \mathbb{R}_{++}` and
+    :math:`G: \calH \rightrightarrows \calH` be :math:`\mu`-strongly monotone.
 
     - Interpolation inequality:
 
@@ -102,6 +94,25 @@ class StronglyMonotone(_OperatorInterpolationCondition):
 
       .. math::
           \langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge \mu \|x_{r_1} - x_{r_2}\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With an interpolation vector :math:`z` built from the stacked
+      variables in the inequality above, the same condition is encoded as
+
+      .. math::
+          \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          M = \frac{1}{2}
+          \begin{bmatrix}
+              2\mu & -2\mu & -1 & 1 \\
+              -2\mu & 2\mu & 1 & -1 \\
+              -1 & 1 & 0 & 0 \\
+              1 & -1 & 0 & 0
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -146,14 +157,8 @@ class LipschitzOperator(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for Lipschitz operators.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space,
-    :math:`G: \calH \to \calH`, and :math:`L \in \mathbb{R}_{++}`.
-
-    - :math:`L`-Lipschitz continuous:
-
-      .. math::
-          \|G(x) - G(y)\| \leq L \|x - y\|
-          \quad \text{for each } x,y \in \calH.
+    Let :math:`L \in \mathbb{R}_{++}` and
+    :math:`G: \calH \to \calH` be :math:`L`-Lipschitz continuous.
 
     - Interpolation inequality:
 
@@ -162,6 +167,25 @@ class LipschitzOperator(_OperatorInterpolationCondition):
 
       .. math::
           \|u_{r_1} - u_{r_2}\|^2 \le L^2 \|x_{r_1} - x_{r_2}\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With an interpolation vector :math:`z` built from the stacked
+      variables in the inequality above, the same condition is encoded as
+
+      .. math::
+          \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          M =
+          \begin{bmatrix}
+              -L^2 & L^2 & 0 & 0 \\
+              L^2 & -L^2 & 0 & 0 \\
+              0 & 0 & 1 & -1 \\
+              0 & 0 & -1 & 1
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -206,14 +230,8 @@ class Cocoercive(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for cocoercive operators.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space,
-    :math:`G: \calH \to \calH`, and :math:`\beta \in \mathbb{R}_{++}`.
-
-    - :math:`\beta`-cocoercive:
-
-      .. math::
-          \langle G(x) - G(y), x - y \rangle \geq \beta \|G(x) - G(y)\|^2
-          \quad \text{for each } x,y \in \calH.
+    Let :math:`\beta \in \mathbb{R}_{++}` and
+    :math:`G: \calH \to \calH` be :math:`\beta`-cocoercive.
 
     - Interpolation inequality:
 
@@ -222,6 +240,25 @@ class Cocoercive(_OperatorInterpolationCondition):
 
       .. math::
           \langle u_{r_1} - u_{r_2}, x_{r_1} - x_{r_2} \rangle \ge \beta \|u_{r_1} - u_{r_2}\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With an interpolation vector :math:`z` built from the stacked
+      variables in the inequality above, the same condition is encoded as
+
+      .. math::
+          \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          M = \frac{1}{2}
+          \begin{bmatrix}
+              0 & 0 & -1 & 1 \\
+              0 & 0 & 1 & -1 \\
+              -1 & 1 & 2\beta & -2\beta \\
+              1 & -1 & -2\beta & 2\beta
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -266,16 +303,8 @@ class WeakMintyVariationalInequality(_OperatorInterpolationCondition):
     r"""
     Operator interpolation condition for operators that fulfill the weak Minty variational inequality.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space,
-    :math:`G: \calH \rightrightarrows \calH`, and
-    :math:`\rho_{\textup{minty}} \in \mathbb{R}`.
-
-    - Weak Minty variational inequality:
-      There exists :math:`x_\star \in \calH` with :math:`0 \in G(x_\star)` such that
-      for each :math:`(x,u) \in \operatorname{gra} G`,
-
-      .. math::
-          \langle u, x - x_\star \rangle \geq \rho_{\textup{minty}} \|u\|^2.
+    Let :math:`\rho_{\textup{minty}} \in \mathbb{R}` and
+    :math:`G: \calH \rightrightarrows \calH` satisfy a weak Minty variational inequality.
 
     - Interpolation inequality:
 
@@ -284,6 +313,25 @@ class WeakMintyVariationalInequality(_OperatorInterpolationCondition):
 
       .. math::
           \langle u_{r_1}, x_{r_1} - x_\star \rangle \ge \rho_{\textup{minty}} \|u_{r_1}\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With an interpolation vector :math:`z` built from the stacked
+      variables in the inequality above, the same condition is encoded as
+
+      .. math::
+          \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          M = \frac{1}{2}
+          \begin{bmatrix}
+              0 & 0 & -1 & 0 \\
+              0 & 0 & 1 & 0 \\
+              -1 & 1 & 2\rho_{\textup{minty}} & 0 \\
+              0 & 0 & 0 & 0
+          \end{bmatrix}.
 
     Note: When used inside :class:`~autolyap.problemclass.InclusionProblem`, AutoLyap enforces that the total number
     of components is exactly one (i.e., :math:`m = 1`) if any component uses this condition.

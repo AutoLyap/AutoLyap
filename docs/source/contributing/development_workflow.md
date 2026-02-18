@@ -39,7 +39,7 @@ make check-mosek
 
 ```bash
 make -C docs deps
-make -C docs html
+make -C docs dirhtml
 ```
 
-The generated site is written to `docs/build/html/` (open `docs/build/html/index.html`).
+The generated site is written to `docs/build/dirhtml/` (open `docs/build/dirhtml/index.html`).

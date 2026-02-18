@@ -7,7 +7,7 @@ SOURCEDIR = source
 BUILDDIR = build
 REQFILE = requirements.txt
 
-.PHONY: help clean deps check-deps html
+.PHONY: help clean deps check-deps dirhtml
 
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
@@ -26,5 +26,5 @@ check-deps:
 		exit 1; \
 	)
 
-html: check-deps
-	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
+dirhtml: check-deps
+	@$(SPHINXBUILD) -M dirhtml "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)

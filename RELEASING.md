@@ -28,11 +28,13 @@ Required GitHub Actions secrets:
 ## Maintainer steps
 
 1. Update `VERSION`.
-2. Update `CHANGELOG.md`.
-3. Commit and push changes.
-4. Merge to `main`.
-5. Create and push a matching tag from the release commit on `main`:
+2. Sync `CITATION.cff` version from `VERSION`:
+   - `make sync-citation`
+3. Update `CHANGELOG.md`.
+4. Commit and push changes.
+5. Merge to `main`.
+6. Create and push a matching tag from the release commit on `main`:
    - `git tag v$(cat VERSION)`
    - `git push origin v$(cat VERSION)`
-6. Approve the `pypi` environment deployment when prompted in GitHub Actions.
-7. Verify docs were published to `https://autolyap.github.io/`.
+7. Approve the `pypi` environment deployment when prompted in GitHub Actions.
+8. Verify docs were published to `https://autolyap.github.io/`.

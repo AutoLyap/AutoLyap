@@ -27,12 +27,21 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - name: Validate CITATION.cff version matches VERSION
+        run: python scripts/sync_citation_version.py --check
       - name: Install lint dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install ruff
       - name: Run lint
         run: python -m ruff check autolyap tests setup.py --select E9,F63,F7,F82
+      - name: Run core lint policy checks
+        run: |
+          python -m ruff check \
+            autolyap/solver_options.py \
+            autolyap/iteration_independent.py \
+            autolyap/iteration_dependent.py \
+            autolyap/algorithms/algorithm.py
 
   typecheck:
     name: typecheck (mypy)
@@ -56,6 +65,9 @@ jobs:
         run: |
           python -m mypy \
             autolyap/solver_options.py \
+            autolyap/iteration_independent.py \
+            autolyap/iteration_dependent.py \
+            autolyap/algorithms/algorithm.py \
             autolyap/problemclass \
             --ignore-missing-imports \
             --follow-imports=silent

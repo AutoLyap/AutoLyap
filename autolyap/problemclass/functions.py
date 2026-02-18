@@ -46,9 +46,8 @@ class _ParametrizedFunctionInterpolationCondition(_FunctionInterpolationConditio
     Provides a helper to compute interpolation data from :math:`\mu` and :math:`L`.
     This base class supports both smooth and nonsmooth conditions by setting :math:`L` appropriately.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-    The parameters satisfy :math:`-\infty < \mu < L \le +\infty` with :math:`L > 0`
+    This template applies to :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` with
+    parameters satisfying :math:`-\infty < \mu < L \le +\infty` and :math:`L > 0`
     (nonsmooth cases are encoded by :math:`L = +\infty`).
 
     - Interpolation inequality:
@@ -63,11 +62,15 @@ class _ParametrizedFunctionInterpolationCondition(_FunctionInterpolationConditio
 
       where :math:`\frac{1}{2(L-\mu)}` is interpreted as :math:`0` when :math:`L = +\infty`.
 
-    - Interpolation data:
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
 
-      The returned data uses interpolation indices ``r1!=r2`` and an inequality constraint with
-      :math:`a = (-1,1)` applied to the function values :math:`(F_{r_1},F_{r_2})`. The quadratic term uses
-      :math:`z = (x_{r_1},x_{r_2},g_{r_1},g_{r_2})` and a matrix :math:`M` given by
+      With :math:`F = (F_{r_1}, F_{r_2})` and
+      :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})`, the interpolation inequality is encoded as
+
+      .. math::
+          a^\top F + \mathcal{Q}\p{M, z} \le 0, \qquad a = (-1, 1),
+
+      with
 
       .. math::
           M =
@@ -88,8 +91,8 @@ class _ParametrizedFunctionInterpolationCondition(_FunctionInterpolationConditio
             \end{bmatrix}, & \text{if } L = +\infty.
           \end{cases}
 
-      The `eq` flag returned by :meth:`get_data` is ``False`` for this class because the
-      interpolation constraint is an inequality.
+      The returned interpolation indices are ``r1!=r2``.
+      The `eq` flag returned by :meth:`get_data` is ``False``.
 
     Note: Many classes below are specializations obtained by choosing :math:`\mu` and :math:`L`
     (e.g., weakly convex uses :math:`\mu = -\tilde{\mu}` with :math:`L=+\infty`; smooth uses
@@ -192,26 +195,7 @@ class Convex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for proper, lower semicontinuous, and convex functions.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-
-    - Effective domain:
-
-      :math:`\operatorname{dom} f = \{x \in \calH \mid f(x) < +\infty\}`.
-
-    - Proper:
-
-      :math:`-\infty \notin f(\calH)` and :math:`\operatorname{dom} f \neq \emptyset`.
-
-    - Lower semicontinuous:
-
-      :math:`\liminf_{y \to x} f(y) \geq f(x)` for each :math:`x \in \calH`.
-
-    - Convex:
-
-    .. math::
-        f((1-\lambda)x + \lambda y) \leq (1-\lambda) f(x) + \lambda f(y)
-        \quad \text{for each } x,y \in \calH,\; \lambda \in [0,1].
+    Let :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` be proper, lower semicontinuous, and convex.
 
     - Interpolation inequality:
 
@@ -222,6 +206,26 @@ class Convex(_ParametrizedFunctionInterpolationCondition):
       .. math::
           F_{r_1} \ge F_{r_2} + \langle g_{r_2}, x_{r_1} - x_{r_2} \rangle.
 
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})` and
+      :math:`F = (F_{r_1}, F_{r_2})`, the same inequality is encoded as
+
+      .. math::
+          a^\top F + \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          a = (-1, 1), \qquad
+          M = \frac{1}{2}
+          \begin{bmatrix}
+              0 & 0 & 0 & 1 \\
+              0 & 0 & 0 & -1 \\
+              0 & 0 & 0 & 0 \\
+              1 & -1 & 0 & 0
+          \end{bmatrix}.
+
     """
     def __init__(self):
         super().__init__(mu=0.0, L=INF)
@@ -230,25 +234,9 @@ class StronglyConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for proper, lower semicontinuous, and strongly convex functions.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-
-    - Effective domain:
-
-      :math:`\operatorname{dom} f = \{x \in \calH \mid f(x) < +\infty\}`.
-
-    - Proper:
-
-      :math:`-\infty \notin f(\calH)` and :math:`\operatorname{dom} f \neq \emptyset`.
-
-    - Lower semicontinuous:
-
-      :math:`\liminf_{y \to x} f(y) \geq f(x)` for each :math:`x \in \calH`.
-
-    - :math:`\mu`-strongly convex with :math:`\mu \in \mathbb{R}_{++}`:
-
-      .. math::
-          f - \frac{\mu}{2}\|\cdot\|^2 \quad \text{is convex}.
+    Let :math:`\mu \in \mathbb{R}_{++}` and
+    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` be proper, lower semicontinuous,
+    and :math:`\mu`-strongly convex.
 
     - Interpolation inequality:
 
@@ -258,6 +246,26 @@ class StronglyConvex(_ParametrizedFunctionInterpolationCondition):
 
       .. math::
           F_{r_1} \ge F_{r_2} + \langle g_{r_2}, x_{r_1} - x_{r_2} \rangle + \frac{\mu}{2}\|x_{r_1} - x_{r_2}\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})` and
+      :math:`F = (F_{r_1}, F_{r_2})`, the same inequality is encoded as
+
+      .. math::
+          a^\top F + \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          a = (-1, 1), \qquad
+          M = \frac{1}{2}
+          \begin{bmatrix}
+              \mu & -\mu & 0 & 1 \\
+              -\mu & \mu & 0 & -1 \\
+              0 & 0 & 0 & 0 \\
+              1 & -1 & 0 & 0
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -276,25 +284,9 @@ class WeaklyConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for proper, lower semicontinuous, and weakly convex functions.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-
-    - Effective domain:
-
-      :math:`\operatorname{dom} f = \{x \in \calH \mid f(x) < +\infty\}`.
-
-    - Proper:
-
-      :math:`-\infty \notin f(\calH)` and :math:`\operatorname{dom} f \neq \emptyset`.
-
-    - Lower semicontinuous:
-
-      :math:`\liminf_{y \to x} f(y) \geq f(x)` for each :math:`x \in \calH`.
-
-    - :math:`\tilde{\mu}`-weakly convex with :math:`\tilde{\mu} \in \mathbb{R}_{++}`:
-
-      .. math::
-          f + \frac{\tilde{\mu}}{2}\|\cdot\|^2 \quad \text{is convex}.
+    Let :math:`\tilde{\mu} \in \mathbb{R}_{++}` and
+    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` be proper, lower semicontinuous,
+    and :math:`\tilde{\mu}`-weakly convex.
 
     - Interpolation inequality:
 
@@ -304,6 +296,26 @@ class WeaklyConvex(_ParametrizedFunctionInterpolationCondition):
 
       .. math::
           F_{r_1} \ge F_{r_2} + \langle g_{r_2}, x_{r_1} - x_{r_2} \rangle - \frac{\tilde{\mu}}{2}\|x_{r_1} - x_{r_2}\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})` and
+      :math:`F = (F_{r_1}, F_{r_2})`, the same inequality is encoded as
+
+      .. math::
+          a^\top F + \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          a = (-1, 1), \qquad
+          M = \frac{1}{2}
+          \begin{bmatrix}
+              -\tilde{\mu} & \tilde{\mu} & 0 & 1 \\
+              \tilde{\mu} & -\tilde{\mu} & 0 & -1 \\
+              0 & 0 & 0 & 0 \\
+              1 & -1 & 0 & 0
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -323,16 +335,9 @@ class Smooth(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for smooth functions.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-
-    - :math:`L`-smooth with :math:`L \in \mathbb{R}_{++}`:
-      The function :math:`f` is Fréchet differentiable and its gradient is
-      :math:`L`-Lipschitz continuous, i.e.,
-
-      .. math::
-          \|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|
-          \quad \text{for each } x,y \in \calH.
+    Let :math:`L \in \mathbb{R}_{++}` and
+    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` be Fréchet differentiable
+    with :math:`L`-Lipschitz gradient.
 
     - Interpolation inequality:
 
@@ -344,6 +349,26 @@ class Smooth(_ParametrizedFunctionInterpolationCondition):
           F_{r_1} \ge F_{r_2} + \langle g_{r_2}, x_{r_1} - x_{r_2} \rangle
           + \frac{1}{4L}\|g_{r_1} - g_{r_2} + L(x_{r_1} - x_{r_2})\|^2
           - \frac{L}{2}\|x_{r_1} - x_{r_2}\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})` and
+      :math:`F = (F_{r_1}, F_{r_2})`, the same inequality is encoded as
+
+      .. math::
+          a^\top F + \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          a = (-1, 1), \qquad
+          M = \frac{1}{4L}
+          \begin{bmatrix}
+              -L^2 & L^2 & L & L \\
+              L^2 & -L^2 & -L & -L \\
+              L & -L & 1 & -1 \\
+              L & -L & -1 & 1
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -362,22 +387,9 @@ class SmoothConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for smooth and convex functions.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-
-    - :math:`L`-smooth with :math:`L \in \mathbb{R}_{++}`:
-      The function :math:`f` is Fréchet differentiable and its gradient is
-      :math:`L`-Lipschitz continuous, i.e.,
-
-      .. math::
-          \|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|
-          \quad \text{for each } x,y \in \calH.
-
-    - Convex:
-
-      .. math::
-          f((1-\lambda)x + \lambda y) \leq (1-\lambda) f(x) + \lambda f(y)
-          \quad \text{for each } x,y \in \calH,\; \lambda \in [0,1].
+    Let :math:`L \in \mathbb{R}_{++}` and
+    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` be convex, Fréchet differentiable,
+    with :math:`L`-Lipschitz gradient.
 
     - Interpolation inequality:
 
@@ -388,6 +400,26 @@ class SmoothConvex(_ParametrizedFunctionInterpolationCondition):
       .. math::
           F_{r_1} \ge F_{r_2} + \langle g_{r_2}, x_{r_1} - x_{r_2} \rangle
           + \frac{1}{2L}\|g_{r_1} - g_{r_2}\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})` and
+      :math:`F = (F_{r_1}, F_{r_2})`, the same inequality is encoded as
+
+      .. math::
+          a^\top F + \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          a = (-1, 1), \qquad
+          M = \frac{1}{2L}
+          \begin{bmatrix}
+              0 & 0 & 0 & L \\
+              0 & 0 & 0 & -L \\
+              0 & 0 & 1 & -1 \\
+              L & -L & -1 & 1
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -406,22 +438,9 @@ class SmoothStronglyConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for smooth and strongly convex functions.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-
-    - :math:`L`-smooth with :math:`L \in \mathbb{R}_{++}`:
-      The function :math:`f` is Fréchet differentiable and its gradient is
-      :math:`L`-Lipschitz continuous, i.e.,
-
-      .. math::
-          \|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|
-          \quad \text{for each } x,y \in \calH.
-
-    - :math:`\mu`-strongly convex with :math:`\mu \in \mathbb{R}_{++}`
-      and :math:`\mu < L`:
-
-      .. math::
-          f - \frac{\mu}{2}\|\cdot\|^2 \quad \text{is convex}.
+    Let :math:`0 < \mu < L` and
+    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` be :math:`\mu`-strongly convex,
+    Fréchet differentiable, with :math:`L`-Lipschitz gradient.
 
     - Interpolation inequality:
 
@@ -432,6 +451,26 @@ class SmoothStronglyConvex(_ParametrizedFunctionInterpolationCondition):
       .. math::
           F_{r_1} \ge F_{r_2} + \langle g_{r_2}, x_{r_1} - x_{r_2} \rangle + \frac{\mu}{2}\|x_{r_1} - x_{r_2}\|^2
           + \frac{1}{2(L-\mu)}\|g_{r_1} - g_{r_2} - \mu(x_{r_1} - x_{r_2})\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})` and
+      :math:`F = (F_{r_1}, F_{r_2})`, the same inequality is encoded as
+
+      .. math::
+          a^\top F + \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          a = (-1, 1), \qquad
+          M = \frac{1}{2(L-\mu)}
+          \begin{bmatrix}
+              L\mu & -L\mu & -\mu & L \\
+              -L\mu & L\mu & \mu & -L \\
+              -\mu & \mu & 1 & -1 \\
+              L & -L & -1 & 1
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -463,21 +502,9 @@ class SmoothWeaklyConvex(_ParametrizedFunctionInterpolationCondition):
     r"""
     Function interpolation condition for smooth and weakly convex functions.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-
-    - :math:`L`-smooth with :math:`L \in \mathbb{R}_{++}`:
-      The function :math:`f` is Fréchet differentiable and its gradient is
-      :math:`L`-Lipschitz continuous, i.e.,
-
-      .. math::
-          \|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|
-          \quad \text{for each } x,y \in \calH.
-
-    - :math:`\tilde{\mu}`-weakly convex with :math:`\tilde{\mu} \in \mathbb{R}_{++}`:
-
-      .. math::
-          f + \frac{\tilde{\mu}}{2}\|\cdot\|^2 \quad \text{is convex}.
+    Let :math:`\tilde{\mu} \in \mathbb{R}_{++}` and :math:`L \in \mathbb{R}_{++}`, with
+    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` be :math:`\tilde{\mu}`-weakly convex,
+    Fréchet differentiable, with :math:`L`-Lipschitz gradient.
 
     - Interpolation inequality:
 
@@ -488,6 +515,26 @@ class SmoothWeaklyConvex(_ParametrizedFunctionInterpolationCondition):
       .. math::
           F_{r_1} \ge F_{r_2} + \langle g_{r_2}, x_{r_1} - x_{r_2} \rangle - \frac{\tilde{\mu}}{2}\|x_{r_1} - x_{r_2}\|^2
           + \frac{1}{2(L+\tilde{\mu})}\|g_{r_1} - g_{r_2} + \tilde{\mu}(x_{r_1} - x_{r_2})\|^2.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})` and
+      :math:`F = (F_{r_1}, F_{r_2})`, the same inequality is encoded as
+
+      .. math::
+          a^\top F + \mathcal{Q}\p{M, z} \le 0,
+
+      with
+
+      .. math::
+          a = (-1, 1), \qquad
+          M = \frac{1}{2(L+\tilde{\mu})}
+          \begin{bmatrix}
+              -L\tilde{\mu} & L\tilde{\mu} & \tilde{\mu} & L \\
+              L\tilde{\mu} & -L\tilde{\mu} & -\tilde{\mu} & -L \\
+              \tilde{\mu} & -\tilde{\mu} & 1 & -1 \\
+              L & -L & -1 & 1
+          \end{bmatrix}.
 
     **Parameters**
 
@@ -514,30 +561,8 @@ class IndicatorFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
     r"""
     Function interpolation condition for indicator functions of nonempty, closed, and convex sets.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`C \subseteq \calH` be nonempty, closed, and convex.
-
-    - Indicator function:
-
-      Functions :math:`\delta_C: \calH \to \mathbb{R} \cup \{\pm\infty\}` that can be written as
-
-    .. math::
-        \delta_C(x) =
-        \begin{cases}
-            0, & x \in C, \\
-            +\infty, & x \notin C.
-        \end{cases}
-
-    - Normal cone:
-
-      .. math::
-          N_C(x) = \{g \in \calH \mid \langle g, y - x \rangle \le 0
-          \ \text{for all } y \in C\}.
-
-      For :math:`x \in C`, the subdifferential of the indicator function satisfies
-
-      .. math::
-          \partial \delta_C(x) = N_C(x).
+    Let :math:`C \subseteq \calH` be nonempty, closed, and convex,
+    :math:`\delta_C` be its indicator function, and :math:`N_C` its normal cone.
 
     - Interpolation inequalities used:
 
@@ -552,6 +577,33 @@ class IndicatorFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
 
       .. math::
           F_{r_1} = 0 \quad \text{for each interpolation entry } x_{r_1} \in C.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`F = (F_{r_1}, F_{r_2})` and
+      :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})`, the inequality
+      constraint has
+
+      .. math::
+          a_1 = (0, 0), \qquad
+          M_1 = \frac{1}{2}
+          \begin{bmatrix}
+              0 & 0 & 0 & 1 \\
+              0 & 0 & 0 & -1 \\
+              0 & 0 & 0 & 0 \\
+              1 & -1 & 0 & 0
+          \end{bmatrix}.
+
+      For the equality :math:`F_{r_1}=0`, with
+      :math:`\hat{z}=(x_{r_1}, g_{r_1})`, the coefficients are
+
+      .. math::
+          a_2 = (1), \qquad
+          M_2 =
+          \begin{bmatrix}
+              0 & 0 \\
+              0 & 0
+          \end{bmatrix}.
 
     This condition has no parameters.
 
@@ -589,15 +641,8 @@ class SupportFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
     r"""
     Function interpolation condition for support functions of nonempty, closed, and convex sets.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`C \subseteq \calH` be nonempty, closed, and convex.
-
-    - Support function:
-
-      Functions :math:`\sigma_C: \calH \to \mathbb{R} \cup \{\pm\infty\}` that can be written as
-
-    .. math::
-        \sigma_C(x) = \sup_{y \in C} \langle x, y \rangle.
+    Let :math:`C \subseteq \calH` be nonempty, closed, and convex, and
+    :math:`\sigma_C` be its support function.
 
     - Interpolation inequalities used:
 
@@ -612,6 +657,33 @@ class SupportFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
 
       .. math::
           \langle x_{r_2}, g_{r_1} - g_{r_2} \rangle \le 0 \quad \text{for } r_1 \ne r_2
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`F = (F_{r_1}, F_{r_2})` and
+      :math:`z = (x_{r_1}, x_{r_2}, g_{r_1}, g_{r_2})`, the inequality
+      constraint has
+
+      .. math::
+          a_1 = (0, 0), \qquad
+          M_1 = \frac{1}{2}
+          \begin{bmatrix}
+              0 & 0 & 0 & 0 \\
+              0 & 0 & 1 & -1 \\
+              0 & 1 & 0 & 0 \\
+              0 & -1 & 0 & 0
+          \end{bmatrix}.
+
+      For the equality :math:`F_{r_1}=\langle x_{r_1},g_{r_1}\rangle`,
+      with :math:`\hat{z}=(x_{r_1}, g_{r_1})`, the coefficients are
+
+      .. math::
+          a_2 = (-1), \qquad
+          M_2 = \frac{1}{2}
+          \begin{bmatrix}
+              0 & 1 \\
+              1 & 0
+          \end{bmatrix}.
 
     This condition has no parameters.
 
@@ -649,15 +721,9 @@ class GradientDominated(_FunctionInterpolationCondition):
     r"""
     Function interpolation condition for gradient-dominated functions.
 
-    Let :math:`(\calH,\langle\cdot,\cdot\rangle)` be a real Hilbert space and
-    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}`.
-
-    - :math:`\mu_{\textup{gd}}`-gradient dominated with :math:`\mu_{\textup{gd}} \in \mathbb{R}_{++}`, i.e.,
-      the function :math:`f` is Fréchet differentiable and
-
-      .. math::
-          f(x) - \inf_{y \in \calH} f(y) \leq \frac{1}{2\mu_{\textup{gd}}}\|\nabla f(x)\|^2
-          \quad \text{for each } x \in \calH.
+    Let :math:`\mu_{\textup{gd}} \in \mathbb{R}_{++}` and
+    :math:`f: \calH \to \mathbb{R} \cup \{\pm\infty\}` be Fréchet differentiable and
+    :math:`\mu_{\textup{gd}}`-gradient dominated.
 
     - Interpolation inequalities used:
 
@@ -669,6 +735,34 @@ class GradientDominated(_FunctionInterpolationCondition):
           F_{r_1} - F_\star \le \frac{1}{2\mu_{\textup{gd}}}\|g_{r_1}\|^2
           \quad \text{and} \quad
           F_{r_1} \ge F_\star.
+
+    - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
+
+      With :math:`F=(F_{r_1},F_\star)` and
+      :math:`z=(x_{r_1},x_\star,g_{r_1},0)`, the two inequalities are
+      encoded by
+
+      .. math::
+          a_1 = (-1, 1), \qquad
+          M_1 =
+          \begin{bmatrix}
+              0 & 0 & 0 & 0 \\
+              0 & 0 & 0 & 0 \\
+              0 & 0 & 0 & 0 \\
+              0 & 0 & 0 & 0
+          \end{bmatrix},
+
+      and
+
+      .. math::
+          a_2 = (1, -1), \qquad
+          M_2 =
+          \begin{bmatrix}
+              0 & 0 & 0 & 0 \\
+              0 & 0 & 0 & 0 \\
+              0 & 0 & -\frac{1}{2\mu_{\textup{gd}}} & 0 \\
+              0 & 0 & 0 & 0
+          \end{bmatrix}.
 
     Note: This gradient-dominated condition is only sufficient for the analysis in AutoLyap,
     and there is no guarantee of tightness of the resulting analysis.

@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use AutoLyap, please cite it using the metadata below."
+title: "AutoLyap"
+type: software
+version: "0.2.0"
+license: "MIT"
+url: "https://autolyap.github.io/"
+repository-code: "https://github.com/AutoLyap/AutoLyap"
+authors:
+  - family-names: "Upadhyaya"
+    given-names: "Manu"
+  - family-names: "Taylor"
+    given-names: "Adrien B."
+  - family-names: "Banert"
+    given-names: "Sebastian"
+  - family-names: "Giselsson"
+    given-names: "Pontus"
+preferred-citation:
+  type: article
+  title: "AutoLyap: A Python package for computer-assisted Lyapunov analyses for first-order methods"
+  year: 2025
+  authors:
+    - family-names: "Upadhyaya"
+      given-names: "Manu"
+    - family-names: "Taylor"
+      given-names: "Adrien B."
+    - family-names: "Banert"
+      given-names: "Sebastian"
+    - family-names: "Giselsson"
+      given-names: "Pontus"
+  journal: "arXiv"
+  url: "https://arxiv.org/abs/2506.24076"
