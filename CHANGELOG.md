@@ -22,6 +22,15 @@ Curated, user-facing summaries are available in
   Lyapunov search APIs.
 - New quick-start documentation and expanded worked examples for proximal,
   heavy-ball, Nesterov fast-gradient, and Douglas-Rachford analyses.
+- Project citation metadata via `CITATION.cff`, including preferred-citation
+  details and README citation snippets.
+- Citation-version sync tooling via `scripts/sync_citation_version.py`,
+  `make sync-citation`, and `make check-citation`.
+- A dedicated theory documentation section covering notation, problem classes,
+  algorithm representation, interpolation conditions, and Lyapunov analyses.
+- Custom docs math-tag linking/alignment support
+  (`docs/source/_static/math_tag_links.js`) and expanded bibliography coverage
+  for theory references.
 - CI workflows for tests, releases, CodeQL, and secret scanning.
 
 ### Changed
@@ -45,9 +54,19 @@ Curated, user-facing summaries are available in
   utilities for dimensions and matrix checks.
 - Improved documentation structure and navigation (quick start, API layout,
   release notes organization).
+- Switched docs builds from `html` to `dirhtml` across local commands,
+  contributor docs, and release publication automation.
+- Updated CI/release workflows to enforce `CITATION.cff` and `VERSION`
+  consistency.
+- Expanded lint/type-check policy coverage for core solver and Lyapunov modules.
+- Refined API docstrings to link computational entry points with the new theory
+  pages and matrix-form definitions.
 - Expanded and reorganized test coverage across algorithms, convergence checks,
   backends, and problem-class validation.
+- Added regression coverage for CVXPY inaccurate-status handling under
+  `cvxpy_accept_inaccurate`.
 - Updated release/contributing guidance and local docs-build instructions.
+- Updated copyright year range in `LICENSE` to `2025-2026`.
 
 ### Breaking changes
 

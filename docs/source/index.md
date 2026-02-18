@@ -6,30 +6,26 @@ tocdepth: 1
 :end-before: "## Documentation"
 ```
 
-## Installation
+## Quick start
 
-```bash
-pip install autolyap
+For installation instructions and first end-to-end workflows, see
+{doc}`Quick start <quick_start>`.
+
+## Cite this project
+
+If AutoLyap contributes to your research or software, please cite
+{cite}`index-upadhyaya2025autolyap`.
+
+```bibtex
+@misc{upadhyaya2025autolyap,
+  author = {Upadhyaya, Manu and Taylor, Adrien B. and Banert, Sebastian and Giselsson, Pontus},
+  title = {{AutoLyap}: {A} {P}ython package for computer-assisted Lyapunov analyses for first-order methods},
+  year = {2025},
+  archivePrefix = {arXiv},
+  eprint = {2506.24076},
+  primaryClass = {math.OC},
+}
 ```
-
-To enable the MOSEK backend, install the optional extra:
-
-```bash
-pip install "autolyap[mosek]"
-```
-
-AutoLyap core dependencies:
-
-* [NumPy](https://numpy.org/)
-* [CVXPY](https://www.cvxpy.org/) (no MOSEK license required)
-
-Optional backend dependency:
-
-* [MOSEK](https://www.mosek.com/) (for `backend="mosek_fusion"`; academic license available)
-
-## Companion paper
-
-For full mathematical context, see the companion paper {cite}`index-upadhyaya2025autolyap`.
 
 ```{bibliography}
 :filter: docname in docnames
@@ -46,6 +42,7 @@ For full mathematical context, see the companion paper {cite}`index-upadhyaya202
 
 Home <self>
 quick_start
+Theory <theory>
 examples
 api_reference
 contributing

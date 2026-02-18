@@ -197,6 +197,74 @@ a.reference:hover {
   color: var(--link-hover);
 }
 
+/* Render reST lower-roman lists as (i), (ii), ... to match source notation. */
+.rst-content ol.lowerroman {
+  list-style: none !important;
+  counter-reset: lowerroman-item;
+  margin-left: 1.7rem;
+  padding-left: 0;
+}
+
+.rst-content ol.lowerroman > li {
+  list-style: none !important;
+  counter-increment: lowerroman-item;
+  position: relative;
+}
+
+.rst-content ol.lowerroman > li::marker {
+  content: "";
+}
+
+.rst-content ol.lowerroman > li::before {
+  content: "(" counter(lowerroman-item, lower-roman) ") ";
+  position: absolute;
+  left: -1.7rem;
+}
+
+/* In "Interpolation conditions", render lower-alpha lists as (a), (b), ... */
+.rst-content section#interpolation-conditions ol.loweralpha {
+  list-style: none !important;
+  counter-reset: loweralpha-item;
+  margin-left: 1.7rem;
+  padding-left: 0;
+}
+
+.rst-content section#interpolation-conditions ol.loweralpha > li {
+  list-style: none !important;
+  counter-increment: loweralpha-item;
+  position: relative;
+}
+
+.rst-content section#interpolation-conditions ol.loweralpha > li::marker {
+  content: "";
+}
+
+.rst-content section#interpolation-conditions ol.loweralpha > li::before {
+  content: "(" counter(loweralpha-item, lower-alpha) ") ";
+  position: absolute;
+  left: -1.7rem;
+}
+
+/* Theory landing page: keep numbered titles but remove list bullets. */
+.rst-content section#theory > .toctree-wrapper > ul,
+.rst-content section#theory > .toctree-wrapper > ul ul {
+  list-style: none;
+}
+
+.rst-content section#theory > .toctree-wrapper > ul {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.rst-content section#theory > .toctree-wrapper > ul ul {
+  margin-left: 0;
+  padding-left: 1.4rem;
+}
+
+.rst-content section#theory > .toctree-wrapper li::marker {
+  content: "";
+}
+
 .rst-content code.literal,
 .rst-content tt.literal {
   background: var(--nord-code-bg);
@@ -283,6 +351,57 @@ a.reference:hover {
   border-width: 1px;
 }
 
+/* Render custom theorem-like containers as light-gray callout boxes. */
+.rst-content .assumption.docutils.container,
+.rst-content .definition.docutils.container,
+.rst-content .theorem.docutils.container {
+  background: #f7f7f7;
+  border: 1px solid var(--nord-border);
+  border-radius: 3px;
+  padding: 0.75rem 0.9rem;
+  margin: 1rem 0;
+}
+
+.rst-content .assumption.docutils.container > :first-child,
+.rst-content .definition.docutils.container > :first-child,
+.rst-content .theorem.docutils.container > :first-child {
+  margin-top: 0;
+}
+
+.rst-content .assumption.docutils.container > :last-child,
+.rst-content .definition.docutils.container > :last-child,
+.rst-content .theorem.docutils.container > :last-child {
+  margin-bottom: 0;
+}
+
+/* Right-flush end-of-proof square while keeping it in the final paragraph line. */
+.rst-content .proof.docutils.container > p:last-child > .math:last-child {
+  float: right;
+  margin-left: 0.35rem;
+}
+
+.rst-content .proof.docutils.container > p:last-child::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* "Notation and preliminaries": number definition boxes as Definition 1.1, 1.2, ... */
+.rst-content section#notation-and-preliminaries {
+  counter-reset: notation-definition;
+}
+
+.rst-content section#notation-and-preliminaries .definition.docutils.container {
+  counter-increment: notation-definition;
+}
+
+.rst-content section#notation-and-preliminaries .definition.docutils.container::before {
+  content: "Definition 1." counter(notation-definition) ".";
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
 /* Reduce padding/margins on cross-reference code to keep generic types compact. */
 code.xref.py,
 a code.xref.py {
@@ -320,6 +439,138 @@ html.writer-html5 .rst-content div.citation-list > div.citation > span.backrefs 
 html.writer-html5 .rst-content div.citation-list > div.citation > p {
   grid-column: 2;
   margin: 0;
+}
+
+/* Keep equation numbers on the right side, centered vertically in the block. */
+.rst-content div.math {
+  position: relative;
+  padding-right: 5.5rem;
+}
+
+.rst-content div.math > span.eqno {
+  float: none;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+/* C1-C4 use MathJax \tag in an align block; let tag placement use full width. */
+.rst-content #eq-c1 {
+  padding-right: 1.25rem;
+}
+
+/* Center split identity blocks; JS additionally aligns '=' across their lines. */
+.rst-content div.math.eq-align-w,
+.rst-content div.math.eq-align-pep,
+.rst-content div.math.eq-align-dep-w,
+.rst-content div.math.eq-align-dep-theta,
+.rst-content div.math.eq-align-theta,
+.rst-content div.math.eq-align-equals-group {
+  text-align: center;
+  margin-top: 0.15rem;
+  margin-bottom: 0.15rem;
+}
+
+.rst-content div.math.eq-align-w mjx-container[display="true"],
+.rst-content div.math.eq-align-pep mjx-container[display="true"],
+.rst-content div.math.eq-align-dep-w mjx-container[display="true"],
+.rst-content div.math.eq-align-dep-theta mjx-container[display="true"],
+.rst-content div.math.eq-align-theta mjx-container[display="true"],
+.rst-content div.math.eq-align-equals-group mjx-container[display="true"] {
+  display: inline-block;
+  text-align: left !important;
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  vertical-align: middle;
+}
+
+/* Match MathJax custom tags (e.g., C1-C4, PEP) to the regular equation-number font. */
+mjx-container[display="true"] mjx-mtd.mjx-label,
+mjx-container[display="true"] mjx-tag,
+mjx-container[display="true"] .mjx-tag {
+  font-family: "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+}
+
+.rst-content #eq-c1 mjx-container[display="true"] mjx-mtd.mjx-label *,
+.rst-content #eq-c1 mjx-container[display="true"] mjx-tag * {
+  font-family: "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+}
+
+.rst-content mjx-tag.plain-math-tag {
+  font-family: "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+}
+
+.rst-content mjx-tag.plain-math-tag .plain-math-tag-link,
+.rst-content mjx-tag.plain-math-tag .plain-math-tag-link:hover,
+.rst-content mjx-tag.plain-math-tag .plain-math-tag-link:visited {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+/* Keep custom MathJax tag links styled like regular equation numbers. */
+.rst-content #eq-c1 mjx-container a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+/* Custom equation tags rendered in the same right-aligned slot as standard numbers. */
+.rst-content #equation-eq-c1 > span.eqno,
+.rst-content #equation-eq-c2 > span.eqno,
+.rst-content #equation-eq-c3 > span.eqno,
+.rst-content #equation-eq-c4 > span.eqno,
+.rst-content #equation-eq-pep > span.eqno,
+.rst-content #equation-eq-dpep > span.eqno {
+  font-size: 0;
+}
+
+.rst-content #equation-eq-c1 > span.eqno::before {
+  content: "(C1)";
+  font-size: 0.95rem;
+}
+
+.rst-content #equation-eq-c2 > span.eqno::before {
+  content: "(C2)";
+  font-size: 0.95rem;
+}
+
+.rst-content #equation-eq-c3 > span.eqno::before {
+  content: "(C3)";
+  font-size: 0.95rem;
+}
+
+.rst-content #equation-eq-c4 > span.eqno::before {
+  content: "(C4)";
+  font-size: 0.95rem;
+}
+
+.rst-content #equation-eq-pep > span.eqno::before {
+  content: "(PEP)";
+  font-size: 0.95rem;
+}
+
+.rst-content #equation-eq-dpep > span.eqno::before {
+  content: "(D-PEP)";
+  font-size: 0.95rem;
+}
+
+.rst-content #equation-eq-c1 > span.eqno > a.headerlink,
+.rst-content #equation-eq-c2 > span.eqno > a.headerlink,
+.rst-content #equation-eq-c3 > span.eqno > a.headerlink,
+.rst-content #equation-eq-c4 > span.eqno > a.headerlink,
+.rst-content #equation-eq-pep > span.eqno > a.headerlink,
+.rst-content #equation-eq-dpep > span.eqno > a.headerlink {
+  display: none;
 }
 
 .wy-side-nav-search .sidebar-version {

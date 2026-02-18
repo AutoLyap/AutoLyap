@@ -102,11 +102,11 @@ class _LinearConvergence:
     """
     @staticmethod
     def get_parameters_distance_to_solution(
-            algo: Algorithm, 
-            h: int = 0, 
+            algo: Algorithm,
+            h: int = 0,
             alpha: int = 0,
-            i: int = 1, 
-            j: int = 1, 
+            i: int = 1,
+            j: int = 1,
             tau: int = 0
         ) -> Union[Tuple[np.ndarray, np.ndarray],
                    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
@@ -114,25 +114,10 @@ class _LinearConvergence:
         r"""
         Compute matrices for the distance-to-solution metric.
 
-        Mathematical notation and shared definitions follow the class-level
-        reference in :class:`~autolyap.iteration_independent.IterationIndependent`.
-
-        This method computes the matrix
-
-        .. math::
-            P = \left( P_{(i,j)}\, Y_\tau^{0,h} - P_{(i,\star)}\, Y_\star^{0,h} \right)^{\top}
-                \left( P_{(i,j)}\, Y_\tau^{0,h} - P_{(i,\star)}\, Y_\star^{0,h} \right),
-
-        and sets :math:`T` (and, if functional components exist, the vectors :math:`p` and :math:`t`) to zero.
-
-        **Definitions**
-
-        - :math:`Y_\tau^{0,h}` is the :math:`Y` matrix at iteration :math:`\tau` over :math:`\llbracket 0, h\rrbracket`,
-          retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys` with `k_min = 0` and `k_max = h`.
-        - :math:`Y_\star^{0,h}` is the “star” :math:`Y` matrix over :math:`\llbracket 0, h\rrbracket`,
-          also returned by :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`.
-        - :math:`P_{(i,j)}` and :math:`P_{(i,\star)}` are the projection matrices for component :math:`i`,
-          returned by :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(P,p,T,t)`, see
+        :doc:`/theory/iteration_independent_analyses`.
 
         **Resulting lower bounds**
 
@@ -144,8 +129,30 @@ class _LinearConvergence:
             \mathcal{R}(T,t,k) &= 0.
             \end{aligned}
 
+        **Matrix construction**
+
+        The matrix :math:`P` is constructed as
+
+        .. math::
+            P = \left( P_{(i,j)}\, Y_\tau^{0,h} - P_{(i,\star)}\, Y_\star^{0,h} \right)^{\top}
+                \left( P_{(i,j)}\, Y_\tau^{0,h} - P_{(i,\star)}\, Y_\star^{0,h} \right),
+
+        where:
+
+        - :math:`Y_\tau^{0,h}` is the :math:`Y` matrix at iteration :math:`\tau` over :math:`\llbracket 0, h\rrbracket`,
+          retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, using `k_min = 0` and `k_max = h`.
+        - :math:`Y_\star^{0,h}` is the “star” :math:`Y` matrix over :math:`\llbracket 0, h\rrbracket`,
+          retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, using `k_min = 0` and `k_max = h`.
+        - :math:`P_{(i,j)}` and :math:`P_{(i,\star)}` are the projection matrices for component :math:`i`,
+          retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
+
+        The remaining matrices and vectors are set to zero:
+
+        - :math:`T = 0`.
+        - If :math:`\NumFunc > 0`, then :math:`p = 0` and :math:`t = 0`.
+
         **Parameters**
-        
+
         - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): An instance of :class:`~autolyap.algorithms.Algorithm`. It must
           provide `algo.m`, `algo.m_bar_is`, :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, and
           :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
@@ -163,7 +170,7 @@ class _LinearConvergence:
           :math:`\tau \in \llbracket 0, h\rrbracket`.
 
         **Returns**
-        
+
         - (:class:`~typing.Union`\[:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\], :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`, :class:`numpy.ndarray`\]\]):
           If `algo.m_func == 0`, returns `(P, T)` with
 
@@ -185,7 +192,7 @@ class _LinearConvergence:
               \end{aligned}
 
         **Raises**
-        
+
         - `ValueError`: If any input is out of its valid range or if required matrices are missing.
         """
         # ----- Input Checking -----
@@ -209,7 +216,7 @@ class _LinearConvergence:
         n = algo.n            # State dimension.
         m = algo.m            # Total number of components.
         m_bar = algo.m_bar    # Total evaluations per iteration.
-        
+
         # Dimension of T: n + (h+alpha+2)*m_bar + m.
         dim_T = n + (h + alpha + 2) * m_bar + m
 
@@ -220,19 +227,19 @@ class _LinearConvergence:
             raise ValueError(f"Y matrix for iteration tau = {tau} not found.")
         if 'star' not in Ys:
             raise ValueError("Y star matrix ('star') not found.")
-        
+
         # Retrieve projection matrices.
         Ps = algo._get_Ps()
         if (i, j) not in Ps:
             raise ValueError(f"Projection matrix for component {i}, evaluation {j} not found.")
         if (i, 'star') not in Ps:
             raise ValueError(f"Projection matrix for component {i} star not found.")
-        
+
         # Compute the difference:
         diff = Ps[(i, j)] @ Ys[tau] - Ps[(i, 'star')] @ Ys['star']
         # Compute the outer product:
         P_mat = diff.T @ diff
-        
+
         # ----- Construct T, p, and t as zeros with appropriate dimensions -----
         T_mat = np.zeros((dim_T, dim_T))
         if algo.m_func > 0:
@@ -257,22 +264,10 @@ class _LinearConvergence:
         r"""
         Compute matrices and vectors for function-value suboptimality.
 
-        Mathematical notation and shared definitions follow the class-level
-        reference in :class:`~autolyap.iteration_independent.IterationIndependent`.
-
-        This method is only applicable when :math:`m = \NumFunc = 1`.
-
-        It returns a tuple :math:`(P, p, T, t)` where:
-
-        - :math:`p` is computed as
-
-          .. math::
-              p = \left( F_{(1,j,\tau)}^{0,h} - F_{(1,\star,\star)}^{0,h} \right)^{\top},
-
-          with :math:`p` returned as a one-dimensional NumPy array.
-
-        The matrices :math:`F_{(1,j,\tau)}^{0,h}` and :math:`F_{(1,\star,\star)}^{0,h}` are retrieved via
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs` with `k_min = 0` and `k_max = h`.
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(P,p,T,t)`, see
+        :doc:`/theory/iteration_independent_analyses`.
 
         **Resulting lower bounds**
 
@@ -283,6 +278,28 @@ class _LinearConvergence:
             \mathcal{V}(P,p,k) &= f_1(y_{1,j}^{k+\tau}) - f_1(y^\star),\\
             \mathcal{R}(T,t,k) &= 0.
             \end{aligned}
+
+        **Matrix construction**
+
+        This method applies only when :math:`m = \NumFunc = 1`.
+
+        The vector :math:`p` is constructed as
+
+        .. math::
+            p = \left( F_{(1,j,\tau)}^{0,h} - F_{(1,\star,\star)}^{0,h} \right)^{\top},
+
+        where:
+
+        - :math:`F_{(1,j,\tau)}^{0,h}` is retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`,
+          using `k_min = 0` and `k_max = h`.
+        - :math:`F_{(1,\star,\star)}^{0,h}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`, using `k_min = 0` and `k_max = h`.
+
+        The remaining matrices and vectors are set to zero:
+
+        - :math:`P = 0`.
+        - :math:`T = 0`.
+        - :math:`t = 0`.
 
         **Parameters**
 
@@ -322,11 +339,11 @@ class _LinearConvergence:
         # ----- Check that m and m_func equal 1 -----
         if algo.m != 1 or algo.m_func != 1:
             raise ValueError("get_parameters_function_value_suboptimality is only applicable when m = m_func = 1.")
-        
+
         # ----- Validate inputs -----
         h = ensure_integral(h, "h", minimum=0)
         alpha = ensure_integral(alpha, "alpha", minimum=0)
-        
+
         num_eval = algo.m_bar_is[0]
         j = ensure_integral(j, "j", minimum=1)
         if j > num_eval:
@@ -335,7 +352,7 @@ class _LinearConvergence:
         tau = ensure_integral(tau, "tau", minimum=0)
         if tau > h:
             raise ValueError(f"Iteration index tau must be in [0, {h}]. Got {tau}.")
-        
+
         # ----- Retrieve F matrices for the horizon [0, h] -----
         Fs = algo._get_Fs(0, h)
         key_nonstar = (1, j, tau)
@@ -344,29 +361,29 @@ class _LinearConvergence:
             raise ValueError(f"F matrix for key {key_nonstar} not found.")
         if key_star not in Fs:
             raise ValueError("F star matrix (1, 'star', 'star') not found.")
-        
+
         # Compute p as the difference between F matrices, then convert to 1D.
         p_vec = (Fs[key_nonstar] - Fs[key_star]).T
         p_vec = np.ravel(p_vec)  # Ensure p is a 1D numpy array.
-        
+
         # ----- Determine dimensions -----
         n = algo.n                    # State dimension.
         m = algo.m                    # Total number of components (should be 1).
         m_bar = algo.m_bar            # Total evaluations per iteration.
         m_bar_func = algo.m_bar_func  # Evaluations for functional components.
         m_func = algo.m_func          # Number of functional components (should be 1).
-        
+
         dim_P = n + (h + 1) * m_bar + m
         dim_T = n + (h + alpha + 2) * m_bar + m
         dim_t = (h + alpha + 2) * m_bar_func + m_func
-        
+
         # ----- Construct zero matrices/vectors for the remaining outputs -----
         P_mat = np.zeros((dim_P, dim_P))
         T_mat = np.zeros((dim_T, dim_T))
         t_vec = np.zeros(dim_t)
-        
+
         return P_mat, p_vec, T_mat, t_vec
-    
+
     @staticmethod
     def bisection_search_rho(
             prob: InclusionProblem,
@@ -393,19 +410,14 @@ class _LinearConvergence:
         r"""
         Perform a bisection search to find the minimum contraction parameter :math:`\rho`.
 
-        Mathematical notation and shared definitions follow the class-level
-        reference in :class:`~autolyap.iteration_independent.IterationIndependent`.
-
-        This method performs a bisection search over :math:`\rho` in the interval 
-        :math:`[{\text{lower_bound}}, {\text{upper_bound}}]` to find the minimal value for which the 
+        This method performs a bisection search over :math:`\rho` in the interval
+        :math:`[{\text{lower_bound}}, {\text{upper_bound}}]` to find the minimal value for which the
         iteration-independent Lyapunov inequality holds. At each step it re-solves the same
         model with an updated :math:`\rho` until the interval size is below :math:`{\text{tol}}`.
 
         Each feasibility check is performed by
         :meth:`~autolyap.IterationIndependent.search_lyapunov`;
         see its documentation for the enforced SDP feasibility checks.
-        The Lyapunov conditions and convergence conclusions are documented in the
-        class-level reference of :class:`~autolyap.iteration_independent.IterationIndependent`.
 
         **Parameters**
 
@@ -423,9 +435,9 @@ class _LinearConvergence:
         - `S_equals_T` (:class:`bool`): If True, set S equal to T.
         - `q_equals_p` (:class:`bool`): For functional components, if True, set q equal to p.
         - `s_equals_t` (:class:`bool`): For functional components, if True, set s equal to t.
-        - `remove_C2` (:class:`bool`): Flag to remove constraint C2.
-        - `remove_C3` (:class:`bool`): Flag to remove constraint C3.
-        - `remove_C4` (:class:`bool`): Flag to remove constraint C4.
+        - `remove_C2` (:class:`bool`): Flag to remove :ref:`(C2) <eq:c2>`.
+        - `remove_C3` (:class:`bool`): Flag to remove :ref:`(C3) <eq:c3>`.
+        - `remove_C4` (:class:`bool`): Flag to remove :ref:`(C4) <eq:c4>`.
         - `lower_bound` (:class:`float`): Lower bound for :math:`\rho`.
         - `upper_bound` (:class:`float`): Upper bound for :math:`\rho`.
         - `tol` (:class:`float`): Tolerance for the bisection search stopping criterion.
@@ -893,25 +905,41 @@ class _SublinearConvergence:
         r"""
         Compute matrices for the fixed-point residual.
 
-        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`), define
-
-        .. math::
-            T = \left( X_{\tau+1}^{0, h+\alpha+1} - X_{\tau}^{0, h+\alpha+1} \right)^{\top}
-                \left( X_{\tau+1}^{0, h+\alpha+1} - X_{\tau}^{0, h+\alpha+1} \right),
-
-        where :math:`X_{\tau}^{0, h+\alpha+1}` is the :math:`X` matrix over the horizon
-        :math:`\llbracket 0, h+\alpha+1\rrbracket`, retrieved via
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`.
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(P,p,T,t)`, see
+        :doc:`/theory/iteration_independent_analyses`.
 
         **Resulting lower bounds**
 
-        With this choice of :math:`(P,p,T,t)`,
+        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`),
+        this choice of :math:`(P,p,T,t)` gives:
 
         .. math::
             \begin{aligned}
             \mathcal{V}(P,p,k) &= 0,\\
             \mathcal{R}(T,t,k) &= \|x^{k+\tau+1} - x^{k+\tau}\|^2.
             \end{aligned}
+
+        **Matrix construction**
+
+        The matrix :math:`T` is constructed as
+
+        .. math::
+            T = \left( X_{\tau+1}^{0, h+\alpha+1} - X_{\tau}^{0, h+\alpha+1} \right)^{\top}
+                \left( X_{\tau+1}^{0, h+\alpha+1} - X_{\tau}^{0, h+\alpha+1} \right),
+
+        where:
+
+        - :math:`X_{\tau}^{0,h+\alpha+1}` is retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`,
+          using `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`X_{\tau+1}^{0,h+\alpha+1}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`, using `k_min = 0` and `k_max = h+\alpha+1`.
+
+        The remaining matrices and vectors are set to zero:
+
+        - :math:`P = 0`.
+        - If :math:`\NumFunc > 0`, then :math:`p = 0` and :math:`t = 0`.
 
         **Parameters**
 
@@ -961,7 +989,7 @@ class _SublinearConvergence:
         n = algo.n         # State dimension.
         m = algo.m         # Total number of components.
         m_bar = algo.m_bar # Total evaluations per iteration.
-        
+
         # Dimension of P: n + (h+1)*m_bar + m.
         dim_P = n + (h + 1) * m_bar + m
 
@@ -971,7 +999,7 @@ class _SublinearConvergence:
         Xs = algo._get_Xs(0, h + alpha + 1)
         if tau not in Xs or (tau + 1) not in Xs:
             raise ValueError(f"X matrices for iterations tau = {tau} and tau+1 = {tau+1} not found.")
-        
+
         diff = Xs[tau + 1] - Xs[tau]
         T_mat = diff.T @ diff
 
@@ -998,7 +1026,21 @@ class _SublinearConvergence:
         r"""
         Compute matrices for the duality gap.
 
-        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`), define
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(P,p,T,t)`, see
+        :doc:`/theory/iteration_independent_analyses`.
+
+        **Resulting lower bounds**
+
+        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`),
+
+        .. warning::
+            TODO.
+
+        **Matrix construction**
+
+        The matrix :math:`T` and vector :math:`t` are constructed as
 
         .. math::
             T = -\frac{1}{2} \sum_{i=1}^{m} \begin{bmatrix}
@@ -1007,7 +1049,7 @@ class _SublinearConvergence:
             \end{bmatrix}^{\top}
             \begin{bmatrix}
             0 & 1 \\
-            1 & 0 
+            1 & 0
             \end{bmatrix}
             \begin{bmatrix}
             P_{(i,\star)}\, U_\star^{0,h+\alpha+1} \\
@@ -1019,34 +1061,21 @@ class _SublinearConvergence:
         .. math::
             t = \sum_{i=1}^{m} \left( F_{(i,1,\tau)}^{0,h+\alpha+1} - F_{(i,\star,\star)}^{0,h+\alpha+1} \right)^{\top}.
 
-        All other matrices are set to zero.
+        where:
 
-        Here, :math:`U_\star^{0,h+\alpha+1}` and :math:`Y_\tau^{0,h+\alpha+1}` are retrieved via
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us` and
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, :math:`F_{(i,1,\tau)}^{0,h+\alpha+1}` and
-        :math:`F_{(i,\star,\star)}^{0,h+\alpha+1}` are retrieved via
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`, and projection matrices
-        :math:`P_{(i,\star)}` and :math:`P_{(i,1)}` come from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
+        - :math:`U_\star^{0,h+\alpha+1}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`, using `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`Y_\tau^{0,h+\alpha+1}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, using `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`F_{(i,1,\tau)}^{0,h+\alpha+1}` and :math:`F_{(i,\star,\star)}^{0,h+\alpha+1}` are retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`, using `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`P_{(i,\star)}` and :math:`P_{(i,1)}` are retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
 
-        **Resulting lower bounds**
+        The remaining matrices and vectors are set to zero:
 
-        With this choice of :math:`(P,p,T,t)`,
-
-        .. math::
-            \mathcal{V}(P,p,k) = 0,
-
-        and
-
-        .. math::
-            \mathcal{R}(T,t,k)
-            = -\sum_{i=1}^{m}
-            \left\langle
-            P_{(i,\star)}U_{\star}^{0,h+\alpha+1}\boldsymbol{z}_{\mathcal{R}}^{k},
-            P_{(i,1)}Y_{\tau}^{0,h+\alpha+1}\boldsymbol{z}_{\mathcal{R}}^{k}
-            \right\rangle
-            + \sum_{i=1}^{m}
-            \left(F_{(i,1,\tau)}^{0,h+\alpha+1} - F_{(i,\star,\star)}^{0,h+\alpha+1}\right)^{\top}
-            \boldsymbol{f}_{\mathcal{R}}^{k}.
+        - :math:`P = 0`.
+        - :math:`p = 0`.
 
         **Requirements**
 
@@ -1085,30 +1114,30 @@ class _SublinearConvergence:
         # ----- Check that m = m_func -----
         if algo.m != algo.m_func:
             raise ValueError("get_parameters_duality_gap is only applicable when m = m_func.")
-        
+
         # ----- Input Checking -----
         h = ensure_integral(h, "h", minimum=0)
         alpha = ensure_integral(alpha, "alpha", minimum=0)
         tau = ensure_integral(tau, "tau", minimum=0)
         if tau > h + alpha + 1:
             raise ValueError(f"Iteration index tau must be in [0, {h+alpha+1}]. Got {tau}.")
-        
+
         # ----- Dimensions for P, T, p, and t -----
         n = algo.n         # State dimension.
         m = algo.m         # Total number of components (also equals m_func here).
         m_bar = algo.m_bar # Total evaluations per iteration.
-        
+
         # Dimension of P: n + (h+1)*m_bar + m.
         dim_P = n + (h + 1) * m_bar + m
         # Dimension of T: n + (h+alpha+2)*m_bar + m.
         dim_T = n + (h + alpha + 2) * m_bar + m
-        
+
         # Functional dimensions:
         m_bar_func = algo.m_bar_func
         m_func = algo.m_func
         dim_p = (h + 1) * m_bar_func + m_func
         dim_t = (h + alpha + 2) * m_bar_func + m_func
-        
+
         # ----- Compute T -----
         # Retrieve U and Y matrices over the horizon [0, h+alpha+1]
         U_dict = algo._get_Us(0, h + alpha + 1)
@@ -1119,14 +1148,14 @@ class _SublinearConvergence:
             raise ValueError(f"Y matrix for iteration tau = {tau} not found.")
         U_star = U_dict['star']
         Y_tau = Y_dict[tau]
-        
+
         # Retrieve projection matrices.
         Ps = algo._get_Ps()
-        
+
         # Define the 2x2 swap matrix (renamed to mid).
         mid = np.array([[0, 1],
                         [1, 0]])
-        
+
         # Initialize the accumulator for T.
         T_sum = np.zeros((dim_T, dim_T))
         for i in range(1, m + 1):
@@ -1137,17 +1166,17 @@ class _SublinearConvergence:
                 raise ValueError(f"Projection matrix for component {i}, evaluation 1 not found.")
             P_i_star = Ps[(i, 'star')]
             P_i_1 = Ps[(i, 1)]
-            
+
             # Compute the two blocks.
             block1 = P_i_star @ U_star  # 1 x dim_T
             block2 = P_i_1 @ Y_tau        # 1 x dim_T
-            
+
             # Stack to form a 2 x dim_T matrix.
             block = np.vstack([block1, block2])
             # Contribution from component i: block^{\top} mid block.
             T_sum += block.T @ mid @ block
         T_mat = -0.5 * T_sum
-        
+
         # ----- Compute t -----
         # Retrieve F matrices over the horizon [0, h+alpha+1].
         Fs = algo._get_Fs(0, h + alpha + 1)
@@ -1163,13 +1192,13 @@ class _SublinearConvergence:
             t_sum += diff_F.T  # Sum the transposed (column) vectors.
         # Flatten to obtain a one-dimensional array.
         t_vec = t_sum.ravel()
-        
+
         # ----- Construct P and p as zeros -----
         P_mat = np.zeros((dim_P, dim_P))
         p_vec = np.zeros(dim_p)
-        
+
         return P_mat, p_vec, T_mat, t_vec
-    
+
     @staticmethod
     def get_parameters_function_value_suboptimality(
             algo: Algorithm,
@@ -1181,20 +1210,10 @@ class _SublinearConvergence:
         r"""
         Compute matrices and vectors for function-value suboptimality.
 
-        This method is only applicable when :math:`m = \NumFunc = 1`.
-
-        It returns a tuple :math:`(P, p, T, t)` where:
-
-        - :math:`t` is computed as
-
-          .. math::
-              t = \left( F_{(1,j,\tau)}^{0,h+\alpha+1} - F_{(1,\star,\star)}^{0,h+\alpha+1} \right)^{\top},
-
-          with :math:`t` returned as a one-dimensional NumPy array.
-
-        The matrices :math:`F_{(1,j,\tau)}^{0,h+\alpha+1}` and :math:`F_{(1,\star,\star)}^{0,h+\alpha+1}` are
-        retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs` with `k_min = 0` and
-        `k_max = h+\alpha+1`.
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(P,p,T,t)`, see
+        :doc:`/theory/iteration_independent_analyses`.
 
         **Resulting lower bounds**
 
@@ -1205,6 +1224,28 @@ class _SublinearConvergence:
             \mathcal{V}(P,p,k) &= 0,\\
             \mathcal{R}(T,t,k) &= f_1(y_{1,j}^{k+\tau}) - f_1(y^\star).
             \end{aligned}
+
+        **Matrix construction**
+
+        This method applies only when :math:`m = \NumFunc = 1`.
+
+        The vector :math:`t` is constructed as
+
+        .. math::
+            t = \left( F_{(1,j,\tau)}^{0,h+\alpha+1} - F_{(1,\star,\star)}^{0,h+\alpha+1} \right)^{\top},
+
+        where:
+
+        - :math:`F_{(1,j,\tau)}^{0,h+\alpha+1}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`, using `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`F_{(1,\star,\star)}^{0,h+\alpha+1}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`, using `k_min = 0` and `k_max = h+\alpha+1`.
+
+        The remaining matrices and vectors are set to zero:
+
+        - :math:`P = 0`.
+        - :math:`T = 0`.
+        - :math:`p = 0`.
 
         **Parameters**
 
@@ -1243,11 +1284,11 @@ class _SublinearConvergence:
         # ----- Check that m and m_func equal 1 -----
         if algo.m != 1 or algo.m_func != 1:
             raise ValueError("get_parameters_function_value_suboptimality is only applicable when m = m_func = 1.")
-        
+
         # ----- Validate inputs -----
         h = ensure_integral(h, "h", minimum=0)
         alpha = ensure_integral(alpha, "alpha", minimum=0)
-        
+
         num_eval = algo.m_bar_is[0]
         j = ensure_integral(j, "j", minimum=1)
         if j > num_eval:
@@ -1256,12 +1297,12 @@ class _SublinearConvergence:
         tau = ensure_integral(tau, "tau", minimum=0)
         if tau > h + alpha + 1:
             raise ValueError(f"Iteration index tau must be in [0, {h+alpha+1}]. Got {tau}.")
-        
+
         # ----- Dimensions for P, T, p, and t -----
         n = algo.n         # State dimension.
         m = algo.m         # Total number of components (also equals m_func here).
         m_bar = algo.m_bar # Total evaluations per iteration.
-        
+
         # Dimension of P: n + (h+1)*m_bar + m.
         dim_P = n + (h + 1) * m_bar + m
         # Dimension of T: n + (h+alpha+2)*m_bar + m.
@@ -1275,7 +1316,7 @@ class _SublinearConvergence:
         T = np.zeros((dim_T, dim_T))
         P = np.zeros((dim_P, dim_P))
         p = np.zeros(dim_p)
-        
+
         # ----- Compute t -----
         # Retrieve F matrices over the horizon [0, h+alpha+1].
         Fs = algo._get_Fs(0, h + alpha + 1)
@@ -1290,7 +1331,7 @@ class _SublinearConvergence:
         t = t.ravel()
 
         return P, p, T, t
-        
+
     @staticmethod
     def get_parameters_optimality_measure(
                 algo: Algorithm,
@@ -1303,32 +1344,15 @@ class _SublinearConvergence:
         r"""
         Compute matrices for the optimality measure.
 
-        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`), define
-
-        .. math::
-            T =
-            \begin{cases}
-              \left( P_{(1,1)}\, U_\tau^{0,h+\alpha+1} \right)^{\top} \left( P_{(1,1)}\, U_\tau^{0,h+\alpha+1} \right)
-              & \text{if } m = 1, \\[1em]
-              \left( \left( \sum_{i=1}^{m} P_{(i,1)}\, U_\tau^{0,h+\alpha+1} \right)^{\top} \left( \sum_{i=1}^{m} P_{(i,1)}\, U_\tau^{0,h+\alpha+1} \right)
-              + \sum_{i=2}^{m} \left( \left( P_{(1,1)} - P_{(i,1)} \right) Y_\tau^{0,h+\alpha+1} \right)^{\top} \left( \left( P_{(1,1)} - P_{(i,1)} \right) Y_\tau^{0,h+\alpha+1} \right) \right)
-              & \text{if } m > 1.
-            \end{cases}
-
-        All other matrices are set to zero.
-
-        Here:
-
-        - :math:`U_\tau^{0,h+\alpha+1}` is retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`
-          with `k_min = 0` and `k_max = h+\alpha+1`.
-        - :math:`Y_\tau^{0,h+\alpha+1}` is retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`
-          with `k_min = 0` and `k_max = h+\alpha+1`.
-        - :math:`P_{(i,1)}` are the projection matrices returned by
-          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(P,p,T,t)`, see
+        :doc:`/theory/iteration_independent_analyses`.
 
         **Resulting lower bounds**
 
-        With this choice of :math:`(P,p,T,t)`,
+        For iteration index :math:`\tau` (with :math:`\tau \in \llbracket 0, h+\alpha+1\rrbracket`),
+        this choice of :math:`(P,p,T,t)` gives:
 
         .. math::
             \mathcal{V}(P,p,k) = 0,
@@ -1344,6 +1368,34 @@ class _SublinearConvergence:
                 + \sum_{i=2}^{m} \|y_{1,1}^{k+\tau} - y_{i,1}^{k+\tau}\|^2
                 & \text{if } m > 1.
             \end{cases}
+
+        **Matrix construction**
+
+        The matrix :math:`T` is constructed as
+
+        .. math::
+            T =
+            \begin{cases}
+              \left( P_{(1,1)}\, U_\tau^{0,h+\alpha+1} \right)^{\top} \left( P_{(1,1)}\, U_\tau^{0,h+\alpha+1} \right)
+              & \text{if } m = 1, \\[1em]
+              \left( \left( \sum_{i=1}^{m} P_{(i,1)}\, U_\tau^{0,h+\alpha+1} \right)^{\top} \left( \sum_{i=1}^{m} P_{(i,1)}\, U_\tau^{0,h+\alpha+1} \right)
+              + \sum_{i=2}^{m} \left( \left( P_{(1,1)} - P_{(i,1)} \right) Y_\tau^{0,h+\alpha+1} \right)^{\top} \left( \left( P_{(1,1)} - P_{(i,1)} \right) Y_\tau^{0,h+\alpha+1} \right) \right)
+              & \text{if } m > 1,
+            \end{cases}
+
+        where:
+
+        - :math:`U_\tau^{0,h+\alpha+1}` is retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`,
+          using `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`Y_\tau^{0,h+\alpha+1}` is retrieved via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`,
+          using `k_min = 0` and `k_max = h+\alpha+1`.
+        - :math:`P_{(i,1)}` are projection matrices retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
+
+        The remaining matrices and vectors are set to zero:
+
+        - :math:`P = 0`.
+        - If :math:`\NumFunc > 0`, then :math:`p = 0` and :math:`t = 0`.
 
         **Parameters**
 
@@ -1387,17 +1439,17 @@ class _SublinearConvergence:
         tau = ensure_integral(tau, "tau", minimum=0)
         if tau > h + alpha + 1:
             raise ValueError(f"Iteration index tau must be in [0, {h+alpha+1}]. Got {tau}.")
-        
+
         # ----- Dimensions for P and T -----
         n = algo.n         # State dimension.
         m = algo.m         # Total number of components.
         m_bar = algo.m_bar # Total evaluations per iteration.
-        
+
         # Dimension of P: n + (h+1)*m_bar + m.
         dim_P = n + (h + 1) * m_bar + m
         # Dimension of T: n + (h+alpha+2)*m_bar + m.
         dim_T = n + (h + alpha + 2) * m_bar + m
-        
+
         # ----- Retrieve U and Y matrices over [0, h+alpha+1] -----
         U_dict = algo._get_Us(0, h + alpha + 1)
         Y_dict = algo._get_Ys(0, h + alpha + 1)
@@ -1407,10 +1459,10 @@ class _SublinearConvergence:
             raise ValueError(f"Y matrix for iteration tau = {tau} not found.")
         U_tau = U_dict[tau]
         Y_tau = Y_dict[tau]
-        
+
         # ----- Retrieve projection matrices -----
         Ps = algo._get_Ps()
-        
+
         # ----- Compute T -----
         if m == 1:
             # Case: m = 1.
@@ -1430,7 +1482,7 @@ class _SublinearConvergence:
                 term = P_i1 @ U_tau
                 sum_U = sum_U + term
             first_term = sum_U.T @ sum_U
-            
+
             # Second term: sum_{i=2}^{m} ((P_{(1,1)} - P_{(i,1)}) Y_k).T ((P_{(1,1)} - P_{(i,1)}) Y_k).
             if (1, 1) not in Ps:
                 raise ValueError("Projection matrix for component 1, evaluation 1 not found.")
@@ -1442,10 +1494,10 @@ class _SublinearConvergence:
                 diff = (P_11 - Ps[(i, 1)]) @ Y_tau
                 second_term += diff.T @ diff
             T_mat = first_term + second_term
-        
+
         # ----- Construct zero matrices for the remaining outputs -----
         P_mat = np.zeros((dim_P, dim_P))
-        
+
         if algo.m_func > 0:
             m_bar_func = algo.m_bar_func    # Evaluations for functional components.
             m_func = algo.m_func            # Number of functional components.
@@ -1474,175 +1526,13 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
     r"""
     Iteration-independent Lyapunov analysis utilities.
 
-    Class-level reference
-    =====================
+    For the mathematical formulation, notation, and convergence statements,
+    see :doc:`/theory/iteration_independent_analyses`.
 
-    This class-level docstring centralizes notation shared across methods.
-    Method-level docstrings focus on API details: inputs, outputs, and validation.
-
-    **Problem and algorithm context**
-
-    Notation follows :class:`~autolyap.problemclass.InclusionProblem` and
-    :class:`~autolyap.algorithms.Algorithm`.
-    The sets :math:`\IndexFunc`, :math:`\IndexOp` and counts
-    :math:`\NumEval`, :math:`\NumEvalFunc`, :math:`\NumFunc` are inherited from those classes.
-    We consider sequences
-
-    .. math::
-        (\bx^{k},\bu^{k},\by^{k},\bFcn^{k})_{k\in\naturals}
-
-    generated by the state-space representation, together with a solution triplet
-    :math:`(y^{\star},\hat{\bu}^{\star},\bFcn^{\star})`.
-
-    **Star variables**
-
-    A solution triplet means there exists a vector
-
-    .. math::
-        \bu^{\star} = (u_1^{\star},\ldots,u_m^{\star}),
-
-    such that
-
-    .. math::
-        \forall i \in \IndexFunc, \quad u_i^{\star}\in\partial f_i(y^{\star}), \qquad
-        \forall i \in \IndexOp, \quad u_i^{\star}\in G_i(y^{\star}), \qquad
-        \sum_{i=1}^{m} u_i^{\star}=0.
-
-    Hence, each :math:`u_i^{\star}` is the component output at :math:`y^{\star}`.
-
-    The reduced vector :math:`\hat{\bu}^{\star}` collects the first :math:`m-1` components of
-    :math:`\bu^{\star}`:
-
-    .. math::
-        \hat{\bu}^{\star} = (u_1^{\star},\ldots,u_{m-1}^{\star}), \qquad
-        u_m^{\star} = -\sum_{i=1}^{m-1} u_i^{\star}.
-
-    The function-value vector is
-
-    .. math::
-        \bFcn^{\star}=(f_i(y^{\star}))_{i\in\IndexFunc}.
-
-    **Lyapunov ansatzes**
-
-    Let :math:`h \in \naturals` be the history parameter and
-    :math:`\alpha \in \naturals` the overlap parameter.
-    For each :math:`(W,w) \in \{(Q,q),(P,p)\}` and :math:`k \in \naturals`, define
-
-    .. math::
-        \boldsymbol{z}_{\mathcal{V}}^{k}
-        =
-        \begin{bmatrix}
-        \bx^{k} \\ \bu^{k} \\ \vdots \\ \bu^{k+h} \\ \hat{\bu}^{\star} \\ y^{\star}
-        \end{bmatrix}, \qquad
-        \boldsymbol{f}_{\mathcal{V}}^{k}
-        =
-        \begin{bmatrix}
-        \bFcn^{k} \\ \vdots \\ \bFcn^{k+h} \\ \bFcn^{\star}
-        \end{bmatrix},
-
-    .. math::
-        \mathcal{V}(W,w,k)
-        =
-        \inner{
-        \boldsymbol{z}_{\mathcal{V}}^{k}
-        }{
-        (W \kron \Id)\boldsymbol{z}_{\mathcal{V}}^{k}
-        }
-        + w^{\top}\boldsymbol{f}_{\mathcal{V}}^{k}.
-
-    Similarly, for each :math:`(W,w) \in \{(S,s),(T,t)\}`, define
-
-    .. math::
-        \boldsymbol{z}_{\mathcal{R}}^{k}
-        =
-        \begin{bmatrix}
-        \bx^{k} \\ \bu^{k} \\ \vdots \\ \bu^{k+h+\alpha+1} \\ \hat{\bu}^{\star} \\ y^{\star}
-        \end{bmatrix}, \qquad
-        \boldsymbol{f}_{\mathcal{R}}^{k}
-        =
-        \begin{bmatrix}
-        \bFcn^{k} \\ \vdots \\ \bFcn^{k+h+\alpha+1} \\ \bFcn^{\star}
-        \end{bmatrix},
-
-    .. math::
-        \mathcal{R}(W,w,k)
-        =
-        \inner{
-        \boldsymbol{z}_{\mathcal{R}}^{k}
-        }{
-        (W \kron \Id)\boldsymbol{z}_{\mathcal{R}}^{k}
-        }
-        + w^{\top}\boldsymbol{f}_{\mathcal{R}}^{k}.
-
-    **Dimensions**
-
-    .. math::
-        P,Q \in \sym^{n + (h+1)\NumEval + m}, \qquad
-        T,S \in \sym^{n + (h+\alpha+2)\NumEval + m},
-
-    .. math::
-        p,q \in \mathbb{R}^{(h+1)\NumEvalFunc + \NumFunc}, \qquad
-        t,s \in \mathbb{R}^{(h+\alpha+2)\NumEvalFunc + \NumFunc}.
-
-    Here :math:`n` is the state dimension (as in :class:`~autolyap.algorithms.Algorithm`).
-    When :math:`\NumFunc = 0`, the vectors :math:`p,q,s,t` are omitted.
-
-    **Quadratic Lyapunov inequality**
-
-    For all :math:`k \in \naturals`, the quadratic Lyapunov inequalities are
-
-    .. math::
-        \mathcal{V}(Q,q,k+\alpha+1) \le \rho\,\mathcal{V}(Q,q,k) - \mathcal{R}(S,s,k), \tag{C1}
-
-    .. math::
-        \mathcal{V}(Q,q,k) \ge \mathcal{V}(P,p,k) \ge 0, \tag{C2}
-
-    .. math::
-        \mathcal{R}(S,s,k) \ge \mathcal{R}(T,t,k) \ge 0, \tag{C3}
-
-    .. math::
-        \mathcal{R}(S,s,k+1) \le \mathcal{R}(S,s,k). \tag{C4}
-
-    Condition (C4) is optional.
-
-    **Role of h and alpha**
-
-    - :math:`h` is the history parameter in :math:`\mathcal{V}`.
-    - :math:`\alpha` is the overlap parameter in :math:`\mathcal{R}` and in the
-      shift :math:`k \mapsto k+\alpha+1` appearing in the Lyapunov inequality.
-
-    **Convergence conclusions**
-
-    When :math:`(Q,q,S,s)` satisfy the enabled Lyapunov inequalities (in particular (C1)–(C3)) used in
-    :meth:`~autolyap.IterationIndependent.search_lyapunov`,
-    the following conclusions hold.
-
-    - Linear setting (:math:`\rho \in [0,1)`):
-
-      .. math::
-          0 \le \mathcal{V}(P,p,k) \le \rho^{\lfloor k/(\alpha+1)\rfloor}
-          \max_{i \in \llbracket 0,\alpha\rrbracket} \mathcal{V}(Q,q,i).
-
-      Thus, :math:`\mathcal{V}(P,p,k)` converges to zero
-
-      .. math::
-          \sqrt[\alpha+1]{\rho}\text{-linearly}.
-
-    - Sublinear setting (:math:`\rho = 1`):
-
-      .. math::
-          \sum_{i=0}^{k}\mathcal{R}(T,t,i)
-          \le \sum_{i=0}^{k}\mathcal{R}(S,s,i)
-          \le \sum_{j=0}^{\alpha}\mathcal{V}(Q,q,j),
-
-      so :math:`\mathcal{R}(T,t,k)` is summable and
-
-      .. math::
-          \min_{i \in \llbracket 0,k \rrbracket}\mathcal{R}(T,t,i) \in \mathcal{O}(1/k),
-
-      with :math:`\mathcal{R}(T,t,k) \in o(1/k)` if (C4) holds.
+    This class provides the corresponding computational interface, with
+    :meth:`search_lyapunov` as the main entry point.
     """
-    
+
     LinearConvergence = _LinearConvergence
     SublinearConvergence = _SublinearConvergence
 
@@ -1846,7 +1736,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         - `rho` (:class:`float`): Candidate contraction factor.
         - `h` (:class:`int`): Memory parameter.
         - `alpha` (:class:`int`): Tail parameter.
-        - `remove_C2`, `remove_C3`, `remove_C4` (:class:`bool`): Constraint toggles.
+        - `remove_C2`, `remove_C3`, `remove_C4` (:class:`bool`): Toggles for
+          :ref:`(C2) <eq:c2>`, :ref:`(C3) <eq:c3>`, and :ref:`(C4) <eq:c4>`.
         - `certificate` (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Extracted solver certificate.
 
         **Returns**
@@ -1986,7 +1877,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
 
                 **Parameters**
 
-                - `cond_key` (:class:`str`): Condition key (`"C1"`/`"C2"`/`"C3"`/`"C4"`).
+                - `cond_key` (:class:`str`): Condition key for
+                  :ref:`(C1) <eq:c1>`, :ref:`(C2) <eq:c2>`,
+                  :ref:`(C3) <eq:c3>`, or :ref:`(C4) <eq:c4>`.
                 - `i` (:class:`int`): Component index.
                 - `pairs` (:class:`PairTuple`): Pair pattern to lift.
 
@@ -2220,13 +2113,13 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         # -------------------------------------------------------------------------
         if prob.m != algo.m:
             raise ValueError("Mismatch in number of components: prob.m and algo.m must be the same")
-        
+
         # Check that the functional and operator component indices are identical.
         if set(prob.I_func) != set(algo.I_func):
             raise ValueError("Mismatch in functional component indices between prob and algo")
         if set(prob.I_op) != set(algo.I_op):
             raise ValueError("Mismatch in operator component indices between prob and algo")
-        
+
         # Ensure h and alpha are nonnegative.
         h = ensure_integral(h, "h", minimum=0)
         alpha = ensure_integral(alpha, "alpha", minimum=0)
@@ -2241,7 +2134,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         m_func = algo.m_func            # Number of functional components.
         m_op = algo.m_op                # Number of operator components.
         m_bar_op = algo.m_bar_op        # Total evaluations for operator components.
-        
+
         # Expected dimension for matrix P: [n + (h+1)*m_bar + m] x [n + (h+1)*m_bar + m].
         dim_P = n + (h + 1) * m_bar + m
         if not (isinstance(P, np.ndarray) and P.ndim == 2 and P.shape[0] == P.shape[1] == dim_P):
@@ -2252,7 +2145,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         ensure_finite_array(P, "P")
         if not np.allclose(P, P.T, atol=1e-8):
             raise ValueError("P must be symmetric.")
-        
+
         # Expected dimension for matrix T: [n + (h+alpha+2)*m_bar + m] x [n + (h+alpha+2)*m_bar + m].
         dim_T = n + (h + alpha + 2) * m_bar + m
         if not (isinstance(T, np.ndarray) and T.ndim == 2 and T.shape[0] == T.shape[1] == dim_T):
@@ -2263,7 +2156,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         ensure_finite_array(T, "T")
         if not np.allclose(T, T.T, atol=1e-8):
             raise ValueError("T must be symmetric.")
-        
+
         # For functional components, p and t must have proper dimensions.
         if m_func > 0:
             # Compute required dimensions
@@ -2484,7 +2377,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         - `p`, `t` (:class:`~typing.Optional`\[:class:`numpy.ndarray`\]): Input Lyapunov vectors.
         - `h`, `alpha` (:class:`int`): Memory and tail parameters.
         - `Q_equals_P`, `S_equals_T`, `q_equals_p`, `s_equals_t` (:class:`bool`): Variable-elimination toggles.
-        - `remove_C2`, `remove_C3`, `remove_C4` (:class:`bool`): Constraint toggles.
+        - `remove_C2`, `remove_C3`, `remove_C4` (:class:`bool`): Toggles for
+          :ref:`(C2) <eq:c2>`, :ref:`(C3) <eq:c3>`, and :ref:`(C4) <eq:c4>`.
         - `rho_term`: Numeric or Fusion expression for :math:`\rho`.
         - `model` (:class:`~typing.Optional`\[:class:`mosek.fusion.Model`\]): Optional existing model.
 
@@ -2523,7 +2417,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         else:
             Sij = Mod.variable("S_upper_triangle_vars", dim_T * (dim_T + 1) // 2, mf.Domain.unbounded())
             S = create_symmetric_matrix_expression(Sij, dim_T)
-        
+
         # For functional components, create variables q and s (or set them equal to p and t).
         q_var = None
         s_var = None
@@ -2540,7 +2434,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             else:
                 s_var = Mod.variable("s", dim_t, mf.Domain.unbounded())
                 s = s_var
-        
+
         # ---------------------------------------------------------------------
         # Build the main PSD (positive semidefinite) and equality constraint sums.
         # These will later be constrained to be in the PSD cone or equal zero, respectively.
@@ -2830,7 +2724,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         - `p`, `t` (:class:`~typing.Optional`\[:class:`numpy.ndarray`\]): Input Lyapunov vectors.
         - `h`, `alpha` (:class:`int`): Memory and tail parameters.
         - `Q_equals_P`, `S_equals_T`, `q_equals_p`, `s_equals_t` (:class:`bool`): Variable-elimination toggles.
-        - `remove_C2`, `remove_C3`, `remove_C4` (:class:`bool`): Constraint toggles.
+        - `remove_C2`, `remove_C3`, `remove_C4` (:class:`bool`): Toggles for
+          :ref:`(C2) <eq:c2>`, :ref:`(C3) <eq:c3>`, and :ref:`(C4) <eq:c4>`.
         - `rho_term`: Numeric scalar for :math:`\rho`.
         - `cp`: Imported CVXPY module.
 
@@ -3125,7 +3020,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         Convert internal multiplier variables into deterministic readable records.
 
         Each output record has:
-        - `condition`: active Lyapunov condition key (`"C1"`/`"C2"`/`"C3"`/`"C4"`).
+        - `condition`: Active Lyapunov condition key corresponding to
+          :ref:`(C1) <eq:c1>`, :ref:`(C2) <eq:c2>`,
+          :ref:`(C3) <eq:c3>`, or :ref:`(C4) <eq:c4>`.
         - `component`: 1-based component index.
         - `interpolation_index`: 0-based interpolation-condition index.
         - `pairs`: concrete interpolation pairs in readable form.
@@ -3311,32 +3208,50 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             verbosity: int = 1,
     ) -> Dict[str, Any]:
         r"""
-        Search for a feasible iteration-independent Lyapunov certificate via an SDP.
+        Search for an iteration-independent Lyapunov certificate via an SDP.
 
-        This method formulates and solves a semidefinite program (SDP)
-        for a given inclusion problem, algorithm, and user-specified targets
-        :math:`(P,p,T,t,\rho,h,\alpha)`.
+        Given an inclusion problem, an algorithm, and user-specified targets
+        :math:`(P,p,T,t,\rho,h,\alpha)`, this method formulates and solves a
+        semidefinite feasibility problem for certificate variables
+        :math:`(Q,q,S,s)`.
 
-        Mathematical notation, star-variable definitions, Lyapunov ansatzes, and the roles
-        of :math:`h` and :math:`\alpha` follow the class-level reference in
-        :class:`~autolyap.iteration_independent.IterationIndependent`.
+        **Connection to theory**
 
-        **Enforced inequalities**
-
-        The quadratic Lyapunov inequalities (C1)–(C4) are defined in the class-level
-        **Quadratic Lyapunov inequality** section.
-        This method enforces the enabled subset of those inequalities.
-        The flags `remove_C2`, `remove_C3`, and `remove_C4` disable (C2), (C3), and (C4),
-        respectively (`remove_C4 = True` by default).
+        For the formal statement of the quadratic Lyapunov inequality, i.e., conditions
+        :ref:`(C1) <eq:c1>`-:ref:`(C4) <eq:c4>`, and the role of
+        :math:`(P,p,T,t,\rho,h,\alpha)`, see
+        :doc:`/theory/iteration_independent_analyses`.
 
         **User-specified targets**
 
-        The tuple :math:`(P,p,T,t)` defines the target lower bounds through
+        The tuple :math:`(P,p,T,t)` fixes the target lower bounds
         :math:`\mathcal{V}(P,p,k)` and :math:`\mathcal{R}(T,t,k)`.
-        The user is responsible for ensuring these target functions are nonnegative
-        for the relevant iterates and problem class.
+        The user is responsible for ensuring these target functions are
+        nonnegative over the relevant iterates and problem class, i.e.,
 
-        The SDP searches for a certificate :math:`(Q,q,S,s)` consistent with those targets.
+        .. math::
+
+            \begin{align}
+                \p{\forall k \in \naturals}& \quad \mathcal{V}(P,p,k) \geq 0, \\
+                \p{\forall k \in \naturals}& \quad \mathcal{R}(T,t,k) \geq 0.
+            \end{align}
+
+        Built-in constructors for choosing :math:`(P,p,T,t)` are:
+
+        - Linear convergence:
+
+          - :meth:`~autolyap.IterationIndependent.LinearConvergence.get_parameters_distance_to_solution`
+          - :meth:`~autolyap.IterationIndependent.LinearConvergence.get_parameters_function_value_suboptimality`
+
+        - Sublinear convergence:
+
+          - :meth:`~autolyap.IterationIndependent.SublinearConvergence.get_parameters_fixed_point_residual`
+          - :meth:`~autolyap.IterationIndependent.SublinearConvergence.get_parameters_duality_gap`
+          - :meth:`~autolyap.IterationIndependent.SublinearConvergence.get_parameters_function_value_suboptimality`
+          - :meth:`~autolyap.IterationIndependent.SublinearConvergence.get_parameters_optimality_measure`
+
+        The SDP then searches for a feasible certificate
+        :math:`(Q,q,S,s)` consistent with those targets.
 
         **Parameters**
 
@@ -3364,9 +3279,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         - `S_equals_T` (:class:`bool`): If True, sets S equal to T.
         - `q_equals_p` (:class:`bool`): For functional components, if True, sets q equal to p.
         - `s_equals_t` (:class:`bool`): For functional components, if True, sets s equal to t.
-        - `remove_C2` (:class:`bool`): Flag to remove constraint C2.
-        - `remove_C3` (:class:`bool`): Flag to remove constraint C3.
-        - `remove_C4` (:class:`bool`): Flag to remove constraint C4.
+        - `remove_C2` (:class:`bool`): Flag to remove :ref:`(C2) <eq:c2>`.
+        - `remove_C3` (:class:`bool`): Flag to remove :ref:`(C3) <eq:c3>`.
+        - `remove_C4` (:class:`bool`): Flag to remove :ref:`(C4) <eq:c4>`.
         - `solver_options` (:class:`~typing.Optional`\[:class:`~autolyap.solver_options.SolverOptions`\]):
           Optional backend and parameter settings. Defaults to
           `SolverOptions(backend="mosek_fusion")`.
@@ -3417,8 +3332,10 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
 
           Field meanings and ranges:
 
-          - `condition` is in the active subset of `{"C1", "C2", "C3", "C4"}`
-            (always including `"C1"`).
+          - `condition` is in the active subset of
+            :ref:`(C1) <eq:c1>`, :ref:`(C2) <eq:c2>`,
+            :ref:`(C3) <eq:c3>`, and :ref:`(C4) <eq:c4>`
+            (always including :ref:`(C1) <eq:c1>`).
           - `component` corresponds to :math:`i` and satisfies
             :math:`i \in \llbracket 1, m \rrbracket`.
           - `interpolation_index` corresponds to :math:`o`, where
@@ -3450,21 +3367,15 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                 k_{\textup{max}}(\text{"C3"}) &= h+\alpha+1, \\
                 k_{\textup{max}}(\text{"C4"}) &= h+\alpha+2.
                 \end{aligned}
+
+            where `"C1"`/`"C2"`/`"C3"`/`"C4"` correspond to
+            :ref:`(C1) <eq:c1>`/:ref:`(C2) <eq:c2>`/:ref:`(C3) <eq:c3>`/:ref:`(C4) <eq:c4>`.
           - `value` is the scalar multiplier for that record.
 
         **Raises**
 
         - `ValueError`: If input dimensions or other conditions are violated.
 
-        **Notes**
-
-        - Default backend is MOSEK Fusion. You may also select CVXPY via
-          `SolverOptions(backend="cvxpy")`.
-        - The inputs `(P, p, T, t)` are typically built with helper constructors
-          such as
-          :meth:`~autolyap.IterationIndependent.LinearConvergence.get_parameters_distance_to_solution`
-          and
-          :meth:`~autolyap.IterationIndependent.SublinearConvergence.get_parameters_fixed_point_residual`.
         """
         h, alpha, _, _, _, _, _, _, _ = IterationIndependent._validate_iteration_independent_inputs(
             prob, algo, P, T, p, t, h, alpha
@@ -3690,17 +3601,17 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         r"""
         Compute the Theta matrices (capital :math:`\Theta`) using the :math:`X` matrices.
 
-        For **condition "C1"**:
-        
+        For :ref:`(C1) <eq:c1>`:
+
         - Set :math:`k_{\textup{min}} = 0` and :math:`k_{\textup{max}} = h+\alpha+1`.
         - Retrieve :math:`X = X_{\alpha+1}` from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`
           with `k_min = 0` and `k_max = h+\alpha+1`.
         - :math:`\Theta_0` is of size :math:`[n + (h+1)\NumEval + m] \times [n + (h+\alpha+2)\NumEval + m]`.
-        - :math:`\Theta_1` is formed by vertically stacking :math:`X` with a block row 
+        - :math:`\Theta_1` is formed by vertically stacking :math:`X` with a block row
           consisting of a zero block and an identity matrix.
 
-        For **condition "C4"**:
-        
+        For :ref:`(C4) <eq:c4>`:
+
         - Set :math:`k_{\textup{min}} = 0` and :math:`k_{\textup{max}} = h+\alpha+2`.
         - Retrieve :math:`X = X_1` from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`
           with `k_min = 0` and `k_max = h+\alpha+2`.
@@ -3713,8 +3624,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
           (providing `algo.n`, `algo.m_bar`, `algo.m`).
         - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h`.
         - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha`.
-        - `condition` (:class:`str`): Either "C1" or "C4".
-        
+        - `condition` (:class:`str`): Either :ref:`(C1) <eq:c1>` or
+          :ref:`(C4) <eq:c4>`.
+
         **Returns**
 
         - (:class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\]): A tuple :math:`(\Theta_0, \Theta_1)`.
@@ -3727,7 +3639,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         alpha = ensure_integral(alpha, "alpha", minimum=0)
         if condition not in ('C1', 'C4'):
             raise ValueError("Condition must be either 'C1' or 'C4'.")
-        
+
         n = algo.n
         m_bar = algo.m_bar
         m = algo.m
@@ -3776,15 +3688,15 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         r"""
         Compute the theta matrices (lowercase :math:`\theta`) for functional evaluations.
 
-        For **condition "C1"**:
-        
-        - :math:`\theta_0 \in \mathbb{R}^{((h+1)\NumEvalFunc+\NumFunc) \times ((h+\alpha+2)\NumEvalFunc+\NumFunc)}` 
+        For :ref:`(C1) <eq:c1>`:
+
+        - :math:`\theta_0 \in \mathbb{R}^{((h+1)\NumEvalFunc+\NumFunc) \times ((h+\alpha+2)\NumEvalFunc+\NumFunc)}`
           is given by a block matrix with an identity in the upper left and lower right.
         - :math:`\theta_1` is formed as a horizontal block consisting of a zero block and an identity matrix.
 
-        For **condition "C4"**:
-        
-        - :math:`\theta_0 \in \mathbb{R}^{((h+\alpha+2)\NumEvalFunc+\NumFunc) \times ((h+\alpha+3)\NumEvalFunc+\NumFunc)}` 
+        For :ref:`(C4) <eq:c4>`:
+
+        - :math:`\theta_0 \in \mathbb{R}^{((h+\alpha+2)\NumEvalFunc+\NumFunc) \times ((h+\alpha+3)\NumEvalFunc+\NumFunc)}`
           is defined similarly.
         - :math:`\theta_1` is a horizontal block with a zero block and an identity matrix.
 
@@ -3794,7 +3706,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
           (providing `algo.m_bar_func` and `algo.m_func`).
         - `h` (:class:`int`): A nonnegative integer corresponding to :math:`h`.
         - `alpha` (:class:`int`): A nonnegative integer corresponding to :math:`\alpha`.
-        - `condition` (:class:`str`): Either "C1" or "C4".
+        - `condition` (:class:`str`): Either :ref:`(C1) <eq:c1>` or
+          :ref:`(C4) <eq:c4>`.
 
         **Returns**
 
@@ -3809,19 +3722,19 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         alpha = ensure_integral(alpha, "alpha", minimum=0)
         if condition not in ('C1', 'C4'):
             raise ValueError("Condition must be either 'C1' or 'C4'.")
-        
+
         m_bar_func = algo.m_bar_func
         m_func = algo.m_func
-        
+
         # Theta matrices are only defined when there is at least one functional component.
         if m_func <= 0:
             raise ValueError("Theta matrices require at least one functional component (m_func > 0).")
-        
+
         if condition == 'C1':
             theta0 = np.block([
-                [np.eye((h + 1) * m_bar_func), np.zeros(((h + 1) * m_bar_func, (alpha + 1) * m_bar_func)), 
+                [np.eye((h + 1) * m_bar_func), np.zeros(((h + 1) * m_bar_func, (alpha + 1) * m_bar_func)),
                 np.zeros(((h + 1) * m_bar_func, m_func))],
-                [np.zeros((m_func, (h + 1) * m_bar_func)), np.zeros((m_func, (alpha + 1) * m_bar_func)), 
+                [np.zeros((m_func, (h + 1) * m_bar_func)), np.zeros((m_func, (alpha + 1) * m_bar_func)),
                 np.eye(m_func)]
             ])
             theta1 = np.hstack([
@@ -3832,9 +3745,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
 
         elif condition == 'C4':
             theta0 = np.block([
-                [np.eye((h + alpha + 2) * m_bar_func), np.zeros(((h + alpha + 2) * m_bar_func, m_bar_func)), 
+                [np.eye((h + alpha + 2) * m_bar_func), np.zeros(((h + alpha + 2) * m_bar_func, m_bar_func)),
                 np.zeros(((h + alpha + 2) * m_bar_func, m_func))],
-                [np.zeros((m_func, (h + alpha + 2) * m_bar_func)), np.zeros((m_func, m_bar_func)), 
+                [np.zeros((m_func, (h + alpha + 2) * m_bar_func)), np.zeros((m_func, m_bar_func)),
                 np.eye(m_func)]
             ])
             theta1 = np.hstack([

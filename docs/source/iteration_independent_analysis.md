@@ -6,6 +6,7 @@
    :show-inheritance:
 ```
 
+(iter-independent-linear-helpers)=
 ## Linear-convergence helpers
 
 ```{eval-rst}
@@ -16,6 +17,7 @@
 .. automethod:: autolyap.IterationIndependent.LinearConvergence.bisection_search_rho
 ```
 
+(iter-independent-sublinear-helpers)=
 ## Sublinear-convergence helpers
 
 ```{eval-rst}

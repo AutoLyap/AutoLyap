@@ -76,6 +76,8 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - name: Sync CITATION.cff version from VERSION
+        run: python scripts/sync_citation_version.py
       - name: Validate tag matches VERSION
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
@@ -149,8 +151,8 @@ jobs:
           python -m pip install -r docs/requirements.txt
       - name: Build docs
         run: |
-          make -C docs html
-          touch docs/build/html/.nojekyll
+          make -C docs dirhtml
+          touch docs/build/dirhtml/.nojekyll
       - name: Require docs deploy token
         shell: bash
         env:
@@ -169,7 +171,7 @@ jobs:
           token: ${{ secrets.AUTOLYAP_GH_PAGES_TOKEN }}
           path: site
       - name: Sync built docs
-        run: rsync -a --delete --exclude '.git/' docs/build/html/ site/
+        run: rsync -a --delete --exclude '.git/' docs/build/dirhtml/ site/
       - name: Commit and push docs updates
         working-directory: site
         env:

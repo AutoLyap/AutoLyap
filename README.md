@@ -18,15 +18,26 @@ solvers.
 
 ## Documentation
 
-User guide and API reference: [https://autolyap.github.io](https://autolyap.github.io/)
+- User docs: [https://autolyap.github.io](https://autolyap.github.io/)
+- Contributing guide: [https://autolyap.github.io/contributing/](https://autolyap.github.io/contributing/)
+- Developer commands (internal): [`DEVELOPER_COMMANDS.md`](DEVELOPER_COMMANDS.md)
+- Changelog: [`CHANGELOG.md`](CHANGELOG.md)
+- Release process (maintainers): [`RELEASING.md`](RELEASING.md)
+- License: [`LICENSE`](LICENSE)
 
-## Note about the docs
+## Cite this project
 
-To build the documentation locally:
+If AutoLyap contributes to your research or software, please cite:
 
-```bash
-make -C docs deps
-make -C docs html
+- Upadhyaya, Manu; Taylor, Adrien B.; Banert, Sebastian; Giselsson, Pontus (2025). *AutoLyap: A Python package for computer-assisted Lyapunov analyses for first-order methods*. arXiv:2506.24076.
+
+```bibtex
+@misc{upadhyaya2025autolyap,
+  author = {Upadhyaya, Manu and Taylor, Adrien B. and Banert, Sebastian and Giselsson, Pontus},
+  title = {{AutoLyap}: {A} {P}ython package for computer-assisted Lyapunov analyses for first-order methods},
+  year = {2025},
+  archivePrefix = {arXiv},
+  eprint = {2506.24076},
+  primaryClass = {math.OC},
+}
 ```
-
-The generated site is written to `docs/build/html/` (open `docs/build/html/index.html`).

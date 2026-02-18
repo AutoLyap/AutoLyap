@@ -24,6 +24,10 @@ extensions = [
     "sphinxcontrib.bibtex",
 ]
 
+myst_enable_extensions = [
+    "amsmath",
+]
+
 autodoc_mock_imports = [
     "cvxpy",
     "mosek",
@@ -43,6 +47,9 @@ html_static_path = ["_static"]
 html_favicon = "_static/favicon.ico"
 html_css_files = ["custom.css"]
 html_baseurl = "https://autolyap.github.io/"
+numfig = True
+math_numfig = True
+numfig_secnum_depth = 1
 html_context = {
     "seo_site_name": project,
     "seo_site_description": (
@@ -79,6 +86,17 @@ html_context = {
                 "iteration-independent Lyapunov analysis",
                 "iteration-dependent Lyapunov analysis",
                 "bisection search rho",
+            ],
+        },
+        "theory": {
+            "description": (
+                "Mathematical background for AutoLyap, including Lyapunov "
+                "certificate modeling and SDP-based verification."
+            ),
+            "keywords": [
+                "AutoLyap theory",
+                "Lyapunov certificate",
+                "semidefinite programming convergence analysis",
             ],
         },
         "api_reference": {
@@ -296,48 +314,105 @@ maximum_signature_line_length = 1
 toc_object_entries = True
 html_use_opensearch = "https://autolyap.github.io"
 
-# MathJax macros aligned with Paper/ver_5/commands.tex (subset used in docs/docstrings).
+# MathJax macros aligned with Paper/ver_5/commands.tex and Paper/ver_5/preamble.tex.
 mathjax3_config = {
+    "loader": {
+        "load": ["[tex]/html"],
+    },
     "tex": {
+        "packages": {"[+]": ["html"]},
         "macros": {
             "abs": [r"\left\lvert #1 \right\rvert", 1],
             "Bignorm": [r"\left\lVert #1 \right\rVert", 1],
             "norm": [r"\lVert #1 \rVert", 1],
             "Biginner": [r"\left\langle #1, #2 \right\rangle", 2],
-            "calH": r"\mathcal{H}",
-            "IndexFunc": r"\mathcal{I}_{\textup{func}}",
-            "IndexOp": r"\mathcal{I}_{\textup{op}}",
-            "NumEval": r"\bar{m}",
-            "NumEvalFunc": r"\bar{m}_{\textup{func}}",
-            "NumEvalOp": r"\bar{m}_{\textup{op}}",
-            "NumFunc": r"m_{\textup{func}}",
-            "NumOp": r"m_{\textup{op}}",
-            "reals": r"\mathbb{R}",
-            "prox": r"{\rm{prox}}",
-            "Prox": r"\operatorname{Prox}",
-            "Id": r"\mathrm{Id}",
-            "kron": r"\otimes",
             "inner": [r"\langle #1, #2 \rangle", 2],
+            "reals": r"\mathbb{R}",
+            "Rbar": r"\overline{\mathbf{R}}",
+            "N": r"\mathbf{N}",
+            "naturals": r"\mathbb{N}_{0}",
+            "K": r"\mathbf{K}",
+            "Or": r"\mathbf{O}",
+            "D": r"\mathbf{D}",
+            "Sym": r"\mathbf{S}",
+            "sym": r"\mathbb{S}",
+            "calA": r"\mathcal{A}",
+            "calL": r"\mathcal{L}",
+            "calH": r"\mathcal{H}",
+            "calG": r"\mathcal{G}",
+            "calD": r"\mathcal{D}",
+            "calT": r"\mathcal{T}",
+            "tr": [r"\operatorname{tr}\left(#1\right)", 1],
+            "trace": r"\mathrm{trace}",
+            "Fix": r"\operatorname{fix}",
+            "epi": r"\operatorname{epi}",
+            "diag": r"\operatorname{diag}",
+            "Range": r"\operatorname{Range}",
+            "rank": r"\operatorname{rank}",
+            "sgn": r"\operatorname{sgn}",
+            "Prox": r"\operatorname{Prox}",
+            "prox": r"{\rm{prox}}",
+            "kron": r"\otimes",
             "minimize": r"\operatorname*{minimize}",
             "maximize": r"\operatorname*{maximize}",
-            "argmin": r"\operatorname*{argmin}",
             "argmax": r"\operatorname*{argmax}",
+            "argmin": r"\operatorname*{argmin}",
             "Argmin": r"\operatorname*{Argmin}",
+            "adj": r"\operatorname*{adj}",
             "gra": r"\operatorname*{gra}",
             "ran": r"\operatorname*{ran}",
             "zer": r"\operatorname*{zer}",
             "dom": r"\operatorname*{dom}",
-            "Fix": r"\operatorname{fix}",
-            "sym": r"\mathbb{S}",
+            "Id": r"\operatorname*{Id}",
+            "Ker": r"\operatorname*{Ker}",
+            "Ima": r"\operatorname*{Im}",
+            "Cl": r"\operatorname*{cl}",
+            "Int": r"\operatorname*{int}",
+            "Conv": r"\operatorname*{conv}",
+            "quadform": [r"\mathcal{Q}\p{#1,#2}", 2],
+            "XId": [r"#1_{\Id}", 1],
+            "xmiddle": [r"\;\middle#1\;", 1],
+            "allowbreak": r"",
             "bx": r"\mathbf{x}",
             "bu": r"\mathbf{u}",
             "by": r"\mathbf{y}",
+            "bz": r"\mathbf{z}",
             "bfcn": r"\mathbf{f}",
             "bFcn": r"\mathbf{F}",
+            "bM": r"\mathbf{M}",
+            "bMlij": r"\bM_{(l,i,j)}",
+            "ba": r"\mathbf{a}",
+            "balij": r"\mathbf{a}_{(l,i,j)}",
+            "bzeta": r"\boldsymbol{\zeta}",
+            "bchi": r"\boldsymbol{\chi}",
+            "bxi": r"\boldsymbol{\xi}",
+            "bXi": r"\boldsymbol{\Xi}",
+            "bQ": r"\mathbf{Q}",
+            "bq": r"\mathbf{q}",
+            "id": r"I",
+            "gramFunc": r"\mathtt{G}",
+            "SumToZeroMat": r"N",
+            "indentconstr": r"\;\;\;",
+            "PEPObjMat": r"W",
+            "PEPObjVec": r"w",
+            "munderbar": [r"\underline{#1}", 1],
+            "PEPMaxIter": r"\bar{k}",
+            "PEPMinIter": r"\underline{k}",
+            "IndexOp": r"\mathcal{I}_{\textup{op}}",
+            "IndexFunc": r"\mathcal{I}_{\textup{func}}",
+            "NumFunc": r"m_{\textup{func}}",
+            "NumOp": r"m_{\textup{op}}",
+            "NumEval": r"\bar{m}",
+            "NumEvalOp": r"\bar{m}_{\textup{op}}",
+            "NumEvalFunc": r"\bar{m}_{\textup{func}}",
+            "set": [r"\mathord{\left.\{ #1 \} \right. }", 1],
+            "Bigset": [r"\mathord{\left\{ #1 \right\}}", 1],
+            "p": [r"\mathord{( #1 )}", 1],
+            "Bigp": [r"\mathord{\left( #1 \right)}", 1],
             "bm": [r"\boldsymbol{#1}", 1],
-            "llbracket": r"\left[\!\left[",
-            "rrbracket": r"\right]\!\right]",
-            "naturals": r"\mathbb{N}_{0}",
+            "llbracket": r"\lbrack\!\lbrack",
+            "rrbracket": r"\rbrack\!\rbrack",
+            "underbracket": [r"\underbrace{#1}", 1],
         }
     }
 }
@@ -514,6 +589,7 @@ def setup(app):
     # Defer non-critical scripts to reduce render-blocking time.
     app.add_js_file("copybutton.js", defer="defer")
     app.add_js_file("perf.js", defer="defer")
+    app.add_js_file("math_tag_links.js", defer="defer")
 
 source_suffix = {
     ".rst": "restructuredtext",

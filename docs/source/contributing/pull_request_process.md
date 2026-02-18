@@ -16,6 +16,6 @@ git push -u origin <feature-branch>
 - [ ] CI-equivalent local checks pass.
 - [ ] New behavior is covered by tests when applicable.
 - [ ] Docs are updated when API or behavior changed.
-- [ ] Docs build locally (`make -C docs html`) if docs were changed.
+- [ ] Docs build locally (`make -C docs dirhtml`) if docs were changed.
 - [ ] No generated files from `docs/build/` are committed.
 - [ ] PR description states what changed and why.
