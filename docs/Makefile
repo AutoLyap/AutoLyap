@@ -27,4 +27,6 @@ check-deps:
 	)
 
 dirhtml: check-deps
-	@$(SPHINXBUILD) -M dirhtml "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
+	@SPHINX_VERSION=$$($(PYTHON) -c "import sphinx; print(sphinx.__version__)"); \
+	DOCTREEDIR="$(BUILDDIR)/doctrees-dirhtml-$$SPHINX_VERSION"; \
+	$(SPHINXBUILD) -M dirhtml "$(SOURCEDIR)" "$(BUILDDIR)" -d "$$DOCTREEDIR" $(SPHINXOPTS)
