@@ -127,7 +127,7 @@ The corresponding API entry point is
 :meth:`~autolyap.IterationDependent.search_lyapunov`.
 
 The SDP characterization is given in
-:ref:`Theorem 5.3.2 <thm:iteration_dependent_lyapunov>`. Computationally,
+:ref:`Theorem 5.3.2 (Chained Lyapunov inequalities via SDP) <thm:iteration_dependent_lyapunov>`. Computationally,
 each inequality in :eq:`eq:iteration_dependent_lyapunov:chain` is enforced by
 a one-step analysis with positive semidefinite constraints of constant
 dimension. As a result, the number of variables and constraints grows
@@ -137,7 +137,7 @@ linearly with :math:`K`.
 
    .. _thm:iteration_dependent_lyapunov:
 
-   **Theorem 5.3.2 (Iteration-dependent Lyapunov inequality via SDP).**
+   **Theorem 5.3.2 (Chained Lyapunov inequalities via SDP).**
 
    Suppose that
    :ref:`Assumption 3.1 (Well-posedness) <ass:well-posedness>` and
@@ -163,7 +163,12 @@ linearly with :math:`K`.
    over the problem class defined by
    :math:`\p{\mathcal{F}_i}_{i\in\IndexFunc}` and
    :math:`\p{\mathcal{G}_i}_{i\in\IndexOp}` is that the following
-   system of constraints
+   system of constraints, which reuses the lifted
+   matrices/vectors from :doc:`5.1. Performance estimation via SDPs
+   </theory/performance_estimation_via_sdps>`, including the lifted state
+   matrices :eq:`eq:x_mats`, and the interpolation terms
+   :eq:`eq:w_func_ineq`, :eq:`eq:w_func_eq`, :eq:`eq:w_op`,
+   :eq:`eq:f_func_ineq`, and :eq:`eq:f_func_eq`,
 
 
    .. container:: subequations

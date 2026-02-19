@@ -7,12 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 Curated, user-facing summaries are available in
 [`docs/source/release_notes/`](docs/source/release_notes/).
 
-## [0.2.0] - 2026-02-16
+## [Unreleased]
 
 ### Added
 
 - Top-level `SolverOptions` support for explicit backend configuration in
   Lyapunov search calls.
+- Protocol-based backend typing support via
+  `autolyap/utils/backend_types.py`, shared across optional CVXPY and MOSEK
+  execution paths.
 - CVXPY backend execution paths alongside MOSEK Fusion, with backend
   equivalence and integration coverage.
 - Runtime diagnostic summaries for Lyapunov solves, including checks for
@@ -29,8 +32,8 @@ Curated, user-facing summaries are available in
 - A dedicated theory documentation section covering notation, problem classes,
   algorithm representation, interpolation conditions, and Lyapunov analyses.
 - Custom docs math-tag linking/alignment support
-  (`docs/source/_static/math_tag_links.js`) and expanded bibliography coverage
-  for theory references.
+  (`docs/source/_static/math_tag_links.js`), including inline `C1`/`C2`/`C3`/`C4`
+  label anchors, and expanded bibliography coverage for theory references.
 - CI workflows for tests, releases, CodeQL, and secret scanning.
 
 ### Changed
@@ -50,10 +53,17 @@ Curated, user-facing summaries are available in
   preserving terminal status reporting.
 - Set default Lyapunov-search verbosity to `verbosity=1` for concise
   diagnostics.
+- Hardened static typing across algorithms, Lyapunov solvers, problem classes,
+  and shared utilities (including explicit backend protocol annotations and
+  typed certificate/result internals).
 - Tightened algorithm constructor/setter validation and shared helper
   utilities for dimensions and matrix checks.
 - Improved documentation structure and navigation (quick start, API layout,
   release notes organization).
+- Clarified theory documentation by centralizing shared solution notation and
+  tightening theorem naming/cross-references across Lyapunov analysis pages.
+- Expanded developer-internal documentation inventories to cover package-level
+  exports and backend typing helpers.
 - Switched docs builds from `html` to `dirhtml` across local commands,
   contributor docs, and release publication automation.
 - Updated CI/release workflows to enforce `CITATION.cff` and `VERSION`
@@ -96,5 +106,4 @@ Curated, user-facing summaries are available in
 - Removed legacy `success` boolean signaling from Lyapunov outputs; callers
   should check `status == "feasible"` and inspect `solve_status`.
 
-[Unreleased]: https://github.com/AutoLyap/AutoLyap/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/AutoLyap/AutoLyap/releases/tag/v0.2.0
+[Unreleased]: https://github.com/AutoLyap/AutoLyap/compare/v0.1.0...HEAD

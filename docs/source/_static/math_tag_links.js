@@ -10,6 +10,12 @@
     "div.math.eq-align-w",
     "div.math.eq-align-theta",
   ];
+  const INLINE_LABEL_TARGETS = {
+    C1: "eq-c1",
+    C2: "eq-c2",
+    C3: "eq-c3",
+    C4: "eq-c4",
+  };
 
   function resolveEqnoStyle() {
     if (cachedEqnoStyle) {
@@ -107,6 +113,112 @@
     root
       .querySelectorAll('mjx-container[display="true"] mjx-tag')
       .forEach(bindTag);
+  }
+
+  function createInlineLink(label, targetId) {
+    const link = document.createElement("a");
+    link.className = "plain-math-inline-link";
+    link.href = `#${targetId}`;
+    link.textContent = label;
+    link.setAttribute("aria-label", `Jump to ${label}`);
+
+    link.addEventListener("click", (event) => {
+      const hash = `#${targetId}`;
+      if (window.location.hash === hash) {
+        event.preventDefault();
+        const target = document.getElementById(targetId);
+        if (target) {
+          target.scrollIntoView({ block: "center" });
+        }
+      }
+    });
+    return link;
+  }
+
+  function bindInlineTextNode(node) {
+    if (!(node instanceof HTMLElement)) {
+      return;
+    }
+    if (node.dataset.inlineAnchorBound === "1") {
+      return;
+    }
+    if (node.closest("mjx-tag")) {
+      return;
+    }
+    if (node.querySelector("a.plain-math-inline-link")) {
+      return;
+    }
+
+    const rawText = String(node.textContent || "");
+    if (!/\bC[1-4]\b/.test(rawText)) {
+      return;
+    }
+    const parts = rawText.split(/\b(C[1-4])\b/g);
+    if (!parts.length) {
+      return;
+    }
+
+    node.dataset.inlineAnchorBound = "1";
+    node.classList.add("plain-math-inline-label");
+    node.textContent = "";
+
+    for (const part of parts) {
+      const targetId = INLINE_LABEL_TARGETS[part];
+      if (targetId && document.getElementById(targetId)) {
+        node.appendChild(createInlineLink(part, targetId));
+      } else if (part) {
+        node.appendChild(document.createTextNode(part));
+      }
+    }
+  }
+
+  function bindSplitInlineLabel(miNode) {
+    if (!(miNode instanceof HTMLElement)) {
+      return;
+    }
+    if (miNode.dataset.inlineAnchorBound === "1") {
+      return;
+    }
+    if (miNode.closest("mjx-tag")) {
+      return;
+    }
+    if (String(miNode.textContent || "").trim() !== "C") {
+      return;
+    }
+
+    const next = miNode.nextElementSibling;
+    if (!(next instanceof HTMLElement)) {
+      return;
+    }
+    if (next.dataset.inlineAnchorBound === "1") {
+      return;
+    }
+    if (next.tagName.toLowerCase() !== "mjx-mn") {
+      return;
+    }
+
+    const digit = String(next.textContent || "").trim();
+    const label = `C${digit}`;
+    const targetId = INLINE_LABEL_TARGETS[label];
+    if (!targetId || !document.getElementById(targetId)) {
+      return;
+    }
+
+    miNode.dataset.inlineAnchorBound = "1";
+    next.dataset.inlineAnchorBound = "1";
+    miNode.classList.add("plain-math-inline-label");
+    miNode.textContent = "";
+    miNode.appendChild(createInlineLink(label, targetId));
+    next.textContent = "";
+  }
+
+  function bindAllInlineLabels(root = document) {
+    root
+      .querySelectorAll("mjx-container mjx-mtext")
+      .forEach(bindInlineTextNode);
+    root
+      .querySelectorAll("mjx-container mjx-mi")
+      .forEach(bindSplitInlineLabel);
   }
 
   function clearAlignment(mathBlock, mjx) {
@@ -210,6 +322,7 @@
 
   function init() {
     bindAllTags();
+    bindAllInlineLabels();
     scheduleEqualsAlignment();
     startAlignmentWatch();
     window.addEventListener("resize", scheduleEqualsAlignment);
@@ -228,7 +341,14 @@
           if (node.matches("mjx-tag")) {
             bindTag(node);
           }
+          if (node.matches("mjx-mtext")) {
+            bindInlineTextNode(node);
+          }
+          if (node.matches("mjx-mi")) {
+            bindSplitInlineLabel(node);
+          }
           bindAllTags(node);
+          bindAllInlineLabels(node);
         });
       }
       scheduleEqualsAlignment();

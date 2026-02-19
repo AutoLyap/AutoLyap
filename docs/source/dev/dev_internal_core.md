@@ -2,6 +2,8 @@
 
 This page focuses on internals that support analysis assembly and solver execution.
 
+Public API docs for these topics are in {doc}`/lyapunov_analyses` and {doc}`/solver_backends`.
+
 ## Module inventory
 
 1. {py:mod}`autolyap.iteration_independent`: iteration-independent SDP assembly and feasibility checks.

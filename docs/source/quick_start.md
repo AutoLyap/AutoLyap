@@ -38,7 +38,7 @@ Backend notes:
 
 Most analyses follow four steps:
 
-1. Build an {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>` from function and operator classes.
+1. Build an {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>` from {doc}`function classes <function_classes>` and {doc}`operator classes <operator_classes>`.
 2. Pick an algorithm or your own subclass of {py:class}`Algorithm <autolyap.algorithms.Algorithm>`.
 3. Select Lyapunov targets with helper constructors.
 4. Solve the SDP and inspect `result["status"]`/`result["solve_status"]`,
@@ -280,7 +280,6 @@ result = IterationIndependent.search_lyapunov(
 - For theoretical foundations, see {doc}`theory`.
 - For more worked walkthroughs, see {doc}`examples`.
 - For the full API, see {doc}`api_reference`.
-- For full mathematical context, see the companion paper {cite}`quick-upadhyaya2025autolyap`.
 
 ## References
 

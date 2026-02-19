@@ -62,21 +62,28 @@ Use the base class contract when introducing a new algorithm module.
 3. {py:mod}`autolyap.algorithms.davis_yin` ({py:class}`autolyap.algorithms.davis_yin.DavisYin`)
 4. {py:mod}`autolyap.algorithms.douglas_rachford` ({py:class}`autolyap.algorithms.douglas_rachford.DouglasRachford`)
 5. {py:mod}`autolyap.algorithms.extragradient` ({py:class}`autolyap.algorithms.extragradient.Extragradient`)
-6. {py:mod}`autolyap.algorithms.gradient` ({py:class}`autolyap.algorithms.gradient.GradientMethod`)
-7. {py:mod}`autolyap.algorithms.gradient_with_Nesterov_like_momentum` ({py:class}`autolyap.algorithms.gradient_with_Nesterov_like_momentum.GradientNesterovMomentum`)
-8. {py:mod}`autolyap.algorithms.heavy_ball` ({py:class}`autolyap.algorithms.heavy_ball.HeavyBallMethod`)
-9. {py:mod}`autolyap.algorithms.information_theoretic_exact_method` ({py:class}`autolyap.algorithms.information_theoretic_exact_method.ITEM`)
-10. {py:mod}`autolyap.algorithms.nesterov_constant` ({py:class}`autolyap.algorithms.nesterov_constant.NesterovConstant`)
-11. {py:mod}`autolyap.algorithms.nesterov_fast_gradient_method` ({py:class}`autolyap.algorithms.nesterov_fast_gradient_method.NesterovFastGradientMethod`)
-12. {py:mod}`autolyap.algorithms.optimized_gradient_method` ({py:class}`autolyap.algorithms.optimized_gradient_method.OptimizedGradientMethod`)
-13. {py:mod}`autolyap.algorithms.proximal_point` ({py:class}`autolyap.algorithms.proximal_point.ProximalPoint`)
-14. {py:mod}`autolyap.algorithms.triple_momentum` ({py:class}`autolyap.algorithms.triple_momentum.TripleMomentum`)
-15. {py:mod}`autolyap.algorithms.tseng_fbf` ({py:class}`autolyap.algorithms.tseng_fbf.TsengFBF`)
+6. {py:mod}`autolyap.algorithms.forward` ({py:class}`autolyap.algorithms.forward.ForwardMethod`)
+7. {py:mod}`autolyap.algorithms.gradient` ({py:class}`autolyap.algorithms.gradient.GradientMethod`)
+8. {py:mod}`autolyap.algorithms.gradient_with_Nesterov_like_momentum` ({py:class}`autolyap.algorithms.gradient_with_Nesterov_like_momentum.GradientNesterovMomentum`)
+9. {py:mod}`autolyap.algorithms.heavy_ball` ({py:class}`autolyap.algorithms.heavy_ball.HeavyBallMethod`)
+10. {py:mod}`autolyap.algorithms.information_theoretic_exact_method` ({py:class}`autolyap.algorithms.information_theoretic_exact_method.ITEM`)
+11. {py:mod}`autolyap.algorithms.malitsky_tam_frb` ({py:class}`autolyap.algorithms.malitsky_tam_frb.MalitskyTamFRB`)
+12. {py:mod}`autolyap.algorithms.nesterov_constant` ({py:class}`autolyap.algorithms.nesterov_constant.NesterovConstant`)
+13. {py:mod}`autolyap.algorithms.nesterov_fast_gradient_method` ({py:class}`autolyap.algorithms.nesterov_fast_gradient_method.NesterovFastGradientMethod`)
+14. {py:mod}`autolyap.algorithms.optimized_gradient_method` ({py:class}`autolyap.algorithms.optimized_gradient_method.OptimizedGradientMethod`)
+15. {py:mod}`autolyap.algorithms.proximal_point` ({py:class}`autolyap.algorithms.proximal_point.ProximalPoint`)
+16. {py:mod}`autolyap.algorithms.triple_momentum` ({py:class}`autolyap.algorithms.triple_momentum.TripleMomentum`)
+17. {py:mod}`autolyap.algorithms.tseng_fbf` ({py:class}`autolyap.algorithms.tseng_fbf.TsengFBF`)
 
 ## Module targets
 
 ```{eval-rst}
 .. automodule:: autolyap.algorithms
+   :no-members:
+```
+
+```{eval-rst}
+.. automodule:: autolyap.algorithms.algorithm
    :no-members:
 ```
 

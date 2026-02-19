@@ -21,34 +21,6 @@ such that
    \begin{aligned}
        \p{\forall k \in \naturals }\quad \p{A_{k},B_{k},C_{k},D_{k}} = \p{A,B,C,D}.\end{aligned}
 
-We are interested in Lyapunov analyses that may depend on a solution to
-the inclusion
-problem :eq:`eq:the_problem_inclusion`. In
-particular, without loss of generality and for computational efficiency,
-we will consider the variables
-
-.. _eq:solution:
-
-.. math::
-   :label: eq:solution
-
-   \begin{aligned}
-       \p{y^{\star}, \hat{\bu}^{\star}, \bFcn^{\star}} \in 
-       \Bigset{ 
-       \underbracket{\p{y,\hat{\bu}, \bFcn}}_{ \in \calH \times\calH^{m-1} \times \reals^{\NumFunc}  } \xmiddle|
-       \begin{aligned}
-           &\p{u_{i}}_{i\in\IndexFunc} \in \prod_{i\in\IndexFunc}\partial f_{i}\p{y}, \\ 
-           &\p{u_{i}}_{i\in\IndexOp} \in \prod_{i\in\IndexOp}G_{i}\p{y}, \\    &\sum_{i=1}^{m} u_{i} = 0, \\
-           & \hat{\bu} = \p{u_{1},\ldots,u_{m-1}}, \\
-           & \bFcn=\p{\bfcn_{i}\p{y}}_{i\in\IndexFunc}
-       \end{aligned}
-       },\end{aligned}
-
-where :math:`\hat{\bu}^{\star}` is void when :math:`m=1`. For example,
-it is clear that :math:`y^{\star}` in :eq:`eq:solution`
-is a solution to the inclusion
-problem :eq:`eq:the_problem_inclusion`.
-
 .. container:: definition
 
    .. _def:iteration_independent_Lyapunov:
@@ -164,13 +136,17 @@ problem :eq:`eq:the_problem_inclusion`.
    where :ref:`(C4) <eq:c4>` is an optional requirement that may be
    removed.
 
-In the proposed methodology, the user specifies
-:math:`\p{P,p,T,t,\rho,h,\alpha}`, and the SDP searches for
-:math:`\p{Q,q,S,s}` satisfying :ref:`(C1) <eq:c1>`-:ref:`(C3) <eq:c3>`
-(and optionally :ref:`(C4) <eq:c4>`). When such
-:math:`\p{Q,q,S,s}` exists, the choice of
-:math:`\p{P,p,T,t,\rho,h,\alpha}` determines the convergence guarantee
-implied by the quadratic Lyapunov inequality. In particular, we obtain:
+Definition 5.2.1 is a trajectory-level condition:
+:ref:`(C1) <eq:c1>`-:ref:`(C3) <eq:c3>` (and optionally
+:ref:`(C4) <eq:c4>`) must hold for all iterates and all admissible
+functions/operators in the class. This statement is not directly
+computational. In practice, the user specifies
+:math:`\p{P,p,T,t,\rho,h,\alpha}` and searches for
+:math:`\p{Q,q,S,s}`. The SDP sufficient condition that makes this search
+computable is given in :ref:`Theorem 5.2.2 (Iteration-independent Lyapunov inequality via SDP) <thm:iteration_independent_lyapunov>`.
+When such :math:`\p{Q,q,S,s}` exists, the choice of
+:math:`\p{P,p,T,t,\rho,h,\alpha}` determines the convergence guarantee.
+In particular, we obtain:
 
 - Linear setting: if :math:`\rho \in [0,1[`, then
 
@@ -232,9 +208,23 @@ linear-convergence setting.
 
 Role of :math:`h` and :math:`\alpha`:
 
-- :math:`h` is a history parameter in :math:`\mathcal{V}`.
+- :math:`h` is a history parameter for :math:`\mathcal{V}`
+  (see :eq:`eq:iteration_independent_lyapunov:v`).
+
+  .. math::
+
+     \text{the } \mathcal{V}\text{-window length is } h+1.
 - :math:`\alpha` is an overlap parameter that induces the shift
   :math:`k \mapsto k+\alpha+1` in :ref:`(C1) <eq:c1>`.
+- :math:`h` and :math:`\alpha` determine the :math:`\mathcal{R}` window
+  (see :eq:`eq:iteration_independent_lyapunov:r`).
+
+  .. math::
+
+     \text{the } \mathcal{R}\text{-window length is } h+\alpha+2.
+
+We now state the finite-dimensional SDP condition that certifies the
+existence of such :math:`\p{Q,q,S,s}`.
 
 .. container:: theorem
 
@@ -292,8 +282,12 @@ Role of :math:`h` and :math:`\alpha`:
    :math:`\p{\mathcal{F}_i}_{i\in\IndexFunc}` and
    :math:`\p{\mathcal{G}_i}_{i\in\IndexOp}` (recall that
    :ref:`(C4) <eq:c4>` is optional and may be omitted) is that the
-   following system of constraints
-
+   following system of constraints, which reuses the lifted
+   matrices/vectors from :doc:`5.1. Performance estimation via SDPs
+   </theory/performance_estimation_via_sdps>`, including the lifted state
+   matrices :eq:`eq:x_mats`, and the interpolation terms
+   :eq:`eq:w_func_ineq`, :eq:`eq:w_func_eq`, :eq:`eq:w_op`,
+   :eq:`eq:f_func_ineq`, and :eq:`eq:f_func_eq`,
 
    .. container:: subequations
 
@@ -312,7 +306,7 @@ Role of :math:`h` and :math:`\alpha`:
          :no-wrap:
 
          \begin{align}
-                 & \textbf{for each}\ \textup{cond} \in\set{\textup{C1},\textup{C2},\textup{C3},\textup{C4}} \notag \\
+                 & \textbf{for each}\ \textup{cond} \in\set{\href{#eq-c1}{\textup{C1}},\href{#eq-c2}{\textup{C2}},\href{#eq-c3}{\textup{C3}},\href{#eq-c4}{\textup{C4}}} \notag \\
                  &\qquad
                  \left(
                  \begin{array}{@{}c@{}}
@@ -385,7 +379,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-w
 
       \begin{aligned}
-              W^{\textup{C1}} &= \p{\Theta_{1}^{\textup{C1}}}^{\top}Q\Theta_{1}^{\textup{C1}} - \rho \p{\Theta_{0}^{\textup{C1}}}^{\top}Q\Theta_{0}^{\textup{C1}} + S,
+              W^{\href{#eq-c1}{\textup{C1}}} &= \p{\Theta_{1}^{\href{#eq-c1}{\textup{C1}}}}^{\top}Q\Theta_{1}^{\href{#eq-c1}{\textup{C1}}} - \rho \p{\Theta_{0}^{\href{#eq-c1}{\textup{C1}}}}^{\top}Q\Theta_{0}^{\href{#eq-c1}{\textup{C1}}} + S,
           \end{aligned}
 
    .. math::
@@ -393,7 +387,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-w
 
       \begin{aligned}
-              w^{\textup{C1}} &= \p{\theta_{1}^{\textup{C1}} - \rho \theta_{0}^{\textup{C1}} }^{\top}q + s,
+              w^{\href{#eq-c1}{\textup{C1}}} &= \p{\theta_{1}^{\href{#eq-c1}{\textup{C1}}} - \rho \theta_{0}^{\href{#eq-c1}{\textup{C1}}} }^{\top}q + s,
           \end{aligned}
 
    .. math::
@@ -401,7 +395,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-w
 
       \begin{aligned}
-              W^{\textup{C2}} &= P-Q,
+              W^{\href{#eq-c2}{\textup{C2}}} &= P-Q,
           \end{aligned}
 
    .. math::
@@ -409,7 +403,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-w
 
       \begin{aligned}
-              w^{\textup{C2}} &= p-q,
+              w^{\href{#eq-c2}{\textup{C2}}} &= p-q,
           \end{aligned}
 
    .. math::
@@ -417,7 +411,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-w
 
       \begin{aligned}
-              W^{\textup{C3}} &= T - S,
+              W^{\href{#eq-c3}{\textup{C3}}} &= T - S,
           \end{aligned}
 
    .. math::
@@ -425,7 +419,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-w
 
       \begin{aligned}
-              w^{\textup{C3}} &= t - s,
+              w^{\href{#eq-c3}{\textup{C3}}} &= t - s,
           \end{aligned}
 
    .. math::
@@ -433,7 +427,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-w
 
       \begin{aligned}
-              W^{\textup{C4}} &= \p{\Theta_{1}^{\textup{C4}}}^{\top}S\Theta_{1}^{\textup{C4}} - \p{\Theta_{0}^{\textup{C4}}}^{\top}S\Theta_{0}^{\textup{C4}},
+              W^{\href{#eq-c4}{\textup{C4}}} &= \p{\Theta_{1}^{\href{#eq-c4}{\textup{C4}}}}^{\top}S\Theta_{1}^{\href{#eq-c4}{\textup{C4}}} - \p{\Theta_{0}^{\href{#eq-c4}{\textup{C4}}}}^{\top}S\Theta_{0}^{\href{#eq-c4}{\textup{C4}}},
           \end{aligned}
 
    .. math::
@@ -441,7 +435,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-w
 
       \begin{aligned}
-              w^{\textup{C4}} &= \p{\theta_{1}^{\textup{C4}} - \theta_{0}^{\textup{C4}} }^{\top}s,
+              w^{\href{#eq-c4}{\textup{C4}}} &= \p{\theta_{1}^{\href{#eq-c4}{\textup{C4}}} - \theta_{0}^{\href{#eq-c4}{\textup{C4}}} }^{\top}s,
           \end{aligned}
 
    .. math::
@@ -449,9 +443,9 @@ Role of :math:`h` and :math:`\alpha`:
       \begin{aligned}
               \PEPMaxIter_{\textup{cond}} &=
               \begin{cases}
-                  h + \alpha + 1& \text{ if } \textup{cond} \in \set{\textup{C1},\textup{C3}},\\
-                  h & \text{ if } \textup{cond} \in \set{\textup{C2}}, \\
-                  h + \alpha + 2 & \text{ if } \textup{cond} \in \set{\textup{C4}},
+                  h + \alpha + 1& \text{ if } \textup{cond} \in \set{\href{#eq-c1}{\textup{C1}},\href{#eq-c3}{\textup{C3}}},\\
+                  h & \text{ if } \textup{cond} \in \set{\href{#eq-c2}{\textup{C2}}}, \\
+                  h + \alpha + 2 & \text{ if } \textup{cond} \in \set{\href{#eq-c4}{\textup{C4}}},
               \end{cases} \nonumber
           \end{aligned}
 
@@ -463,7 +457,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-theta
 
       \begin{aligned}
-              \Theta_{0}^{\textup{C1}} &= 
+              \Theta_{0}^{\href{#eq-c1}{\textup{C1}}} &= 
               \underbracket{
               \begin{bmatrix}
                   I_{n+\p{h+1}\NumEval } & 0_{\p{n+\p{h+1}\NumEval}\times\p{\alpha + 1}\NumEval } & 0_{\p{n+\p{h+1}\NumEval}\times m} \\
@@ -479,7 +473,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-theta
 
       \begin{aligned}
-              \theta_{0}^{\textup{C1}} &=
+              \theta_{0}^{\href{#eq-c1}{\textup{C1}}} &=
               \underbracket{
               \begin{bmatrix}
                   I_{\p{h+1}\NumEvalFunc} & 0_{\p{h+1}\NumEvalFunc \times \p{\alpha + 1}\NumEvalFunc } & 0_{\p{h+1}\NumEvalFunc \times \NumFunc } \\
@@ -495,7 +489,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-theta
 
       \begin{aligned}
-              \Theta_{1}^{\textup{C1}} &=
+              \Theta_{1}^{\href{#eq-c1}{\textup{C1}}} &=
               \underbracket{
               \begin{bmatrix}
                 X_{\alpha + 1}^{0,h + \alpha + 1} \\
@@ -512,7 +506,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-theta
 
       \begin{aligned}
-              \theta_{1}^{\textup{C1}} &=
+              \theta_{1}^{\href{#eq-c1}{\textup{C1}}} &=
               \underbracket{
               \begin{bmatrix}
                   0_{\p{\p{h+1}\NumEvalFunc + \NumFunc} \times \p{\alpha+1}\NumEvalFunc } & I_{\p{h+1}\NumEvalFunc + \NumFunc }
@@ -527,7 +521,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-theta
 
       \begin{aligned}
-              \Theta_{0}^{\textup{C4}} &=
+              \Theta_{0}^{\href{#eq-c4}{\textup{C4}}} &=
               \underbracket{
               \begin{bmatrix}
                   I_{n+\p{h+\alpha+2}\NumEval } & 0_{\p{n+\p{h+\alpha+2}\NumEval}\times \NumEval } & 0_{\p{n+\p{h+\alpha+2}\NumEval}\times m} \\
@@ -543,7 +537,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-theta
 
       \begin{aligned}
-              \theta_{0}^{\textup{C4}} &=
+              \theta_{0}^{\href{#eq-c4}{\textup{C4}}} &=
               \underbracket{
               \begin{bmatrix}
                   I_{\p{h+\alpha+2}\NumEvalFunc} & 0_{\p{h+\alpha+2}\NumEvalFunc \times \NumEvalFunc } & 0_{\p{h+\alpha+2}\NumEvalFunc \times \NumFunc } \\
@@ -559,7 +553,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-theta
 
       \begin{aligned}
-              \Theta_{1}^{\textup{C4}} &=
+              \Theta_{1}^{\href{#eq-c4}{\textup{C4}}} &=
               \underbracket{
               \begin{bmatrix}
                 X_{1}^{0,h + \alpha + 2} \\
@@ -576,7 +570,7 @@ Role of :math:`h` and :math:`\alpha`:
       :class: eq-align-theta
 
       \begin{aligned}
-              \theta_{1}^{\textup{C4}} &=
+              \theta_{1}^{\href{#eq-c4}{\textup{C4}}} &=
               \underbracket{
               \begin{bmatrix}
                   0_{\p{\p{h+\alpha+2}\NumEvalFunc + \NumFunc} \times \NumEvalFunc } & I_{\p{h+\alpha+2}\NumEvalFunc + \NumFunc }
@@ -594,7 +588,7 @@ Role of :math:`h` and :math:`\alpha`:
    .. math::
 
       \begin{aligned}
-              & \textbf{for each}\ \textup{cond} \in\set{\textup{C1},\textup{C2},\textup{C3},\textup{C4}}   \\
+              & \textbf{for each}\ \textup{cond} \in\set{\href{#eq-c1}{\textup{C1}},\href{#eq-c2}{\textup{C2}},\href{#eq-c3}{\textup{C3}},\href{#eq-c4}{\textup{C4}}}   \\
               & \quad \dim \calH \geq n + \p{\PEPMaxIter_{\textup{cond}}+1}\NumEval + m, \\
               & \mathbf{end}
           \end{aligned}
@@ -605,7 +599,7 @@ Role of :math:`h` and :math:`\alpha`:
    .. math::
 
       \begin{aligned}
-              & \textbf{for each}\ \textup{cond} \in\set{\textup{C1},\textup{C2},\textup{C3},\textup{C4}}   \\
+              & \textbf{for each}\ \textup{cond} \in\set{\href{#eq-c1}{\textup{C1}},\href{#eq-c2}{\textup{C2}},\href{#eq-c3}{\textup{C3}},\href{#eq-c4}{\textup{C4}}}   \\
               & \quad G_{\textup{cond}}\in\sym_{++}^{n + \p{\PEPMaxIter_{\textup{cond}}+1}\NumEval + m}, \\
               & \quad \bchi_{\textup{cond}}\in\reals^{\p{\PEPMaxIter_{\textup{cond}}+1}\NumEvalFunc + \NumFunc}, \\
               & \mathbf{end}
@@ -617,7 +611,7 @@ Role of :math:`h` and :math:`\alpha`:
    .. math::
 
       \begin{aligned}
-              & \textbf{for each}\ \textup{cond} \in\set{\textup{C1},\textup{C2},\textup{C3},\textup{C4}} \\
+              & \textbf{for each}\ \textup{cond} \in\set{\href{#eq-c1}{\textup{C1}},\href{#eq-c2}{\textup{C2}},\href{#eq-c3}{\textup{C3}},\href{#eq-c4}{\textup{C4}}} \\
               & \quad
               \left(
               \begin{array}{@{}c@{}}
@@ -670,14 +664,14 @@ Role of :math:`h` and :math:`\alpha`:
    .. math::
 
       \begin{aligned}
-              \p{\bx^{0},\bu^{0},\ldots,\bu^{h},\hat{\bu}^{\star},y^{\star}} &= \p{\Theta_{0}^{\textup{C1}} \kron \Id }\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}, \\
-              \p{\bFcn^{0},\ldots,\bFcn^{h},\bFcn^{\star}} &= \theta_{0}^{\textup{C1}}\p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}}, \\
-              \p{\bx^{\alpha + 1},\bu^{\alpha + 1},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}} &= \p{\Theta_{1}^{\textup{C1}} \kron \Id }\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}, \\
-              \p{\bFcn^{\alpha + 1},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} &= \theta_{1}^{\textup{C1}}\p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}}, \\
-              \p{\bx^{0},\bu^{0},\ldots,\bu^{h+\alpha + 1},\hat{\bu}^{\star},y^{\star}} &= \p{\Theta_{0}^{\textup{C4}} \kron \Id }\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}, \\
-              \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} &= \theta_{0}^{\textup{C4}} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}}, \\
-              \p{\bx^{1},\bu^{1},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}} &= \p{\Theta_{1}^{\textup{C4}} \kron \Id }\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}, \\
-              \p{\bFcn^{1},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}} &= \theta_{1}^{\textup{C4}} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}}, 
+              \p{\bx^{0},\bu^{0},\ldots,\bu^{h},\hat{\bu}^{\star},y^{\star}} &= \p{\Theta_{0}^{\href{#eq-c1}{\textup{C1}}} \kron \Id }\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}, \\
+              \p{\bFcn^{0},\ldots,\bFcn^{h},\bFcn^{\star}} &= \theta_{0}^{\href{#eq-c1}{\textup{C1}}}\p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}}, \\
+              \p{\bx^{\alpha + 1},\bu^{\alpha + 1},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}} &= \p{\Theta_{1}^{\href{#eq-c1}{\textup{C1}}} \kron \Id }\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}, \\
+              \p{\bFcn^{\alpha + 1},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} &= \theta_{1}^{\href{#eq-c1}{\textup{C1}}}\p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}}, \\
+              \p{\bx^{0},\bu^{0},\ldots,\bu^{h+\alpha + 1},\hat{\bu}^{\star},y^{\star}} &= \p{\Theta_{0}^{\href{#eq-c4}{\textup{C4}}} \kron \Id }\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}, \\
+              \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} &= \theta_{0}^{\href{#eq-c4}{\textup{C4}}} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}}, \\
+              \p{\bx^{1},\bu^{1},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}} &= \p{\Theta_{1}^{\href{#eq-c4}{\textup{C4}}} \kron \Id }\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}, \\
+              \p{\bFcn^{1},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}} &= \theta_{1}^{\href{#eq-c4}{\textup{C4}}} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}}, 
           \end{aligned}
 
    where we have used
@@ -706,10 +700,10 @@ Role of :math:`h` and :math:`\alpha`:
               \quadform{Q}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h},\hat{\bu}^{\star},y^{\star}}} - \rho q^{\top}\p{\bFcn^{0},\ldots,\bFcn^{h},\bFcn^{\star}}
                \nonumber \\
               &\quad + \quadform{S}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}} + s^{\top}\p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} \nonumber \\
-              & = \quadform{\p{\Theta_{1}^{\textup{C1}}}^{\top}Q\Theta_{1}^{\textup{C1}} - \rho \p{\Theta_{0}^{\textup{C1}}}^{\top}Q\Theta_{0}^{\textup{C1}} + S}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}} \nonumber \\
-              &\quad + \p{q^{\top}\p{\theta_{1}^{\textup{C1}} - \rho \theta_{0}^{\textup{C1}} } + s^{\top}} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} \nonumber \\
-              &  = \quadform{W^{\textup{C1}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}}
-              + \p{w^{\textup{C1}}}^{\top}\p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} \nonumber
+              & = \quadform{\p{\Theta_{1}^{\href{#eq-c1}{\textup{C1}}}}^{\top}Q\Theta_{1}^{\href{#eq-c1}{\textup{C1}}} - \rho \p{\Theta_{0}^{\href{#eq-c1}{\textup{C1}}}}^{\top}Q\Theta_{0}^{\href{#eq-c1}{\textup{C1}}} + S}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}} \nonumber \\
+              &\quad + \p{q^{\top}\p{\theta_{1}^{\href{#eq-c1}{\textup{C1}}} - \rho \theta_{0}^{\href{#eq-c1}{\textup{C1}}} } + s^{\top}} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} \nonumber \\
+              &  = \quadform{W^{\href{#eq-c1}{\textup{C1}}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}}
+              + \p{w^{\href{#eq-c1}{\textup{C1}}}}^{\top}\p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} \nonumber
           \end{aligned}
 
    where :eq:`eq:iteration_independent_lyapunov:w_c1_mat`
@@ -719,7 +713,7 @@ Role of :math:`h` and :math:`\alpha`:
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`
    gives that :ref:`(5.28) <eq:iteration_independent_lyapunov:condition>`,
-   with :math:`\textup{cond} = \textup{C1}`, is a sufficient
+   with :math:`\textup{cond} = \href{#eq-c1}{\textup{C1}}`, is a sufficient
    condition for :ref:`(C1) <eq:c1>`. Note that
 
    .. _eq:iteration_independent_lyapunov:obj_c2:
@@ -731,8 +725,8 @@ Role of :math:`h` and :math:`\alpha`:
               &\mathcal{V}\p{P,p,0} - \mathcal{V}\p{Q,q,0} \notag \\
               & = \quadform{P-Q}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h},\hat{\bu}^{\star},y^{\star}}}
               + \p{p-q}^{\top}\p{\bFcn^{0},\ldots,\bFcn^{h},\bFcn^{\star}} \notag \\
-              & = \quadform{W^{\textup{C2}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h},\hat{\bu}^{\star},y^{\star}}}
-              + \p{w^{\textup{C2}}}^{\top}\p{\bFcn^{0},\ldots,\bFcn^{h},\bFcn^{\star}}
+              & = \quadform{W^{\href{#eq-c2}{\textup{C2}}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h},\hat{\bu}^{\star},y^{\star}}}
+              + \p{w^{\href{#eq-c2}{\textup{C2}}}}^{\top}\p{\bFcn^{0},\ldots,\bFcn^{h},\bFcn^{\star}}
           \end{aligned}
 
    where :eq:`eq:iteration_independent_lyapunov:w_c2_mat`
@@ -742,7 +736,7 @@ Role of :math:`h` and :math:`\alpha`:
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`
    gives that :ref:`(5.28) <eq:iteration_independent_lyapunov:condition>`,
-   with :math:`\textup{cond} = \textup{C2}`, is a sufficient
+   with :math:`\textup{cond} = \href{#eq-c2}{\textup{C2}}`, is a sufficient
    condition for :ref:`(C2) <eq:c2>`. Note that
 
    .. _eq:iteration_independent_lyapunov:obj_c3:
@@ -754,8 +748,8 @@ Role of :math:`h` and :math:`\alpha`:
               & \mathcal{R}\p{T,t,0} - \mathcal{R}\p{S,s,0} \notag \\
               & = \quadform{T-S}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}}
               + \p{t-s}^{\top}\p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} \notag \\
-              & = \quadform{W^{\textup{C3}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}}
-              + \p{w^{\textup{C3}}}^{\top} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}}
+              & = \quadform{W^{\href{#eq-c3}{\textup{C3}}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}}
+              + \p{w^{\href{#eq-c3}{\textup{C3}}}}^{\top} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}}
           \end{aligned}
 
    where :eq:`eq:iteration_independent_lyapunov:w_c3_mat`
@@ -765,7 +759,7 @@ Role of :math:`h` and :math:`\alpha`:
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`
    gives that :ref:`(5.28) <eq:iteration_independent_lyapunov:condition>`,
-   with :math:`\textup{cond} = \textup{C3}`, is a sufficient
+   with :math:`\textup{cond} = \href{#eq-c3}{\textup{C3}}`, is a sufficient
    condition for :ref:`(C3) <eq:c3>`. Note that
 
    .. _eq:iteration_independent_lyapunov:obj_c4:
@@ -779,9 +773,9 @@ Role of :math:`h` and :math:`\alpha`:
               = \quadform{S}{\p{\bx^{1},\bu^{1},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}} + s^{\top}\p{\bFcn^{1},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}} \notag \\
               & \quad -
               \quadform{S}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 1},\hat{\bu}^{\star},y^{\star}}} - s^{\top} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 1},\bFcn^{\star}} \notag \\
-              &  = \quadform{\p{\Theta_{1}^{\textup{C4}}}^{\top}S\Theta_{1}^{\textup{C4}} - \p{\Theta_{0}^{\textup{C4}}}^{\top}S\Theta_{0}^{\textup{C4}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}} \notag \\
-              & \quad + \p{s^{\top}\p{\theta_{1}^{\textup{C4}} - \theta_{0}^{\textup{C4}} } } \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}} \nonumber \\
-              &  = \quadform{W^{\textup{C4}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}} +  \p{w^{\textup{C4}}}^{\top} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}} 
+              &  = \quadform{\p{\Theta_{1}^{\href{#eq-c4}{\textup{C4}}}}^{\top}S\Theta_{1}^{\href{#eq-c4}{\textup{C4}}} - \p{\Theta_{0}^{\href{#eq-c4}{\textup{C4}}}}^{\top}S\Theta_{0}^{\href{#eq-c4}{\textup{C4}}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}} \notag \\
+              & \quad + \p{s^{\top}\p{\theta_{1}^{\href{#eq-c4}{\textup{C4}}} - \theta_{0}^{\href{#eq-c4}{\textup{C4}}} } } \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}} \nonumber \\
+              &  = \quadform{W^{\href{#eq-c4}{\textup{C4}}}}{\p{\bx^{0},\bu^{0},\ldots,\bu^{h + \alpha + 2},\hat{\bu}^{\star},y^{\star}}} +  \p{w^{\href{#eq-c4}{\textup{C4}}}}^{\top} \p{\bFcn^{0},\ldots,\bFcn^{h + \alpha + 2},\bFcn^{\star}} 
           \end{aligned}
 
    where :eq:`eq:iteration_independent_lyapunov:w_c4_mat`
@@ -791,7 +785,7 @@ Role of :math:`h` and :math:`\alpha`:
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`
    gives that :ref:`(5.28) <eq:iteration_independent_lyapunov:condition>`,
-   with :math:`\textup{cond} = \textup{C4}`, is a sufficient
+   with :math:`\textup{cond} = \href{#eq-c4}{\textup{C4}}`, is a sufficient
    condition for :ref:`(C4) <eq:c4>`.
 
    Second, note that the proof is complete if we let the parameters

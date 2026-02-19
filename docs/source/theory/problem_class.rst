@@ -37,8 +37,7 @@ first-order optimality condition for minimizing
 
 Moreover,
 :eq:`eq:the_problem_inclusion` provides a
-formalism that covers monotone inclusion problems
-,
+formalism that covers monotone inclusion problems,
 certain equilibrium problems,
 so-called (mixed) variational inequalities,
 and beyond.
