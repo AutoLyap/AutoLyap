@@ -17,10 +17,10 @@ Run the one-command local CI helper:
 make check
 ```
 
-If needed, install missing lint/typecheck dependencies:
+If `make check` reports missing lint/typecheck tools, install or refresh test extras:
 
 ```bash
-python -m pip install ruff mypy
+python -m pip install -e '.[test]'
 ```
 
 The CI test matrix runs on Python `3.9`, `3.10`, `3.11`, `3.12`, and `3.13`.

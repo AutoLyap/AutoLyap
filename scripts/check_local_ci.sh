@@ -88,13 +88,13 @@ fi
 
 if ! python -m ruff --version >/dev/null 2>&1; then
   echo "Missing dependency: ruff" >&2
-  echo "Run: python -m pip install ruff mypy" >&2
+  echo "Run: python -m pip install -e '.[test]'" >&2
   exit 1
 fi
 
 if ! python -m mypy --version >/dev/null 2>&1; then
   echo "Missing dependency: mypy" >&2
-  echo "Run: python -m pip install ruff mypy" >&2
+  echo "Run: python -m pip install -e '.[test]'" >&2
   exit 1
 fi
 
