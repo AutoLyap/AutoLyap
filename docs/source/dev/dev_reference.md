@@ -38,14 +38,14 @@ dev_external_reference_targets
 2. {py:mod}`autolyap.algorithms` maps method updates into lifted matrices and projection operators.
 3. {py:mod}`autolyap.iteration_independent` and {py:mod}`autolyap.iteration_dependent` build SDP certificates on top of problem and algorithm structure.
 4. {py:mod}`autolyap.solver_options` normalizes backend configuration for MOSEK Fusion and CVXPY execution paths.
-5. {py:mod}`autolyap.utils` provides shared validation and matrix-construction helpers used across modules.
+5. {py:mod}`autolyap.utils` provides shared validation, matrix-construction, and backend structural-typing helpers used across modules.
 
 ## Extension points
 
 1. Add a new algorithm by subclassing {py:class}`autolyap.algorithms.algorithm.Algorithm` and implementing its required matrix/projection accessors.
 2. Add a new interpolation condition by implementing {py:meth}`autolyap.problemclass.base._InterpolationCondition.get_data` in the relevant {py:mod}`autolyap.problemclass` hierarchy.
 3. Add or modify analysis workflows in {py:mod}`autolyap.iteration_independent` or {py:mod}`autolyap.iteration_dependent` while preserving solver-backend parity.
-4. Keep parameter validation centralized by reusing helpers in {py:mod}`autolyap.utils.validation`.
+4. Keep parameter validation centralized by reusing helpers in {py:mod}`autolyap.utils.validation`, and keep backend protocol types centralized in {py:mod}`autolyap.utils.backend_types`.
 
 ## Developer invariants and pitfalls
 

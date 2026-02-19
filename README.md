@@ -34,7 +34,7 @@ If AutoLyap contributes to your research or software, please cite:
 ```bibtex
 @misc{upadhyaya2025autolyap,
   author = {Upadhyaya, Manu and Taylor, Adrien B. and Banert, Sebastian and Giselsson, Pontus},
-  title = {{AutoLyap}: {A} {P}ython package for computer-assisted Lyapunov analyses for first-order methods},
+  title = {{AutoLyap}: {A} {P}ython package for computer-assisted {L}yapunov analyses for first-order methods},
   year = {2025},
   archivePrefix = {arXiv},
   eprint = {2506.24076},

@@ -37,6 +37,8 @@ autodoc_mock_imports = [
 
 autodoc_type_aliases = {
     "CacheValueT": "typing.Any",
+    "_IterationIndependentResult": "typing.Dict[str, typing.Any]",
+    "_IterationDependentResult": "typing.Dict[str, typing.Any]",
 }
 
 templates_path = ["_templates"]

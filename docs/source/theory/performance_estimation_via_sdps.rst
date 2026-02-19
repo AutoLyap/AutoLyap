@@ -1,7 +1,7 @@
 Performance estimation via SDPs
 ===============================
 
-This section introduces a technical SDP primitive associated with the
+This page introduces a technical SDP primitive associated with the
 algorithm representation in :eq:`eq:linear_system_with_nonlinearity`
 and the inclusion problem in :eq:`eq:the_problem_inclusion`.
 This primitive is used in
@@ -320,7 +320,7 @@ infinite-dimensional. In the theorem below, we use
 reduce these
 infinite-dimensional constraints to a finite set of quadratic
 constraints.
-In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 <thm:pep_leq_zero>` is the SDP primitive discussed above.
+In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>` is the SDP primitive discussed above.
 
 .. container:: theorem
 
@@ -584,7 +584,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 <thm:pep_leq_zero
 
 .. container:: proof
 
-   *Proof.* We prove :ref:`Theorem 5.1.1 <thm:pep_leq_zero>` in a
+   *Proof.* We prove :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>` in a
    sequence of steps:
 
    .. rubric:: Formulating a primal semidefinite program.
@@ -602,7 +602,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 <thm:pep_leq_zero
           \end{cases}\end{aligned}
 
    for :math:`\hat{\bu}^{\star}` as defined in
-   :eq:`eq:pep_constraints_1` and :math:`N` given in
+   :eq:`eq:solution` and :math:`N` given in
    :eq:`eq:sumtozeromat`.
    Moreover, back substitution gives
 
@@ -776,8 +776,8 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 <thm:pep_leq_zero
    .. math::
 
       \begin{aligned}
-          &\quadform{\PEPObjMat}{\p{\bx^{\PEPMinIter},\bu^{\PEPMinIter},\ldots,\bu^{\PEPMaxIter},\hat{\bu}^{\star},y^{\star}}} + \PEPObjVec^{\top}\p{\bFcn^{\PEPMinIter},\ldots,\bFcn^{\PEPMaxIter},\bFcn^{\star}} \\
-          &= \trace\p{\PEPObjMat\gramFunc\p{{\bzeta}} } + \PEPObjVec^{\top}\bm{\chi}.\end{aligned}
+          \quadform{\PEPObjMat}{\p{\bx^{\PEPMinIter},\bu^{\PEPMinIter},\ldots,\bu^{\PEPMaxIter},\hat{\bu}^{\star},y^{\star}}} + \PEPObjVec^{\top}\p{\bFcn^{\PEPMinIter},\ldots,\bFcn^{\PEPMaxIter},\bFcn^{\star}} = \trace\p{\PEPObjMat\gramFunc\p{{\bzeta}} } + \PEPObjVec^{\top}\bm{\chi}.
+      \end{aligned}
 
    If we combine this observation about the objective function
    of :ref:`(PEP) <eq:pep>` with the (possibly relaxed) constraints

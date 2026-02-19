@@ -518,6 +518,13 @@ mjx-container[display="true"] .mjx-tag {
   text-decoration: none !important;
 }
 
+.rst-content mjx-container .plain-math-inline-link,
+.rst-content mjx-container .plain-math-inline-link:hover,
+.rst-content mjx-container .plain-math-inline-link:visited {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
 /* Keep custom MathJax tag links styled like regular equation numbers. */
 .rst-content #eq-c1 mjx-container a {
   color: inherit !important;
