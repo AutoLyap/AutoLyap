@@ -200,7 +200,7 @@ print(f"rho (theory):    {rho_taylor:.8f}")
 ```
 
 The computed value `rho (AutoLyap)` matches the closed-form theoretical rate
-expression from Theorem 2.1 in {cite}`taylor2018proximal`, i.e.,
+expression in {cite}`taylor2018proximal`, Theorem 2.1, i.e.,
 
 ```{math}
 \|x^k - x^\star\|^2 = O(\rho^k), \qquad

@@ -40,3 +40,9 @@
    :exclude-members: get_data
    :show-inheritance:
 ```
+
+## References
+
+```{bibliography}
+:filter: docname in docnames
+```
