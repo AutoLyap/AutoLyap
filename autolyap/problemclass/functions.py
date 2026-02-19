@@ -226,6 +226,10 @@ class Convex(_ParametrizedFunctionInterpolationCondition):
               1 & -1 & 0 & 0
           \end{bmatrix}.
 
+    **References**
+
+    - :cite:`taylor2016smoothstronglyconvex{Theorem 4}`.
+
     """
     def __init__(self) -> None:
         super().__init__(mu=0.0, L=INF)
@@ -275,6 +279,10 @@ class StronglyConvex(_ParametrizedFunctionInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `mu` is not valid.
+
+    **References**
+
+    - :cite:`taylor2016smoothstronglyconvex{Theorem 4}`.
     """
     def __init__(self, mu: Union[int, float]) -> None:
         mu = _ensure_positive_finite(mu, "Parameter mu", "For StronglyConvex, mu must be > 0 and finite.")
@@ -325,6 +333,10 @@ class WeaklyConvex(_ParametrizedFunctionInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `mu_tilde` is not valid.
+
+    **References**
+
+    - :cite:`rotaru2022tightconvergencerates{Theorem 3.1}`.
     """
     def __init__(self, mu_tilde: Union[int, float]) -> None:
         mu_tilde, mu = _ensure_positive_mu_tilde(mu_tilde, "WeaklyConvex")
@@ -378,6 +390,10 @@ class Smooth(_ParametrizedFunctionInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `L` is not valid.
+
+    **References**
+
+    - :cite:`taylor2017exactworstcase{Theorem 3.10}`.
     """
     def __init__(self, L: Union[int, float]) -> None:
         L = _ensure_positive_finite(L, "Parameter L", "For Smooth, L must be > 0 and finite.")
@@ -429,6 +445,10 @@ class SmoothConvex(_ParametrizedFunctionInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `L` is not valid.
+
+    **References**
+
+    - :cite:`taylor2016smoothstronglyconvex{Theorem 4}`.
     """
     def __init__(self, L: Union[int, float]) -> None:
         L = _ensure_positive_finite(L, "Parameter L", "For SmoothConvex, L must be > 0 and finite.")
@@ -482,6 +502,10 @@ class SmoothStronglyConvex(_ParametrizedFunctionInterpolationCondition):
     **Raises**
 
     - `ValueError`: If parameters are not valid.
+
+    **References**
+
+    - :cite:`taylor2016smoothstronglyconvex{Theorem 4}`.
     """
     def __init__(self, mu: Union[int, float], L: Union[int, float]) -> None:
         mu = _ensure_positive_finite(
@@ -546,6 +570,10 @@ class SmoothWeaklyConvex(_ParametrizedFunctionInterpolationCondition):
     **Raises**
 
     - `ValueError`: If parameters are not valid.
+
+    **References**
+
+    - :cite:`rotaru2022tightconvergencerates{Theorem 3.1}`.
     """
     def __init__(self, mu_tilde: Union[int, float], L: Union[int, float]) -> None:
         mu_tilde, mu = _ensure_positive_mu_tilde(mu_tilde, "SmoothWeaklyConvex")
@@ -630,6 +658,10 @@ class IndicatorFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
 
     This condition has no parameters.
 
+    **References**
+
+    - :cite:`taylor2017exactworstcase{Theorem 3.6}`.
+
     """
     def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]]:
         r"""
@@ -713,6 +745,10 @@ class SupportFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
           \end{bmatrix}.
 
     This condition has no parameters.
+
+    **References**
+
+    - :cite:`taylor2017exactworstcase{Corollary 3.7}`.
 
     """
     def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]]:

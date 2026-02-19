@@ -58,6 +58,10 @@ class MaximallyMonotone(_OperatorInterpolationCondition):
 
     This condition has no parameters.
 
+    **References**
+
+    - :cite:`bauschke2017convexanalysismonotone{Theorem 20.21}`.
+
     """
     def get_data(self) -> List[Tuple[np.ndarray, _InterpolationIndices]]:
         r"""
@@ -122,6 +126,10 @@ class StronglyMonotone(_OperatorInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `mu` is not a number, :math:`\le 0`, or infinite.
+
+    **References**
+
+    - :cite:`ryu2020operatorsplittingperformance{Proposition 1}`.
     """
     def __init__(self, mu: Union[int, float]) -> None:
         mu = _ensure_positive_finite(
@@ -195,6 +203,13 @@ class LipschitzOperator(_OperatorInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `L` is not a number, :math:`\le 0`, or infinite.
+
+    **References**
+
+    - Kirszbraun--Valentine theorem:
+      :cite:`kirszbraun1934lipschitz`,
+      :cite:`valentine1943extension`,
+      :cite:`valentine1945lipschitzconditionpreserving`.
     """
     def __init__(self, L: Union[int, float]) -> None:
         L = _ensure_positive_finite(
@@ -268,6 +283,10 @@ class Cocoercive(_OperatorInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `beta` is not a number, :math:`\le 0`, or infinite.
+
+    **References**
+
+    - :cite:`ryu2020operatorsplittingperformance{Proposition 2}`.
     """
     def __init__(self, beta: Union[int, float]) -> None:
         beta = _ensure_positive_finite(

@@ -92,7 +92,7 @@ print(f"rho (theory):   {rho_theory:.8f}")
 ```
 
 The computed value `rho (AutoLyap)` matches the theoretical rate expression in
-Theorem 6.5 of {cite}`Giselsson2017TightDouglasRachford`, i.e.,
+[Gis17, Theorem 6.5], i.e.,
 
 ```{math}
 \|x^k - x^\star\|^2 = O(\rho^k), \qquad

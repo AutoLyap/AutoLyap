@@ -430,6 +430,7 @@ html.writer-html5 .rst-content div.citation-list > div.citation > span.label {
   justify-self: start;
   text-align: left;
   white-space: nowrap;
+  color: var(--link-color);
 }
 
 html.writer-html5 .rst-content div.citation-list > div.citation > span.backrefs {
