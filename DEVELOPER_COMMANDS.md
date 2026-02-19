@@ -50,6 +50,7 @@ make -C docs deps
 - Builds documentation with `make -C docs dirhtml`.
 - Requires docs dependencies (install with `make -C docs deps`).
 - Output: `docs/build/dirhtml/`.
+- Inspect: `docs/build/dirhtml/index.html`.
 
 ### `make sync-citation`
 
@@ -157,6 +158,7 @@ From the repository root, use `make -C docs <target>`.
 ### `make -C docs dirhtml`
 
 - Builds Sphinx directory-style HTML docs into `docs/build/dirhtml/`.
+- Inspect: `docs/build/dirhtml/index.html`.
 
 ### `make -C docs clean`
 
