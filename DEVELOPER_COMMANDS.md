@@ -3,6 +3,24 @@
 This file documents developer-facing commands implemented in this repository.
 It is intentionally separate from user documentation.
 
+Before running the commands below, install the project in editable mode:
+
+```bash
+python -m pip install -e '.[test]'
+```
+
+If you need MOSEK-backed tests/examples, also install:
+
+```bash
+python -m pip install -e '.[mosek]'
+```
+
+For documentation builds, install docs dependencies:
+
+```bash
+make -C docs deps
+```
+
 ## Project-level Make targets
 
 ### `make check`
