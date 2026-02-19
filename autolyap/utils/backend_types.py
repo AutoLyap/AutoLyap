@@ -81,6 +81,14 @@ class MosekExprProtocol(Protocol):
     """Subset of ``mosek.fusion.Expr`` used in helper builders."""
 
     @staticmethod
+    def add(lhs: Any, rhs: Any) -> Any:
+        ...
+
+    @staticmethod
+    def sub(lhs: Any, rhs: Any) -> Any:
+        ...
+
+    @staticmethod
     def hstack(args: Sequence[Any]) -> Any:
         ...
 

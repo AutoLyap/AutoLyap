@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from numbers import Integral
-from typing import List, Tuple, Dict, Optional, TypeVar, Union
+from typing import Any, List, Tuple, Dict, Optional, TypeVar, Union
 
 from autolyap.utils.validation import (
     ensure_finite_array,
@@ -242,7 +242,7 @@ class Algorithm(ABC):
         return k_min, k_max
 
     @staticmethod
-    def _validate_finite_real(value: object, name: str) -> float:
+    def _validate_finite_real(value: Any, name: str) -> float:
         r"""Validate a finite real scalar parameter."""
         return ensure_real_number(value, name, finite=True)
 
@@ -255,7 +255,7 @@ class Algorithm(ABC):
         return value
 
     @staticmethod
-    def _validate_nonnegative_integral(value: object, name: str) -> int:
+    def _validate_nonnegative_integral(value: Any, name: str) -> int:
         r"""Validate a nonnegative integer parameter."""
         return ensure_integral(value, name, minimum=0)
 
