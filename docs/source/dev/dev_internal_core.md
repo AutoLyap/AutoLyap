@@ -4,11 +4,15 @@ This page focuses on internals that support analysis assembly and solver executi
 
 Public API docs for these topics are in {doc}`/lyapunov_analyses` and {doc}`/solver_backends`.
 
-## Module inventory
+## Module map
 
-1. {py:mod}`autolyap.iteration_independent`: iteration-independent SDP assembly and feasibility checks.
-2. {py:mod}`autolyap.iteration_dependent`: finite-horizon SDP assembly and chained-certificate checks.
-3. {py:mod}`autolyap.solver_options`: backend normalization and CVXPY solver-argument preparation.
+| Module | Responsibility |
+| --- | --- |
+| {py:mod}`autolyap.iteration_independent` | Iteration-independent SDP assembly and feasibility checks. |
+| {py:mod}`autolyap.iteration_dependent` | Finite-horizon SDP assembly and chained-certificate checks. |
+| {py:mod}`autolyap.solver_options` | Backend normalization and CVXPY solver-argument preparation. |
+
+## Module docstrings
 
 ```{eval-rst}
 .. automodule:: autolyap.iteration_independent

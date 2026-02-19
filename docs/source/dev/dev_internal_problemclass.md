@@ -4,14 +4,18 @@ This page documents problem-class implementation helpers used by contributors.
 
 Public condition class docs are in {doc}`/problem_class`.
 
-## Module inventory
+## Module map
 
-1. {py:mod}`autolyap.problemclass`: package-level exports for the problem-class subsystem.
-2. {py:mod}`autolyap.problemclass.indices`: parses and stores interpolation index constraints.
-3. {py:mod}`autolyap.problemclass.base`: abstract interfaces for operator and function interpolation conditions.
-4. {py:mod}`autolyap.problemclass.functions`: concrete function interpolation conditions and parameter checks.
-5. {py:mod}`autolyap.problemclass.operators`: concrete operator interpolation conditions and parameter checks.
-6. {py:mod}`autolyap.problemclass.inclusion_problem`: container that aggregates interpolation conditions into one problem definition.
+| Module | Responsibility |
+| --- | --- |
+| {py:mod}`autolyap.problemclass` | Package-level exports for the problem-class subsystem. |
+| {py:mod}`autolyap.problemclass.indices` | Parses and stores interpolation index constraints. |
+| {py:mod}`autolyap.problemclass.base` | Abstract interfaces for operator and function interpolation conditions. |
+| {py:mod}`autolyap.problemclass.functions` | Concrete function interpolation conditions and parameter checks. |
+| {py:mod}`autolyap.problemclass.operators` | Concrete operator interpolation conditions and parameter checks. |
+| {py:mod}`autolyap.problemclass.inclusion_problem` | Container that aggregates interpolation conditions into one problem definition. |
+
+## Module docstrings
 
 ```{eval-rst}
 .. automodule:: autolyap.problemclass
@@ -32,6 +36,12 @@ Public condition class docs are in {doc}`/problem_class`.
 
 ```{eval-rst}
 .. automodule:: autolyap.problemclass.inclusion_problem
+```
+
+## Key internal inclusion-problem method
+
+```{eval-rst}
+.. automethod:: autolyap.problemclass.inclusion_problem.InclusionProblem._get_component_data
 ```
 
 ## Internal condition and index types
