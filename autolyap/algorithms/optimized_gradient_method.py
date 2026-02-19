@@ -7,10 +7,8 @@ class OptimizedGradientMethod(Algorithm):
     r"""
     Optimized gradient method.
 
-    Class-level reference
-    =====================
-
-    Mathematical notation and shared definitions used by methods are defined in this class docstring.
+    See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+    for mathematical notation and definitions.
 
     Notation-driven assumptions are declared by the user via
     :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with
@@ -106,7 +104,7 @@ class OptimizedGradientMethod(Algorithm):
     .. math::
         I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
-    def __init__(self, L, K):
+    def __init__(self, L: float, K: int) -> None:
         r"""
         Initialize the optimized gradient method.
 

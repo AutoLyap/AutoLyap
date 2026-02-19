@@ -1,6 +1,6 @@
 """Inclusion-problem container and validation logic."""
 
-from typing import Any, Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 
@@ -23,22 +23,8 @@ class InclusionProblem:
     r"""
     Representation of an inclusion problem defined by interpolation conditions.
 
-    Class-level reference
-    =====================
-
-    This class-level docstring centralizes notation and component conventions
-    used by methods that validate and expose interpolation data.
-
-    .. math::
-       \text{find } y \in \calH \text{ such that }
-       0 \in \sum_{i \in \IndexFunc} \partial f_i(y) + \sum_{i \in \IndexOp} G_i(y),
-
-    where :math:`(\calH,\langle\cdot,\cdot\rangle)` is a real Hilbert space,
-    :math:`f_i: \calH \to \mathbb{R} \cup \{\pm\infty\}` are functions,
-    :math:`\partial f_i: \calH \rightrightarrows \calH` are their subdifferentials, and
-    :math:`G_i: \calH \rightrightarrows \calH` are operators. The index sets
-    :math:`\IndexFunc` and :math:`\IndexOp` are derived from the component types in `components`
-    (see **Parameters** below).
+    See :doc:`2. Problem classes </theory/problem_class>` for notation and
+    component conventions.
 
     **Parameters**
 
@@ -54,16 +40,26 @@ class InclusionProblem:
 
     - `ValueError`: If `components` is empty or if any entry contains invalid conditions.
 
-    Note: If any component uses :class:`GradientDominated` or
-    :class:`WeakMintyVariationalInequality`, the total number of components must satisfy
-    :math:`m = 1`.
+    **Note**
+
+    - For :class:`GradientDominated`, the problem must have exactly one
+      component, i.e., :math:`m = 1`; in the notation of
+      :doc:`3. Algorithm representation </theory/algorithm_representation>`,
+      :math:`m_{\textup{func}} = 1` and :math:`m_{\textup{op}} = 0`.
+      This single component may still contain a list of function
+      conditions (an intersection).
+    - For :class:`WeakMintyVariationalInequality`, the problem must have
+      exactly one component, i.e., :math:`m = 1`; in the same notation,
+      :math:`m_{\textup{op}} = 1` and :math:`m_{\textup{func}} = 0`.
+      This single component may still contain a list of operator
+      conditions (an intersection).
     """
     _SINGLE_COMPONENT_ONLY_CONDITIONS = (
         GradientDominated,
         WeakMintyVariationalInequality,
     )
 
-    def __init__(self, components: List[ComponentInput]):
+    def __init__(self, components: List[ComponentInput]) -> None:
         r"""
         Build an inclusion problem from user-provided interpolation conditions.
 
@@ -391,7 +387,7 @@ class InclusionProblem:
         if not np.allclose(matrix, matrix.T, atol=1e-8):
             raise ValueError(f"Error: {matrix_name} must be symmetric.")
 
-    def _validate_operator_data_item(self, item: Any) -> None:
+    def _validate_operator_data_item(self, item: object) -> None:
         r"""
         Validate one operator interpolation tuple `(matrix, interpolation_indices)`.
 
@@ -419,7 +415,7 @@ class InclusionProblem:
                 "Error: Operator interpolation indices must be an instance of _InterpolationIndices."
             )
 
-    def _validate_function_data_item(self, item: Any) -> None:
+    def _validate_function_data_item(self, item: object) -> None:
         r"""
         Validate one function interpolation tuple `(matrix, vector, eq, interpolation_indices)`.
 
@@ -540,7 +536,7 @@ class InclusionProblem:
         self,
         index: int,
         new_instances: ComponentInput,
-    ):
+    ) -> None:
         r"""
         Update the interpolation condition instances for a component.
 

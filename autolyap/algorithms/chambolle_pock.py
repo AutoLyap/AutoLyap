@@ -6,10 +6,8 @@ class ChambollePock(Algorithm):
     r"""
     Chambolle--Pock primal-dual method.
 
-    Class-level reference
-    =====================
-
-    Mathematical notation and shared definitions used by methods are defined in this class docstring.
+    See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+    for mathematical notation and definitions.
 
     Notation-driven assumptions are declared by the user via
     :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with
@@ -86,7 +84,7 @@ class ChambollePock(Algorithm):
     .. math::
         I_{\text{func}} = \{1,2\},\quad I_{\text{op}} = \varnothing.
     """
-    def __init__(self, tau, sigma, theta):
+    def __init__(self, tau: float, sigma: float, theta: float) -> None:
         r"""
         Initialize the Chambolle--Pock method.
 

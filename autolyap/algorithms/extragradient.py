@@ -6,10 +6,8 @@ class Extragradient(Algorithm):
     r"""
     Extragradient method.
 
-    Class-level reference
-    =====================
-
-    Mathematical notation and shared definitions used by methods are defined in this class docstring.
+    See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+    for mathematical notation and definitions.
 
     Notation-driven assumptions are declared by the user via
     :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with
@@ -130,7 +128,7 @@ class Extragradient(Algorithm):
         n = 1,\quad m = 2,\quad (\bar{m}_i)_{i=1}^{m} = (2,2),\quad \bar{m} = 4,\quad
         I_{\text{func}} = \{2\},\quad I_{\text{op}} = \{1\}.
     """
-    def __init__(self, gamma: float, delta: float, type: str = "unconstrained"):
+    def __init__(self, gamma: float, delta: float, type: str = "unconstrained") -> None:
         r"""
         Initialize the extragradient method.
 

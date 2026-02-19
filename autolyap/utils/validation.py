@@ -1,14 +1,20 @@
 """Validation helpers shared across algorithms and problem classes."""
 
 from numbers import Integral, Real
-from typing import Any, Iterable, List, Optional, Sequence, cast
+from typing import Any, Iterable, List, Optional, Sequence, Union, cast
 
 import numpy as np
 
 _INDEX_LIST_TYPES = (list, tuple, np.ndarray)
+IndexContainer = Union[List[Any], tuple[Any, ...], np.ndarray]
+RealScalar = Union[int, float, np.integer, np.floating]
 
 
-def _ensure_index_container(values: Any, name: str, error_message: str) -> Sequence[Any]:
+def _ensure_index_container(
+    values: Optional[IndexContainer],
+    name: str,
+    error_message: str,
+) -> Sequence[Any]:
     r"""
     Ensure index-like input is a concrete finite-length sequence container.
 
@@ -29,7 +35,7 @@ def _ensure_index_container(values: Any, name: str, error_message: str) -> Seque
     return cast(Sequence[Any], values)
 
 
-def ensure_integral(value: Any, name: str, minimum: Optional[int] = None,
+def ensure_integral(value: RealScalar, name: str, minimum: Optional[int] = None,
                     maximum: Optional[int] = None) -> int:
     r"""
     Validate and normalize an integer-valued scalar.
@@ -48,7 +54,7 @@ def ensure_integral(value: Any, name: str, minimum: Optional[int] = None,
     return value
 
 
-def ensure_real_number(value: Any, name: str, finite: bool = False,
+def ensure_real_number(value: RealScalar, name: str, finite: bool = False,
                        minimum: Optional[float] = None,
                        maximum: Optional[float] = None) -> float:
     r"""
@@ -82,7 +88,7 @@ def ensure_finite_array(array: np.ndarray, name: str) -> None:
         raise ValueError(f"{name} must contain only finite entries.") from exc
 
 
-def ensure_index_list(values: Iterable[Any], name: str, m: int) -> List[int]:
+def ensure_index_list(values: Iterable[RealScalar], name: str, m: int) -> List[int]:
     r"""
     Validate a sorted, duplicate-free component-index list.
 
@@ -105,7 +111,7 @@ def ensure_index_list(values: Iterable[Any], name: str, m: int) -> List[int]:
     return items
 
 
-def ensure_m_bar_list(values: Iterable[Any], m: int) -> List[int]:
+def ensure_m_bar_list(values: Iterable[RealScalar], m: int) -> List[int]:
     r"""
     Validate per-component evaluation counts.
 

@@ -123,7 +123,7 @@ class StronglyMonotone(_OperatorInterpolationCondition):
 
     - `ValueError`: If `mu` is not a number, :math:`\le 0`, or infinite.
     """
-    def __init__(self, mu: Union[int, float]):
+    def __init__(self, mu: Union[int, float]) -> None:
         mu = _ensure_positive_finite(
             mu,
             "Strong monotonicity parameter",
@@ -196,7 +196,7 @@ class LipschitzOperator(_OperatorInterpolationCondition):
 
     - `ValueError`: If `L` is not a number, :math:`\le 0`, or infinite.
     """
-    def __init__(self, L: Union[int, float]):
+    def __init__(self, L: Union[int, float]) -> None:
         L = _ensure_positive_finite(
             L,
             "Lipschitz parameter",
@@ -269,7 +269,7 @@ class Cocoercive(_OperatorInterpolationCondition):
 
     - `ValueError`: If `beta` is not a number, :math:`\le 0`, or infinite.
     """
-    def __init__(self, beta: Union[int, float]):
+    def __init__(self, beta: Union[int, float]) -> None:
         beta = _ensure_positive_finite(
             beta,
             "Cocoercivity parameter",
@@ -333,9 +333,6 @@ class WeakMintyVariationalInequality(_OperatorInterpolationCondition):
               0 & 0 & 0 & 0
           \end{bmatrix}.
 
-    Note: When used inside :class:`~autolyap.problemclass.InclusionProblem`, AutoLyap enforces that the total number
-    of components is exactly one (i.e., :math:`m = 1`) if any component uses this condition.
-
     **Parameters**
 
     - `rho_minty` (:class:`~typing.Union`\[:class:`int`, :class:`float`\]): The weak MVI parameter corresponding to
@@ -344,8 +341,17 @@ class WeakMintyVariationalInequality(_OperatorInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `rho_minty` is not a number or not finite.
+
+    **Note**
+
+    - When used inside :class:`~autolyap.problemclass.InclusionProblem`,
+      the problem must have exactly one component. In the notation of
+      :doc:`3. Algorithm representation </theory/algorithm_representation>`,
+      :math:`m = 1`, :math:`m_{\textup{op}} = 1`, and
+      :math:`m_{\textup{func}} = 0`. This single component may still
+      contain a list of operator conditions (an intersection).
     """
-    def __init__(self, rho_minty: Union[int, float]):
+    def __init__(self, rho_minty: Union[int, float]) -> None:
         rho_minty = _ensure_finite(
             rho_minty,
             "Weak MVI parameter",

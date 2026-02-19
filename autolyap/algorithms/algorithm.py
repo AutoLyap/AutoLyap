@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from numbers import Integral
-from typing import List, Tuple, Any, Dict, Optional, TypeVar, Union
+from typing import List, Tuple, Dict, Optional, TypeVar, Union
 
 from autolyap.utils.validation import (
     ensure_finite_array,
@@ -29,111 +29,21 @@ CacheValueT = TypeVar("CacheValueT")
 
 class Algorithm(ABC):
     r"""
-    Base class for algorithms expressed in the state-space representation used by AutoLyap.
+    Abstract base class (ABC) for algorithms expressed in the state-space
+    representation used by AutoLyap.
 
-    Class-level reference
-    =====================
+    See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+    for notation and representation conventions.
 
-    This class-level docstring centralizes notation shared across methods.
-    Method-level docstrings focus on API details: inputs, outputs, and validation.
-
-    **Problem statement**
-
-    The inclusion problem is defined by :class:`~autolyap.problemclass.InclusionProblem`.
-
-    .. math::
-        \text{find } y \in \calH \text{ such that } 0 \in \sum_{i \in \IndexFunc} \partial f_i(y)
-        + \sum_{i \in \IndexOp} G_i(y).
-
-    **Algorithm representation**
-
-    Pick :math:`\bx_0 \in \calH^n`, an iteration horizon
-
-    .. math::
-        K \in \naturals \cup \{\infty\},
-
-    and let, for all :math:`k \in \llbracket 0, K \rrbracket`,
-
-    .. math::
-        \begin{aligned}
-        \bx^{k+1} &= (A_k \kron \Id)\bx^k + (B_k \kron \Id)\bu^k, \\
-        \by^k &= (C_k \kron \Id)\bx^k + (D_k \kron \Id)\bu^k, \\
-        (\bu_i^k)_{i \in \IndexFunc} &\in \prod_{i \in \IndexFunc} \boldsymbol{\partial}\bfcn_i(\by_i^k), \\
-        (\bu_i^k)_{i \in \IndexOp} &\in \prod_{i \in \IndexOp} \boldsymbol{G}_i(\by_i^k), \\
-        \bFcn^k &= (\bfcn_i(\by_i^k))_{i \in \IndexFunc}.
-        \end{aligned}
-
-    **Notation**
-
-    .. math::
-        (\calH, \langle\cdot,\cdot\rangle) \text{ is a real Hilbert space.}
-
-    .. math::
-        \bx^k &\in \calH^n, \\
-        \bu^k &= (\bu_1^k,\ldots,\bu_m^k) \in \prod_{i=1}^m \calH^{\NumEval_i}, \\
-        \by^k &= (\by_1^k,\ldots,\by_m^k) \in \prod_{i=1}^m \calH^{\NumEval_i}, \\
-        \bFcn^k &\in \mathbb{R}^{\NumEvalFunc}.
-
-    The component blocks satisfy
-
-    .. math::
-        \forall i \in \llbracket 1,m \rrbracket, \qquad
-        \bu_i^k = (u_{i,1}^k,\ldots,u_{i,\NumEval_i}^k), \qquad
-        \by_i^k = (y_{i,1}^k,\ldots,y_{i,\NumEval_i}^k).
-
-    For each :math:`i \in \IndexFunc`, define
-
-    .. math::
-        \bfcn_i : \calH^{\NumEval_i} \to (\mathbb{R}\cup\{\pm\infty\})^{\NumEval_i}, \qquad
-        \bfcn_i(\by_i) = (f_i(y_{i,1}),\ldots,f_i(y_{i,\NumEval_i})).
-
-    The lifted mappings are
-
-    .. math::
-        \boldsymbol{\partial}\bfcn_i(\by_i) = \prod_{j=1}^{\NumEval_i}\partial f_i(y_{i,j}), \qquad
-        \boldsymbol{G}_i(\by_i) = \prod_{j=1}^{\NumEval_i} G_i(y_{i,j}).
-
-    The evaluation counts satisfy
-
-    .. math::
-        \NumEvalFunc = \sum_{i\in\IndexFunc} \NumEval_i, \qquad
-        \NumEvalOp = \sum_{i\in\IndexOp} \NumEval_i, \qquad
-        \NumEval = \NumEvalFunc + \NumEvalOp.
-
-    The system matrices have dimensions
-
-    .. math::
-        A_k \in \mathbb{R}^{n \times n}, \quad
-        B_k \in \mathbb{R}^{n \times \NumEval}, \quad
-        C_k \in \mathbb{R}^{\NumEval \times n}, \quad
-        D_k \in \mathbb{R}^{\NumEval \times \NumEval}.
-
-    For any :math:`M \in \mathbb{R}^{d \times b}`, the tensor operator
-
-    .. math::
-        M \kron \Id : \calH^{b} \to \calH^{d}
-
-    acts componentwise, i.e., for :math:`z=(z_1,\ldots,z_b) \in \calH^b`,
-
-    .. math::
-        (M \kron \Id)z
-        =
-        \Big(\sum_{\ell=1}^{b}[M]_{1,\ell} z_\ell,\ldots,\sum_{\ell=1}^{b}[M]_{d,\ell} z_\ell\Big).
-
-    The system matrices :math:`(A_k,B_k,C_k,D_k)` are returned by
-    :meth:`~autolyap.algorithms.Algorithm.get_ABCD` and assembled over iteration ranges by
-    :meth:`~autolyap.algorithms.algorithm.Algorithm._get_AsBsCsDs`, :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`, :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`,
-    :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`, and :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`.
-
-    Note: For a given method, the state-space representation is not unique.
-
-    Concrete subclasses must implement :meth:`~autolyap.algorithms.Algorithm.get_ABCD`; all other methods are implemented
-    by this base class.
+    **Note** 
+    
+    - For a given method, the state-space representation is not unique.
+    - Concrete subclasses must implement :meth:`~autolyap.algorithms.Algorithm.get_ABCD`; all other methods are implemented by this base class.
 
     """
 
     # Clear cached matrices when algorithm parameters change to avoid stale results.
-    def __setattr__(self, name: str, value: Any) -> None:
+    def __setattr__(self, name: str, value: object) -> None:
         super().__setattr__(name, value)
         if getattr(self, "_cache_enabled", False):
             if name in {
@@ -170,9 +80,11 @@ class Algorithm(ABC):
                 self._clear_dynamic_caches()
 
     def __init__(self, n: int, m: int, m_bar_is: List[int],
-                 I_func: List[int], I_op: List[int]):
+                 I_func: List[int], I_op: List[int]) -> None:
         r"""
-        Initialize an Algorithm with the structural parameters of the representation.
+        Initialize an :class:`~autolyap.algorithms.Algorithm` with the
+        structural parameters of the representation.
+        
         **Parameters**
 
         - `n` (:class:`int`): the state dimension, i.e., :math:`\bx^{k} \in \calH^{n}`.
@@ -330,12 +242,12 @@ class Algorithm(ABC):
         return k_min, k_max
 
     @staticmethod
-    def _validate_finite_real(value: Any, name: str) -> float:
+    def _validate_finite_real(value: object, name: str) -> float:
         r"""Validate a finite real scalar parameter."""
         return ensure_real_number(value, name, finite=True)
 
     @classmethod
-    def _validate_positive_finite_real(cls, value: Any, name: str) -> float:
+    def _validate_positive_finite_real(cls, value: object, name: str) -> float:
         r"""Validate a strictly positive finite real scalar parameter."""
         value = cls._validate_finite_real(value, name)
         if value <= 0:
@@ -343,11 +255,11 @@ class Algorithm(ABC):
         return value
 
     @staticmethod
-    def _validate_nonnegative_integral(value: Any, name: str) -> int:
+    def _validate_nonnegative_integral(value: object, name: str) -> int:
         r"""Validate a nonnegative integer parameter."""
         return ensure_integral(value, name, minimum=0)
 
-    def _set_dynamic_parameter(self, name: str, value: Any) -> None:
+    def _set_dynamic_parameter(self, name: str, value: object) -> None:
         r"""
         Update a dynamic scalar parameter only when its value changes.
 
@@ -368,14 +280,14 @@ class Algorithm(ABC):
                 raise ValueError("Each element in pairs must be a tuple of two elements (j, k).")
 
     @staticmethod
-    def _is_star_pair(j: Any, k: Any) -> bool:
+    def _is_star_pair(j: object, k: object) -> bool:
         r"""Return True when a pair corresponds to the star entry."""
         return j == 'star' and k == 'star'
 
     @staticmethod
     def _validate_nonstar_pair(
-            j: Any,
-            k: Any,
+            j: object,
+            k: object,
             m_bar_i: int,
             k_min: int,
             k_max: int,
@@ -395,7 +307,9 @@ class Algorithm(ABC):
     @abstractmethod
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         r"""
-        Mathematical notation and shared definitions follow the class-level reference in :class:`~autolyap.algorithms.algorithm.Algorithm`.
+        See :doc:`3. Algorithm representation
+        </theory/algorithm_representation>` for notation and representation
+        conventions.
 
         Return the system matrices :math:`(A_k, B_k, C_k, D_k)` at iteration :math:`k`.
         
@@ -429,7 +343,7 @@ class Algorithm(ABC):
         Each entry is the tuple returned by :meth:`~autolyap.algorithms.Algorithm.get_ABCD`.
 
         These system matrices are used to build output and state matrices via
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys` and :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`.
+        :meth:`~autolyap.algorithms.Algorithm._get_Ys` and :meth:`~autolyap.algorithms.Algorithm._get_Xs`.
 
         **Parameters**
 
@@ -484,41 +398,18 @@ class Algorithm(ABC):
     # --- U MATRICES ---
     def _generate_U(self, k_min: int, k_max: int, k: Optional[int] = None, star: bool = False) -> np.ndarray:
         r"""
-        Generate one matrix in the family used by
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`.
+        Generate one lifted input matrix.
 
-        This method returns either :math:`U_k^{k_{\textup{min}},k_{\textup{max}}}`
-        (when ``star=False``) or :math:`U_{\star}^{k_{\textup{min}},k_{\textup{max}}}`
-        (when ``star=True``), with total column count
+        See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+        for the state-space model :eq:`eq:linear_system_with_nonlinearity`.
 
-        .. math::
-           n + (k_{\textup{max}} - k_{\textup{min}} + 1)\bar{m} + m.
-
-        For ``star=False`` and :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`,
-        the returned matrix is
-
-        .. math::
-           U_k^{k_{\textup{min}},k_{\textup{max}}} = \begin{bmatrix}
-           \mathbf{0}_{\bar{m}\times\left(n + (k-k_{\textup{min}})\bar{m}\right)} &
-           I_{\bar{m}} &
-           \mathbf{0}_{\bar{m}\times\left((k_{\textup{max}}-k)\bar{m} + m\right)}
-           \end{bmatrix}.
-
-        For ``star=True``, the returned matrix is
-
-        .. math::
-           U_{\star}^{k_{\textup{min}},k_{\textup{max}}} = \begin{bmatrix}
-           \mathbf{0}_{m \times \left(n + ((k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m})\right)} &
-           N &
-           \mathbf{0}_{m \times 1}
-           \end{bmatrix},
-
-        where
-
-        .. math::
-           N = \begin{bmatrix} I_{m-1} \\ -\mathbf{1}_{1 \times (m-1)} \end{bmatrix}.
-
-        with the block column containing :math:`N` removed when :math:`m=1`.
+        This method implements :eq:`eq:u_mats` and :eq:`eq:u_star` for the
+        non-star and star cases, respectively, from
+        :doc:`5.1. Performance estimation via SDPs </theory/performance_estimation_via_sdps>`.
+        These matrices are then used in
+        :doc:`5.2. Iteration-independent analyses </theory/iteration_independent_analyses>`
+        and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`
+        through :meth:`~autolyap.algorithms.Algorithm._compute_E`.
 
         **Parameters**
 
@@ -530,9 +421,14 @@ class Algorithm(ABC):
         **Returns**
 
         - (:class:`numpy.ndarray`): The generated matrix
-          :math:`U_k^{k_{\textup{min}},k_{\textup{max}}}` (when ``star=False``)
-          or :math:`U_{\star}^{k_{\textup{min}},k_{\textup{max}}}`
-          (when ``star=True``).
+          :math:`U_k^{k_{\textup{min}},k_{\textup{max}}}` or
+          :math:`U_{\star}^{k_{\textup{min}},k_{\textup{max}}}` for
+          ``star=False`` and ``star=True``, respectively, each with
+
+          .. math::
+             n + (k_{\textup{max}} - k_{\textup{min}} + 1)\bar{m} + m
+
+          columns.
 
         **Raises**
 
@@ -596,8 +492,8 @@ class Algorithm(ABC):
 
         with the block column containing :math:`N` removed when :math:`m=1`.
 
-        These matrices are used by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_E` (and therefore
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_W`) to assemble lifted constraints.
+        These matrices are used by :meth:`~autolyap.algorithms.Algorithm._compute_E` (and therefore
+        :meth:`~autolyap.algorithms.Algorithm._compute_W`) to assemble lifted constraints.
 
         **Parameters**
 
@@ -638,66 +534,18 @@ class Algorithm(ABC):
                     sys_mats: AsBsCsDsDict,
                     k_min: int, k_max: int, k: Optional[int] = None, star: bool = False) -> np.ndarray:
         r"""
-        Generate one matrix in the family used by
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`.
+        Generate one lifted output matrix.
 
-        This method returns either :math:`Y_k^{k_{\textup{min}},k_{\textup{max}}}`
-        (when ``star=False``) or :math:`Y_{\star}^{k_{\textup{min}},k_{\textup{max}}}`
-        (when ``star=True``), using system matrices from ``sys_mats``.
-        The total number of columns is
+        See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+        for :eq:`eq:linear_system_with_nonlinearity` and :eq:`eq:abcd`.
 
-        .. math::
-           n + (k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m} + m.
-
-        For ``star=True``, the returned matrix is
-
-        .. math::
-           Y_{\star}^{k_{\textup{min}},k_{\textup{max}}}
-           =
-           \begin{bmatrix}
-               0_{m\times\left(n+(k_{\textup{max}}-k_{\textup{min}}+1)\bar{m}+m-1\right)} & \mathbf{1}_m
-           \end{bmatrix}.
-
-        For ``star=False``, :math:`k` must be provided and the returned matrix
-        :math:`Y_k^{k_{\textup{min}},k_{\textup{max}}}` is:
-
-        - If :math:`k = k_{\textup{min}}`, then
-
-        .. math::
-             Y_{k_{\textup{min}}}^{k_{\textup{min}},k_{\textup{max}}}
-             =
-             \begin{bmatrix}
-             C_{k_{\textup{min}}} & D_{k_{\textup{min}}} &
-             0_{\bar{m}\times\left((k_{\textup{max}}-k_{\textup{min}})\bar{m}+m\right)}
-             \end{bmatrix},
-
-        - If :math:`k = k_{\textup{min}} + 1`, then
-
-        .. math::
-             Y_{k_{\textup{min}}+1}^{k_{\textup{min}},k_{\textup{max}}}
-             =
-             \begin{bmatrix}
-             \left(C_{k_{\textup{min}}+1}A_{k_{\textup{min}}}\right)^{\top} \\
-             \left(C_{k_{\textup{min}}+1}B_{k_{\textup{min}}}\right)^{\top} \\
-             D_{k_{\textup{min}}+1}^{\top} \\
-             0_{\bar{m}\times\left((k_{\textup{max}}-k_{\textup{min}}-1)\bar{m}+m\right)}^{\top}
-             \end{bmatrix}^{\top},
-
-        - If :math:`k \ge k_{\textup{min}} + 2`, then
-
-        .. math::
-             Y_k^{k_{\textup{min}},k_{\textup{max}}}
-             =
-             \begin{bmatrix}
-                 \left(C_{k}A_{k-1}\cdots A_{k_{\textup{min}}}\right)^{\top} \\
-                 \left(C_{k}A_{k-1}\cdots A_{k_{\textup{min}}+1}B_{k_{\textup{min}}}\right)^{\top} \\
-                 \left(C_{k}A_{k-1}\cdots A_{k_{\textup{min}}+2}B_{k_{\textup{min}}+1}\right)^{\top} \\
-                 \vdots \\
-                 \left(C_{k}A_{k-1}B_{k-2}\right)^{\top} \\
-                 \left(C_{k}B_{k-1}\right)^{\top} \\
-                 D_{k}^{\top} \\
-                 0_{\bar{m}\times\left((k_{\textup{max}}-k)\bar{m}+m\right)}^{\top}
-             \end{bmatrix}^{\top},
+        This method implements :eq:`eq:y_mats` and :eq:`eq:y_star` for the
+        non-star and star cases, respectively, from
+        :doc:`5.1. Performance estimation via SDPs </theory/performance_estimation_via_sdps>`.
+        These matrices are then used in
+        :doc:`5.2. Iteration-independent analyses </theory/iteration_independent_analyses>`
+        and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`
+        through :meth:`~autolyap.algorithms.Algorithm._compute_E`.
 
         **Parameters**
 
@@ -711,9 +559,14 @@ class Algorithm(ABC):
         **Returns**
 
         - (:class:`numpy.ndarray`): The generated matrix
-          :math:`Y_k^{k_{\textup{min}},k_{\textup{max}}}` (when ``star=False``)
-          or :math:`Y_{\star}^{k_{\textup{min}},k_{\textup{max}}}`
-          (when ``star=True``).
+          :math:`Y_k^{k_{\textup{min}},k_{\textup{max}}}` or
+          :math:`Y_{\star}^{k_{\textup{min}},k_{\textup{max}}}` for
+          ``star=False`` and ``star=True``, respectively, each with
+
+          .. math::
+             n + (k_{\textup{max}} - k_{\textup{min}} + 1)\bar{m} + m
+
+          columns.
 
         **Raises**
 
@@ -824,8 +677,8 @@ class Algorithm(ABC):
            \end{bmatrix}.
 
         The :math:`Y` matrices are constructed from system matrices returned by
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_AsBsCsDs` (which calls :meth:`~autolyap.algorithms.Algorithm.get_ABCD`) and are used by
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_E`.
+        :meth:`~autolyap.algorithms.Algorithm._get_AsBsCsDs` (which calls :meth:`~autolyap.algorithms.Algorithm.get_ABCD`) and are used by
+        :meth:`~autolyap.algorithms.Algorithm._compute_E`.
 
         **Parameters**
 
@@ -866,45 +719,24 @@ class Algorithm(ABC):
     def _generate_X_k(self, sys_mats: AsBsCsDsDict,
                         k: int, k_min: int, k_max: int) -> np.ndarray:
         r"""
-        Generate :math:`X_k^{k_{\textup{min}},k_{\textup{max}}}` as defined in
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`, for
-        :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}} + 1\rrbracket`.
-        If :math:`k = k_{\textup{min}}`, then
+        Generate one lifted state matrix.
+
+        See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+        for :eq:`eq:linear_system_with_nonlinearity` and :eq:`eq:abcd`.
+
+        This method implements :eq:`eq:x_mats` in
+        :doc:`5.1. Performance estimation via SDPs </theory/performance_estimation_via_sdps>`
+        for
 
         .. math::
-           X_{k_{\textup{min}}}^{k_{\textup{min}},k_{\textup{max}}}
-           =
-           \begin{bmatrix}
-           I_{n} &
-           0_{n\times\left((k_{\textup{max}}-k_{\textup{min}}+1)\bar{m}+m\right)}
-           \end{bmatrix}.
+           k \in \llbracket k_{\textup{min}}, k_{\textup{max}} + 1\rrbracket.
 
-        If :math:`k = k_{\textup{min}} + 1`, then
-
-        .. math::
-           X_{k_{\textup{min}}+1}^{k_{\textup{min}},k_{\textup{max}}}
-           =
-           \begin{bmatrix}
-           A_{k_{\textup{min}}} &
-           B_{k_{\textup{min}}} &
-           0_{n\times\left((k_{\textup{max}}-k_{\textup{min}})\bar{m}+m\right)}
-           \end{bmatrix}.
-
-        If :math:`k \ge k_{\textup{min}} + 2`, then
-
-        .. math::
-           X_k^{k_{\textup{min}},k_{\textup{max}}}
-           =
-           \begin{bmatrix}
-               \left(A_{k-1}\cdots A_{k_{\textup{min}}}\right)^{\top} \\
-               \left(A_{k-1}\cdots A_{k_{\textup{min}}+1}B_{k_{\textup{min}}}\right)^{\top} \\
-               \left(A_{k-1}\cdots A_{k_{\textup{min}}+2}B_{k_{\textup{min}}+1}\right)^{\top} \\
-               \vdots \\
-               \left(A_{k-1}A_{k-2}B_{k-3}\right)^{\top} \\
-               \left(A_{k-1}B_{k-2}\right)^{\top} \\
-               B_{k-1}^{\top} \\
-               0_{n\times\left((k_{\textup{max}}+1-k)\bar{m}+m\right)}^{\top}
-           \end{bmatrix}^{\top}.
+        The resulting matrices are used in
+        :eq:`eq:iteration_independent_lyapunov:theta1:c1_mat`,
+        :eq:`eq:iteration_independent_lyapunov:theta1:c4_mat`, and
+        :eq:`eq:iteration_dependent_lyapunov:theta1_mat`, i.e., in
+        :doc:`5.2. Iteration-independent analyses </theory/iteration_independent_analyses>`
+        and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`.
 
         **Parameters**
 
@@ -997,13 +829,14 @@ class Algorithm(ABC):
            \end{cases}.
 
         The :math:`X_k` matrices are constructed from system matrices returned by
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_AsBsCsDs` (and therefore :meth:`~autolyap.algorithms.Algorithm.get_ABCD`).
+        :meth:`~autolyap.algorithms.Algorithm._get_AsBsCsDs` (and therefore :meth:`~autolyap.algorithms.Algorithm.get_ABCD`).
 
         These matrices are used by the fixed-point residual helpers in
         :class:`~autolyap.iteration_independent._SublinearConvergence` and
         :class:`~autolyap.iteration_dependent.IterationDependent` (see
         :meth:`~autolyap.iteration_independent._SublinearConvergence.get_parameters_fixed_point_residual`
-        and :meth:`~autolyap.IterationDependent.get_parameters_fixed_point_residual`).
+        and :meth:`~autolyap.IterationDependent.get_parameters_fixed_point_residual`,
+        respectively).
 
         **Parameters**
 
@@ -1070,7 +903,7 @@ class Algorithm(ABC):
         .. math::
            P_{(i,\star)} = (e_i^{m})^\top.
 
-        These projection matrices are used by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_E` and by the metric
+        These projection matrices are used by :meth:`~autolyap.algorithms.Algorithm._compute_E` and by the metric
         builders in :class:`~autolyap.iteration_independent._LinearConvergence`,
         :class:`~autolyap.iteration_independent._SublinearConvergence`, and
         :class:`~autolyap.iteration_dependent.IterationDependent`.
@@ -1107,28 +940,20 @@ class Algorithm(ABC):
     def _generate_F(self, i: int, j: Optional[int] = None, k: Optional[int] = None,
                     star: bool = False, k_min: int = 0, k_max: int = 0) -> np.ndarray:
         r"""
-        Generate one row in the family used by
-        :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`.
+        Generate one lifted function-value selector row.
 
-        Let
+        See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+        for notation.
 
-        .. math::
-           d = (k_{\textup{max}} - k_{\textup{min}} + 1)\bar{m}_{\text{func}} + m_{\text{func}},
-
-        and
-
-        .. math::
-           \textup{offset}_i = \sum_{\substack{l \in \IndexFunc\\ l < i}} \bar{m}_l.
-
-        Then this method returns:
-
-        - ``star=False``: :math:`F_{(i,j,k)}^{k_{\textup{min}},k_{\textup{max}}}
-          = \left(e_{(k-k_{\textup{min}})\bar{m}_{\text{func}} + \textup{offset}_i + j}^{d}\right)^\top`.
-        - ``star=True``: :math:`F_{(i,\star,\star)}^{k_{\textup{min}},k_{\textup{max}}}
-          = \left(e_{(k_{\textup{max}}-k_{\textup{min}}+1)\bar{m}_{\text{func}} + \kappa(i)}^{d}\right)^\top`.
-
-        Here :math:`\kappa:\IndexFunc\to\llbracket 1,m_{\textup{func}}\rrbracket`
-        is the increasing bijection used to order functional components.
+        This method implements :eq:`eq:f_mats` from
+        :doc:`5.1. Performance estimation via SDPs </theory/performance_estimation_via_sdps>`.
+        Its outputs are combined into :eq:`eq:f_func_ineq` and :eq:`eq:f_func_eq`.
+        These appear in both
+        :ref:`(5.28) <eq:iteration_independent_lyapunov:condition>` and
+        :ref:`(5.51) <eq:iteration_dependent_lyapunov:condition>` from
+        :doc:`5.2. Iteration-independent analyses </theory/iteration_independent_analyses>`
+        and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`,
+        respectively.
 
         **Parameters**
 
@@ -1217,7 +1042,7 @@ class Algorithm(ABC):
         :math:`k \in \llbracket k_{\textup{min}}, k_{\textup{max}}\rrbracket`. For star F matrices, keys are of the form
         :math:`(i,\star,\star)` for each :math:`i \in \IndexFunc`.
 
-        These F matrices are used by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_F_aggregated` and by the
+        These F matrices are used by :meth:`~autolyap.algorithms.Algorithm._compute_F_aggregated` and by the
         function-value suboptimality helpers in
         :class:`~autolyap.iteration_independent._LinearConvergence`,
         :class:`~autolyap.iteration_independent._SublinearConvergence`, and
@@ -1268,35 +1093,26 @@ class Algorithm(ABC):
     def _compute_E(self, i: int, pairs: PairList,
                   k_min: int, k_max: int, validate: bool = True) -> np.ndarray:
         r"""
-        Compute the E matrix for component :math:`i` from a list of :math:`(j, k)` pairs.
-        This stacks the blocks :math:`P_{(i,j_\ell)}Y_{k_\ell}^{k_{\textup{min}},k_{\textup{max}}}` and
-        :math:`P_{(i,j_\ell)}U_{k_\ell}^{k_{\textup{min}},k_{\textup{max}}}`
-        for each pair :math:`(j_\ell,k_\ell)`.
+        Compute the lifted matrix :math:`E` for one component and a list of pairs.
 
-        The projection matrices :math:`P` are obtained from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`. The
-        output matrices :math:`Y` are obtained from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, and the input
-        matrices :math:`U` are obtained from :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Us`, using the same
-        iteration bounds :math:`k_{\textup{min}}, k_{\textup{max}}`.
+        See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+        for notation.
 
-        The E matrix is defined as:
+        This method implements :eq:`eq:e` from
+        :doc:`5.1. Performance estimation via SDPs </theory/performance_estimation_via_sdps>`,
+        using :eq:`eq:p_mats` together with :eq:`eq:y_mats`/ :eq:`eq:y_star`
+        and :eq:`eq:u_mats`/ :eq:`eq:u_star` for non-star/star pairs,
+        respectively.
+        The resulting :math:`E` is used in :eq:`eq:w_func_ineq`,
+        :eq:`eq:w_func_eq`, and :eq:`eq:w_op` for the func-ineq, func-eq,
+        and op cases, respectively, and therefore in
+        :ref:`(5.28) <eq:iteration_independent_lyapunov:condition>` and
+        :ref:`(5.51) <eq:iteration_dependent_lyapunov:condition>` from
+        :doc:`5.2. Iteration-independent analyses </theory/iteration_independent_analyses>`
+        and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`,
+        respectively.
 
-        .. math::
-           E^{k_{\textup{min}}, k_{\textup{max}}}_{(i, j_1, k_1, \dots, j_{n_{i,o}}, k_{n_{i,o}})} =
-           \begin{bmatrix}
-           P_{(i,j_1)}Y_{k_1}^{k_{\textup{min}},k_{\textup{max}}} \\
-           \vdots \\
-           P_{(i,j_{n_{i,o}})}Y_{k_{n_{i,o}}}^{k_{\textup{min}},k_{\textup{max}}} \\
-           P_{(i,j_1)}U_{k_1}^{k_{\textup{min}},k_{\textup{max}}} \\
-           \vdots \\
-           P_{(i,j_{n_{i,o}})}U_{k_{n_{i,o}}}^{k_{\textup{min}},k_{\textup{max}}}
-           \end{bmatrix}.
-
-        The resulting matrix has dimensions
-
-        .. math::
-           2 \cdot (\text{number of pairs}) \times \left[ n + (k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m} + m \right].
-
-        The resulting :math:`E` matrix is used by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_W`.
+        The pair ordering in ``pairs`` is preserved in the row stacking.
 
         **Parameters**
 
@@ -1348,20 +1164,23 @@ class Algorithm(ABC):
     def _compute_W(self, i: int, pairs: PairList,
                   k_min: int, k_max: int, M: np.ndarray, validate: bool = True) -> np.ndarray:
         r"""
-        Compute the W matrix for component :math:`i`.
-        It is given by
+        Compute one lifted quadratic constraint matrix :math:`W`.
 
-        .. math::
-           W_{(i,j_1,k_1,\dots,j_{n_{i,o}},k_{n_{i,o}},o)}^{k_{\textup{min}},k_{\textup{max}},\textup{type}}
-           = \left(E_{(i,j_1,k_1,\dots,j_{n_{i,o}},k_{n_{i,o}})}^{k_{\textup{min}},k_{\textup{max}}}\right)^{\top}
-           M_{(i,o)}^{\textup{type}}\,
-           E_{(i,j_1,k_1,\dots,j_{n_{i,o}},k_{n_{i,o}})}^{k_{\textup{min}},k_{\textup{max}}},
+        See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+        for notation.
 
-        where :math:`E` is produced by :meth:`~autolyap.algorithms.algorithm.Algorithm._compute_E`.
-        Here :math:`o` indexes the chosen interpolation constraint and
-        :math:`\textup{type} \in \{\textup{func-ineq}, \textup{func-eq}, \textup{op}\}`.
+        This method implements the matrix definitions
+        :eq:`eq:w_func_ineq`, :eq:`eq:w_func_eq`, and :eq:`eq:w_op` for the
+        func-ineq, func-eq, and op cases, respectively, from
+        :doc:`5.1. Performance estimation via SDPs </theory/performance_estimation_via_sdps>`
+        using :math:`W = E^\top M E`.
 
-        The pairs ordering matches the input list.
+        The resulting matrices are the building blocks in
+        :ref:`(5.28) <eq:iteration_independent_lyapunov:condition>` and
+        :ref:`(5.51) <eq:iteration_dependent_lyapunov:condition>` from
+        :doc:`5.2. Iteration-independent analyses </theory/iteration_independent_analyses>`
+        and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`,
+        respectively.
 
         **Parameters**
 
@@ -1375,9 +1194,12 @@ class Algorithm(ABC):
           :math:`[2 \cdot (\text{number of pairs}) \times 2 \cdot (\text{number of pairs})]`.
           This comes from the interpolation data of the function/operator class
           (e.g., :math:`M_{(i,o)}^{\textup{func-ineq}}`, :math:`M_{(i,o)}^{\textup{func-eq}}`, or
-          :math:`M_{(i,o)}^{\textup{op}}`) for the chosen constraint. See the
-          interpolation-condition `get_data` contract or
-          `InclusionProblem._get_component_data`.
+          :math:`M_{(i,o)}^{\textup{op}}`) for ``func-ineq``, ``func-eq``, and
+          ``op`` constraints, respectively. See the
+          interpolation-condition
+          :meth:`~autolyap.problemclass.base._InterpolationCondition.get_data`
+          contract or
+          :meth:`~autolyap.problemclass.InclusionProblem._get_component_data`.
 
         - `validate` (:class:`bool`): Whether to validate inputs.
 
@@ -1410,29 +1232,23 @@ class Algorithm(ABC):
     def _compute_F_aggregated(self, i: int, pairs: PairList,
                              k_min: int, k_max: int, a: np.ndarray, validate: bool = True) -> np.ndarray:
         r"""
-        Compute the aggregated F vector for component :math:`i`.
-        This stacks the selected rows and weights them by :math:`a`:
+        Compute one aggregated lifted vector :math:`F`.
 
-        .. math::
-           F_{(i,j_1,k_1,\dots,j_n,k_n,o)}^{k_{\textup{min}},k_{\textup{max}},\textup{type}}
-           =
-           \begin{bmatrix}
-           \left(F_{(i,j_1,k_1)}^{k_{\textup{min}},k_{\textup{max}}}\right)^{\top} & \cdots &
-           \left(F_{(i,j_n,k_n)}^{k_{\textup{min}},k_{\textup{max}}}\right)^{\top}
-           \end{bmatrix} a_{(i,o)}^{\textup{type}}.
+        See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+        for notation.
 
-        Each F row is obtained from the F matrices (via :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Fs`), transposed, and
-        horizontally stacked. The resulting matrix has shape :math:`(\text{total_dim}, b)`, where
-        :math:`b` is the number of pairs, and is then multiplied by the weight vector :math:`a`
-        to yield a column vector of shape :math:`(\text{total_dim}, 1)`.
+        This method implements :eq:`eq:f_func_ineq` and :eq:`eq:f_func_eq`
+        for the func-ineq and func-eq cases, respectively,
+        from :doc:`5.1. Performance estimation via SDPs </theory/performance_estimation_via_sdps>`
+        by stacking selected rows from :meth:`~autolyap.algorithms.Algorithm._get_Fs`
+        and weighting them with ``a``.
 
-        Here :math:`o` indexes the chosen functional interpolation constraint and
-        :math:`\textup{type} \in \{\textup{func-ineq}, \textup{func-eq}\}`.
-
-        Here,
-
-        .. math::
-           \text{total_dim} = (k_{\textup{max}} - k_{\textup{min}} + 1) \cdot \bar{m}_{\text{func}} + m_{\text{func}}.
+        The resulting vectors are the linear terms used in
+        :ref:`(5.28) <eq:iteration_independent_lyapunov:condition>` and
+        :ref:`(5.51) <eq:iteration_dependent_lyapunov:condition>` from
+        :doc:`5.2. Iteration-independent analyses </theory/iteration_independent_analyses>`
+        and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`,
+        respectively.
 
         **Parameters**
 
@@ -1445,9 +1261,11 @@ class Algorithm(ABC):
         - `a` (:class:`numpy.ndarray`): weight vector :math:`a \in \mathbb{R}^{\text{number of pairs}}`.
           This comes from the functional interpolation data
           (e.g., :math:`a_{(i,o)}^{\textup{func-ineq}}` or :math:`a_{(i,o)}^{\textup{func-eq}}`)
-          for the chosen constraint. See the functional interpolation-condition
-          `get_data` contract or
-          `InclusionProblem._get_component_data`.
+          for ``func-ineq`` and ``func-eq`` constraints, respectively. See the
+          functional interpolation-condition
+          :meth:`~autolyap.problemclass.base._FunctionInterpolationCondition.get_data`
+          contract or
+          :meth:`~autolyap.problemclass.InclusionProblem._get_component_data`.
 
         - `validate` (:class:`bool`): Whether to validate inputs.
 

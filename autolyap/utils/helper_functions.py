@@ -1,7 +1,14 @@
+from typing import Any
+
 import numpy as np
+from autolyap.utils.backend_types import (
+    MosekExprProtocol,
+    MosekUpperTriangleVectorProtocol,
+    UpperTriangleValuesProtocol,
+)
 
 
-def _import_mosek_expr():
+def _import_mosek_expr() -> MosekExprProtocol:
     r"""Import MOSEK Fusion `Expr` lazily for MOSEK-backed model builders."""
     try:
         import mosek.fusion as mf
@@ -19,7 +26,10 @@ def _upper_triangle_size(n: int) -> int:
     return n * (n + 1) // 2
 
 
-def create_symmetric_matrix_expression(Xij, n):
+def create_symmetric_matrix_expression(
+    Xij: MosekUpperTriangleVectorProtocol,
+    n: int,
+) -> Any:
     r"""
     Convert a list of upper triangle variables to a symmetric matrix expression.
 
@@ -49,7 +59,8 @@ def create_symmetric_matrix_expression(Xij, n):
     X = Expr.vstack(X_rows)
     return X
 
-def create_symmetric_matrix(upper_triangle_values, n):
+
+def create_symmetric_matrix(upper_triangle_values: UpperTriangleValuesProtocol, n: int) -> np.ndarray:
     r"""
     Convert a list of upper triangle values to a symmetric matrix.
 

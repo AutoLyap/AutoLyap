@@ -1,7 +1,19 @@
 import numpy as np
-from typing import Any, Optional, Tuple, Union, List, Dict, Iterator, cast
+from typing import Any, Optional, Tuple, Union, List, Dict, Iterator, Mapping, NoReturn, TypedDict, cast
 from itertools import combinations
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
+from autolyap.utils.backend_types import (
+    CvxpyModuleProtocol,
+    CvxpyStatusModuleProtocol,
+    CvxpyValueHandleProtocol,
+    MosekFusionModuleProtocol,
+    MosekLevelHandleProtocol,
+    MosekModelProtocol,
+    MosekUpperTriangleSolutionHandleProtocol,
+    RhoTerm,
+    ScalarVariableHandle,
+    SupportsStringConversion,
+)
 from autolyap.solver_options import (
     SolverOptions,
     _normalize_solver_options,
@@ -22,6 +34,77 @@ OperatorInterpolationData = Tuple[np.ndarray, Any]
 FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, Any]
 InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
 
+IterationIndependentMultiplierKey = Tuple[str, int, PairTuple, int]
+IterationIndependentMultiplierMap = Dict[IterationIndependentMultiplierKey, ScalarVariableHandle]
+
+
+class _ReadablePair(TypedDict):
+    j: Union[int, str]
+    k: Union[int, str]
+
+
+class _IterationIndependentMultiplierRecord(TypedDict):
+    condition: str
+    component: int
+    interpolation_index: int
+    pairs: List[_ReadablePair]
+    value: float
+
+
+class _IterationIndependentMultipliers(TypedDict):
+    operator_lambda: List[_IterationIndependentMultiplierRecord]
+    function_lambda: List[_IterationIndependentMultiplierRecord]
+    function_nu: List[_IterationIndependentMultiplierRecord]
+
+
+class _IterationIndependentCertificate(TypedDict):
+    Q: np.ndarray
+    S: np.ndarray
+    q: Optional[np.ndarray]
+    s: Optional[np.ndarray]
+    multipliers: _IterationIndependentMultipliers
+
+
+class _IterationIndependentResult(TypedDict):
+    status: str
+    solve_status: Optional[str]
+    rho: Optional[float]
+    certificate: Optional[_IterationIndependentCertificate]
+
+
+class _IterationIndependentMosekSolutionHandles(TypedDict):
+    dim_P: int
+    dim_T: int
+    m_func: int
+    P: np.ndarray
+    T: np.ndarray
+    p: Optional[np.ndarray]
+    t: Optional[np.ndarray]
+    Qij: Optional[MosekUpperTriangleSolutionHandleProtocol]
+    Sij: Optional[MosekUpperTriangleSolutionHandleProtocol]
+    q_var: Optional[MosekLevelHandleProtocol]
+    s_var: Optional[MosekLevelHandleProtocol]
+    lambdas_op: IterationIndependentMultiplierMap
+    lambdas_func: IterationIndependentMultiplierMap
+    nus_func: IterationIndependentMultiplierMap
+
+
+class _IterationIndependentCvxpySolutionHandles(TypedDict):
+    dim_P: int
+    dim_T: int
+    m_func: int
+    P: np.ndarray
+    T: np.ndarray
+    p: Optional[np.ndarray]
+    t: Optional[np.ndarray]
+    Q_var: Optional[CvxpyValueHandleProtocol]
+    S_var: Optional[CvxpyValueHandleProtocol]
+    q_var: Optional[CvxpyValueHandleProtocol]
+    s_var: Optional[CvxpyValueHandleProtocol]
+    lambdas_op: IterationIndependentMultiplierMap
+    lambdas_func: IterationIndependentMultiplierMap
+    nus_func: IterationIndependentMultiplierMap
+
 _MOSEK_LICENSE_ERROR_MARKERS = (
     "err_license_expired",
     "err_license_max",
@@ -39,11 +122,11 @@ def _is_mosek_license_error(exc: Exception) -> bool:
     return any(marker in error_text for marker in _MOSEK_LICENSE_ERROR_MARKERS)
 
 
-def _normalize_mosek_status(status: Any) -> str:
+def _normalize_mosek_status(status: SupportsStringConversion) -> str:
     return "".join(ch for ch in str(status).lower() if ch.isalnum())
 
 
-def _is_mosek_primal_feasible_status(status: Any) -> bool:
+def _is_mosek_primal_feasible_status(status: SupportsStringConversion) -> bool:
     normalized = _normalize_mosek_status(status)
     return (
         "primalanddualfeasible" in normalized
@@ -51,7 +134,7 @@ def _is_mosek_primal_feasible_status(status: Any) -> bool:
     )
 
 
-def _classify_mosek_problem_status(status: Any) -> str:
+def _classify_mosek_problem_status(status: SupportsStringConversion) -> str:
     if _is_mosek_primal_feasible_status(status):
         return _RESULT_STATUS_FEASIBLE
     normalized = _normalize_mosek_status(status)
@@ -60,7 +143,11 @@ def _classify_mosek_problem_status(status: Any) -> str:
     return _RESULT_STATUS_NOT_SOLVED
 
 
-def _classify_cvxpy_problem_status(status: Any, cp, accepted_statuses: set) -> str:
+def _classify_cvxpy_problem_status(
+    status: str,
+    cp: CvxpyStatusModuleProtocol,
+    accepted_statuses: set[str],
+) -> str:
     if status in accepted_statuses:
         return _RESULT_STATUS_FEASIBLE
 
@@ -79,8 +166,8 @@ def _make_iteration_independent_result(
     status: str,
     solve_status: Optional[str],
     rho: Optional[float],
-    certificate: Optional[Dict[str, Any]],
-) -> Dict[str, Any]:
+    certificate: Optional[_IterationIndependentCertificate],
+) -> _IterationIndependentResult:
     return {
         "status": status,
         "solve_status": solve_status,
@@ -406,7 +493,7 @@ class _LinearConvergence:
             tol: float = 1e-12,
             solver_options: Optional[SolverOptions] = None,
             verbosity: int = 1,
-        ) -> Dict[str, Any]:
+        ) -> Mapping[str, Any]:
         r"""
         Perform a bisection search to find the minimum contraction parameter :math:`\rho`.
 
@@ -450,7 +537,7 @@ class _LinearConvergence:
 
         **Returns**
 
-        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Result dictionary
+        - (:class:`~typing.Mapping`\[:class:`str`, :class:`~typing.Any`\]): Result mapping
           with keys `status`, `solve_status`, `rho`, and `certificate`.
 
           - `status` (:class:`str`): One of `"feasible"`, `"infeasible"`, or
@@ -459,7 +546,7 @@ class _LinearConvergence:
             solve status for the terminal check (`None` when unavailable).
           - `rho` (:class:`~typing.Optional`\[:class:`float`\]): Best feasible
             bisection value when `status == "feasible"`; otherwise `None`.
-          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
+          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Mapping`\[:class:`str`, :class:`~typing.Any`\]\]):
             Feasibility certificate when `status == "feasible"`; otherwise `None`.
 
           The `certificate` schema is exactly the same as in
@@ -1511,7 +1598,7 @@ class _SublinearConvergence:
 
 
 class _IterationIndependentMeta(type):
-    def __getattr__(cls, name: str) -> Any:
+    def __getattr__(cls, name: str) -> NoReturn:
         if name == "verify_iteration_independent_Lyapunov":
             raise AttributeError(
                 "IterationIndependent.verify_iteration_independent_Lyapunov was removed in v0.2.0. "
@@ -1537,7 +1624,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
     SublinearConvergence = _SublinearConvergence
 
     @staticmethod
-    def _scale_by_rho(rho_term, expr):
+    def _scale_by_rho(rho_term: RhoTerm, expr: Any) -> Any:
         r"""
         Multiply `expr` by :math:`\rho` for either backend representation.
 
@@ -1556,7 +1643,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         return mf.Expr.mul(rho_term, expr)
 
     @staticmethod
-    def _import_cvxpy():
+    def _import_cvxpy() -> CvxpyModuleProtocol:
         r"""
         Import CVXPY on demand.
 
@@ -1585,7 +1672,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         return cp
 
     @staticmethod
-    def _import_mosek_fusion():
+    def _import_mosek_fusion() -> MosekFusionModuleProtocol:
         r"""
         Import MOSEK Fusion lazily for the optional MOSEK backend.
 
@@ -1612,7 +1699,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         return mf
 
     @staticmethod
-    def _apply_mosek_solver_params(mod: Any, solver_options: SolverOptions) -> None:
+    def _apply_mosek_solver_params(mod: MosekModelProtocol, solver_options: SolverOptions) -> None:
         r"""
         Apply user-provided MOSEK Fusion solver parameters to `mod`.
 
@@ -1630,7 +1717,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             mod.setSolverParam(name, value)
 
     @staticmethod
-    def _extract_scalar_variable_value(var: Any) -> float:
+    def _extract_scalar_variable_value(var: ScalarVariableHandle) -> float:
         r"""
         Extract a scalar value from a backend variable handle.
 
@@ -2363,9 +2450,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             remove_C2: bool,
             remove_C3: bool,
             remove_C4: bool,
-            rho_term,
+            rho_term: RhoTerm,
             model: Optional[Any] = None,
-        ) -> Tuple[Any, Dict[str, Any]]:
+        ) -> Tuple[Any, _IterationIndependentMosekSolutionHandles]:
         r"""
         Assemble the iteration-independent MOSEK Fusion model.
 
@@ -2505,9 +2592,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                 eq_constraint_sums[cond] = -ws[cond]
 
         # Dictionaries to hold multipliers for interpolation conditions.
-        lambdas_op: Dict[Tuple[str, int, PairTuple, int], Any] = {}
-        lambdas_func: Dict[Tuple[str, int, PairTuple, int], Any] = {}
-        nus_func: Dict[Tuple[str, int, PairTuple, int], Any] = {}
+        lambdas_op: IterationIndependentMultiplierMap = {}
+        lambdas_func: IterationIndependentMultiplierMap = {}
+        nus_func: IterationIndependentMultiplierMap = {}
 
         # ---------------------------------------------------------------------
         # Define inner helper functions for processing interpolation data.
@@ -2524,7 +2611,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         lifted_E_cache: Dict[Tuple[int, PairTuple, int], np.ndarray] = {}
         lifted_F_basis_cache: Dict[Tuple[int, PairTuple, int], np.ndarray] = {}
 
-        def _get_lifted_E(i, pairs, k_max):
+        def _get_lifted_E(i: int, pairs: PairTuple, k_max: int) -> np.ndarray:
             r"""
             Return cached lifted E matrix for one component/pair-pattern/horizon.
 
@@ -2545,7 +2632,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                 lifted_E_cache[cache_key] = E_matrix
             return E_matrix
 
-        def _get_lifted_F_basis(i, pairs, k_max):
+        def _get_lifted_F_basis(i: int, pairs: PairTuple, k_max: int) -> np.ndarray:
             r"""
             Return cached lifted F basis for one component/pair-pattern/horizon.
 
@@ -2675,7 +2762,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             if m_func > 0:
                 Mod.constraint(eq_constraint_sums[cond] == 0)
 
-        solution_handles: Dict[str, Any] = {
+        solution_handles: _IterationIndependentMosekSolutionHandles = {
             "dim_P": dim_P,
             "dim_T": dim_T,
             "m_func": m_func,
@@ -2710,9 +2797,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             remove_C2: bool,
             remove_C3: bool,
             remove_C4: bool,
-            rho_term,
-            cp,
-    ) -> Tuple[Any, Dict[str, Any]]:
+            rho_term: RhoTerm,
+            cp: CvxpyModuleProtocol,
+    ) -> Tuple[Any, _IterationIndependentCvxpySolutionHandles]:
         r"""
         Assemble the iteration-independent CVXPY problem and extraction handles.
 
@@ -2825,9 +2912,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             if m_func > 0:
                 eq_constraint_sums[cond] = -ws[cond]
 
-        lambdas_op: Dict[Tuple[str, int, PairTuple, int], Any] = {}
-        lambdas_func: Dict[Tuple[str, int, PairTuple, int], Any] = {}
-        nus_func: Dict[Tuple[str, int, PairTuple, int], Any] = {}
+        lambdas_op: IterationIndependentMultiplierMap = {}
+        lambdas_func: IterationIndependentMultiplierMap = {}
+        nus_func: IterationIndependentMultiplierMap = {}
 
         op_components = set(algo.I_op)
         m_bar_is = algo.m_bar_is
@@ -2837,7 +2924,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         lifted_E_cache: Dict[Tuple[int, PairTuple, int], np.ndarray] = {}
         lifted_F_basis_cache: Dict[Tuple[int, PairTuple, int], np.ndarray] = {}
 
-        def _get_lifted_E(i, pairs, k_max):
+        def _get_lifted_E(i: int, pairs: PairTuple, k_max: int) -> np.ndarray:
             r"""
             Return cached lifted E matrix for one component/pair-pattern/horizon.
 
@@ -2858,7 +2945,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                 lifted_E_cache[cache_key] = E_matrix
             return E_matrix
 
-        def _get_lifted_F_basis(i, pairs, k_max):
+        def _get_lifted_F_basis(i: int, pairs: PairTuple, k_max: int) -> np.ndarray:
             r"""
             Return cached lifted F basis for one component/pair-pattern/horizon.
 
@@ -2977,7 +3064,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                 constraints.append(eq_constraint_sums[cond] == 0)
 
         problem = cp.Problem(cp.Minimize(0), constraints)
-        solution_handles: Dict[str, Any] = {
+        solution_handles: _IterationIndependentCvxpySolutionHandles = {
             "dim_P": dim_P,
             "dim_T": dim_T,
             "m_func": m_func,
@@ -2996,7 +3083,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         return problem, solution_handles
 
     @staticmethod
-    def _pairs_to_readable(pairs: PairTuple) -> List[Dict[str, Union[int, str]]]:
+    def _pairs_to_readable(pairs: PairTuple) -> List[_ReadablePair]:
         r"""
         Convert internal interpolation pairs to readable dictionary records.
 
@@ -3014,8 +3101,8 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
 
     @staticmethod
     def _serialize_multipliers(
-            multiplier_vars: Dict[Tuple[str, int, PairTuple, int], Any]
-    ) -> List[Dict[str, Any]]:
+            multiplier_vars: IterationIndependentMultiplierMap,
+    ) -> List[_IterationIndependentMultiplierRecord]:
         r"""
         Convert internal multiplier variables into deterministic readable records.
 
@@ -3038,7 +3125,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         - (:class:`~typing.List`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
           Sorted readable multiplier records.
         """
-        records: List[Dict[str, Any]] = []
+        records: List[_IterationIndependentMultiplierRecord] = []
         for key, var in sorted(
                 multiplier_vars.items(),
                 key=lambda item: (item[0][0], item[0][1], item[0][3], str(item[0][2]))):
@@ -3054,7 +3141,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         return records
 
     @staticmethod
-    def _extract_iteration_independent_certificate(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_iteration_independent_certificate(
+            solution_handles: _IterationIndependentMosekSolutionHandles,
+    ) -> _IterationIndependentCertificate:
         r"""
         Extract solved Fusion variables into a plain Python/NumPy certificate.
 
@@ -3124,7 +3213,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         }
 
     @staticmethod
-    def _extract_iteration_independent_certificate_cvxpy(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_iteration_independent_certificate_cvxpy(
+            solution_handles: _IterationIndependentCvxpySolutionHandles,
+    ) -> _IterationIndependentCertificate:
         r"""
         Extract solved CVXPY variables into a plain Python/NumPy certificate.
 
@@ -3206,7 +3297,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             remove_C4: bool = True,
             solver_options: Optional[SolverOptions] = None,
             verbosity: int = 1,
-    ) -> Dict[str, Any]:
+    ) -> Mapping[str, Any]:
         r"""
         Search for an iteration-independent Lyapunov certificate via an SDP.
 
@@ -3291,7 +3382,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
 
         **Returns**
 
-        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Result dictionary
+        - (:class:`~typing.Mapping`\[:class:`str`, :class:`~typing.Any`\]): Result mapping
           with keys `status`, `solve_status`, `rho`, and `certificate`.
 
           - `status` (:class:`str`): One of `"feasible"`, `"infeasible"`, or
@@ -3299,7 +3390,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
           - `solve_status` (:class:`~typing.Optional`\[:class:`str`\]): Raw backend
             solve status (`None` when unavailable).
           - `rho` (:class:`float`): The input contraction factor.
-          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
+          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Mapping`\[:class:`str`, :class:`~typing.Any`\]\]):
             `None` unless `status == "feasible"`.
 
           When `status == "feasible"`, `certificate` has:

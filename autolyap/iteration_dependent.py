@@ -1,7 +1,18 @@
 import numpy as np
-from typing import Any, Optional, Tuple, Union, List, Dict, Iterator, cast
+from typing import Any, Optional, Tuple, Union, List, Dict, Iterator, Mapping, NoReturn, TypedDict, cast
 from itertools import combinations
 from autolyap.utils.helper_functions import create_symmetric_matrix_expression, create_symmetric_matrix
+from autolyap.utils.backend_types import (
+    CvxpyModuleProtocol,
+    CvxpyStatusModuleProtocol,
+    CvxpyValueHandleProtocol,
+    MosekFusionModuleProtocol,
+    MosekLevelHandleProtocol,
+    MosekModelProtocol,
+    MosekUpperTriangleSolutionHandleProtocol,
+    ScalarVariableHandle,
+    SupportsStringConversion,
+)
 from autolyap.solver_options import (
     SolverOptions,
     _normalize_solver_options,
@@ -21,6 +32,75 @@ OperatorInterpolationData = Tuple[np.ndarray, Any]
 FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, Any]
 InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
 
+IterationDependentMultiplierKey = Tuple[int, int, PairTuple, int]
+IterationDependentMultiplierMap = Dict[IterationDependentMultiplierKey, ScalarVariableHandle]
+
+
+class _ReadablePair(TypedDict):
+    j: Union[int, str]
+    k: Union[int, str]
+
+
+class _IterationDependentMultiplierRecord(TypedDict):
+    iteration: int
+    component: int
+    interpolation_index: int
+    pairs: List[_ReadablePair]
+    value: float
+
+
+class _IterationDependentMultipliers(TypedDict):
+    operator_lambda: List[_IterationDependentMultiplierRecord]
+    function_lambda: List[_IterationDependentMultiplierRecord]
+    function_nu: List[_IterationDependentMultiplierRecord]
+
+
+class _IterationDependentCertificate(TypedDict):
+    Q_sequence: List[np.ndarray]
+    q_sequence: Optional[List[np.ndarray]]
+    multipliers: _IterationDependentMultipliers
+
+
+class _IterationDependentResult(TypedDict):
+    status: str
+    solve_status: Optional[str]
+    c_K: Optional[float]
+    certificate: Optional[_IterationDependentCertificate]
+
+
+class _IterationDependentMosekSolutionHandles(TypedDict):
+    K: int
+    dim_Q: int
+    dim_q: Optional[int]
+    m_func: int
+    Q_0: np.ndarray
+    Q_K: np.ndarray
+    q_0: Optional[np.ndarray]
+    q_K: Optional[np.ndarray]
+    Qij_vars: Dict[int, MosekUpperTriangleSolutionHandleProtocol]
+    q_vars: Dict[int, MosekLevelHandleProtocol]
+    lambdas_op: IterationDependentMultiplierMap
+    lambdas_func: IterationDependentMultiplierMap
+    nus_func: IterationDependentMultiplierMap
+    c_K_var: ScalarVariableHandle
+
+
+class _IterationDependentCvxpySolutionHandles(TypedDict):
+    K: int
+    dim_Q: int
+    dim_q: Optional[int]
+    m_func: int
+    Q_0: np.ndarray
+    Q_K: np.ndarray
+    q_0: Optional[np.ndarray]
+    q_K: Optional[np.ndarray]
+    Q_vars: Dict[int, CvxpyValueHandleProtocol]
+    q_vars: Dict[int, CvxpyValueHandleProtocol]
+    lambdas_op: IterationDependentMultiplierMap
+    lambdas_func: IterationDependentMultiplierMap
+    nus_func: IterationDependentMultiplierMap
+    c_K_var: ScalarVariableHandle
+
 _MOSEK_LICENSE_ERROR_MARKERS = (
     "err_license_expired",
     "err_license_max",
@@ -38,11 +118,11 @@ def _is_mosek_license_error(exc: Exception) -> bool:
     return any(marker in error_text for marker in _MOSEK_LICENSE_ERROR_MARKERS)
 
 
-def _normalize_mosek_status(status: Any) -> str:
+def _normalize_mosek_status(status: SupportsStringConversion) -> str:
     return "".join(ch for ch in str(status).lower() if ch.isalnum())
 
 
-def _is_mosek_primal_feasible_status(status: Any) -> bool:
+def _is_mosek_primal_feasible_status(status: SupportsStringConversion) -> bool:
     normalized = _normalize_mosek_status(status)
     return (
         "primalanddualfeasible" in normalized
@@ -50,7 +130,7 @@ def _is_mosek_primal_feasible_status(status: Any) -> bool:
     )
 
 
-def _classify_mosek_problem_status(status: Any) -> str:
+def _classify_mosek_problem_status(status: SupportsStringConversion) -> str:
     if _is_mosek_primal_feasible_status(status):
         return _RESULT_STATUS_FEASIBLE
     normalized = _normalize_mosek_status(status)
@@ -59,7 +139,11 @@ def _classify_mosek_problem_status(status: Any) -> str:
     return _RESULT_STATUS_NOT_SOLVED
 
 
-def _classify_cvxpy_problem_status(status: Any, cp, accepted_statuses: set) -> str:
+def _classify_cvxpy_problem_status(
+    status: str,
+    cp: CvxpyStatusModuleProtocol,
+    accepted_statuses: set[str],
+) -> str:
     if status in accepted_statuses:
         return _RESULT_STATUS_FEASIBLE
 
@@ -78,8 +162,8 @@ def _make_iteration_dependent_result(
     status: str,
     solve_status: Optional[str],
     c_K: Optional[float],
-    certificate: Optional[Dict[str, Any]],
-) -> Dict[str, Any]:
+    certificate: Optional[_IterationDependentCertificate],
+) -> _IterationDependentResult:
     return {
         "status": status,
         "solve_status": solve_status,
@@ -89,7 +173,7 @@ def _make_iteration_dependent_result(
 
 
 class _IterationDependentMeta(type):
-    def __getattr__(cls, name: str) -> Any:
+    def __getattr__(cls, name: str) -> NoReturn:
         if name == "verify_iteration_dependent_Lyapunov":
             raise AttributeError(
                 "IterationDependent.verify_iteration_dependent_Lyapunov was removed in v0.2.0. "
@@ -111,7 +195,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
     :meth:`search_lyapunov` as the main entry point.
     """
     @staticmethod
-    def _import_cvxpy():
+    def _import_cvxpy() -> CvxpyModuleProtocol:
         r"""
         Import CVXPY lazily for the optional CVXPY backend.
 
@@ -137,7 +221,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         return cp
 
     @staticmethod
-    def _import_mosek_fusion():
+    def _import_mosek_fusion() -> MosekFusionModuleProtocol:
         r"""
         Import MOSEK Fusion lazily for the optional MOSEK backend.
 
@@ -164,7 +248,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         return mf
 
     @staticmethod
-    def _apply_mosek_solver_params(mod: Any, solver_options: SolverOptions) -> None:
+    def _apply_mosek_solver_params(mod: MosekModelProtocol, solver_options: SolverOptions) -> None:
         r"""
         Apply user-provided MOSEK Fusion parameters to `mod`.
 
@@ -182,7 +266,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             mod.setSolverParam(name, value)
 
     @staticmethod
-    def _extract_scalar_variable_value(var: Any) -> float:
+    def _extract_scalar_variable_value(var: ScalarVariableHandle) -> float:
         r"""
         Extract a scalar value from a backend variable handle.
 
@@ -836,16 +920,16 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             prob: InclusionProblem,
             algo: Algorithm,
             K: int,
-            Q_0,
-            Q_K,
-            q_0,
-            q_K,
+            Q_0: np.ndarray,
+            Q_K: np.ndarray,
+            q_0: Optional[np.ndarray],
+            q_K: Optional[np.ndarray],
             dim_Q: int,
             dim_q: Optional[int],
             m_func: int,
             m_op: int,
             model: Optional[Any] = None,
-    ) -> Tuple[Any, Dict[str, Any]]:
+    ) -> Tuple[Any, _IterationDependentMosekSolutionHandles]:
         r"""
         Assemble the iteration-dependent MOSEK Fusion model.
 
@@ -878,14 +962,14 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         Qs = {}
         Qs[0] = Q_0
         Qs[K] = Q_K
-        Qij_vars: Dict[int, Any] = {}
+        Qij_vars: Dict[int, MosekUpperTriangleSolutionHandleProtocol] = {}
         for k in range(1, K):
             Qij = Mod.variable(f"Q_{k}", dim_Q * (dim_Q + 1) // 2, mf.Domain.unbounded())
             Q_k = create_symmetric_matrix_expression(Qij, dim_Q)
             Qs[k] = Q_k
             Qij_vars[k] = Qij
 
-        q_vars: Dict[int, Any] = {}
+        q_vars: Dict[int, MosekLevelHandleProtocol] = {}
         if m_func > 0:
             qs = {}
             qs[0] = q_0
@@ -925,9 +1009,9 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                 eq_constraint_sums[k] = -ws[k]
 
         # Multipliers for interpolation conditions.
-        lambdas_op: Dict[Tuple[int, int, PairTuple, int], Any] = {}
-        lambdas_func: Dict[Tuple[int, int, PairTuple, int], Any] = {}
-        nus_func: Dict[Tuple[int, int, PairTuple, int], Any] = {}
+        lambdas_op: IterationDependentMultiplierMap = {}
+        lambdas_func: IterationDependentMultiplierMap = {}
+        nus_func: IterationDependentMultiplierMap = {}
 
         # Inner helpers for processing interpolation data.
         n = algo.n
@@ -945,7 +1029,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         lifted_E_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
         lifted_F_basis_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
 
-        def _get_lifted_E(k, i, pairs):
+        def _get_lifted_E(k: int, i: int, pairs: PairTuple) -> np.ndarray:
             r"""
             Return cached lifted E matrix for one iteration/component/pair pattern.
 
@@ -966,7 +1050,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                 lifted_E_cache[cache_key] = E_matrix
             return E_matrix
 
-        def _get_lifted_F_basis(k, i, pairs):
+        def _get_lifted_F_basis(k: int, i: int, pairs: PairTuple) -> np.ndarray:
             r"""
             Return cached lifted F basis for one iteration/component/pair pattern.
 
@@ -1095,7 +1179,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
 
         Mod.objective("obj", mf.ObjectiveSense.Minimize, c_K)
 
-        solution_handles: Dict[str, Any] = {
+        solution_handles: _IterationDependentMosekSolutionHandles = {
             "K": K,
             "dim_Q": dim_Q,
             "dim_q": dim_q,
@@ -1118,16 +1202,16 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             prob: InclusionProblem,
             algo: Algorithm,
             K: int,
-            Q_0,
-            Q_K,
-            q_0,
-            q_K,
+            Q_0: np.ndarray,
+            Q_K: np.ndarray,
+            q_0: Optional[np.ndarray],
+            q_K: Optional[np.ndarray],
             dim_Q: int,
             dim_q: Optional[int],
             m_func: int,
             m_op: int,
-            cp,
-    ) -> Tuple[Any, Dict[str, Any]]:
+            cp: CvxpyModuleProtocol,
+    ) -> Tuple[Any, _IterationDependentCvxpySolutionHandles]:
         r"""
         Assemble the CVXPY iteration-dependent problem and extraction handles.
 
@@ -1152,13 +1236,13 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         c_K = cp.Variable(nonneg=True)
 
         Qs: Dict[int, Any] = {0: Q_0, K: Q_K}
-        Q_vars: Dict[int, Any] = {}
+        Q_vars: Dict[int, CvxpyValueHandleProtocol] = {}
         for k in range(1, K):
             Q_k = cp.Variable((dim_Q, dim_Q), symmetric=True)
             Qs[k] = Q_k
             Q_vars[k] = Q_k
 
-        q_vars: Dict[int, Any] = {}
+        q_vars: Dict[int, CvxpyValueHandleProtocol] = {}
         if m_func > 0:
             qs: Dict[int, Any] = {0: q_0, K: q_K}
             for k in range(1, K):
@@ -1187,9 +1271,9 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             if m_func > 0:
                 eq_constraint_sums[k] = -ws[k]
 
-        lambdas_op: Dict[Tuple[int, int, PairTuple, int], Any] = {}
-        lambdas_func: Dict[Tuple[int, int, PairTuple, int], Any] = {}
-        nus_func: Dict[Tuple[int, int, PairTuple, int], Any] = {}
+        lambdas_op: IterationDependentMultiplierMap = {}
+        lambdas_func: IterationDependentMultiplierMap = {}
+        nus_func: IterationDependentMultiplierMap = {}
 
         m_bar_func = algo.m_bar_func
         op_components = set(algo.I_op)
@@ -1201,7 +1285,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         lifted_E_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
         lifted_F_basis_cache: Dict[Tuple[int, int, Tuple[Union[Tuple[int, int], Tuple[str, str]], ...]], np.ndarray] = {}
 
-        def _get_lifted_E(k, i, pairs):
+        def _get_lifted_E(k: int, i: int, pairs: PairTuple) -> np.ndarray:
             r"""
             Return cached lifted E matrix for one iteration/component/pair pattern.
 
@@ -1222,7 +1306,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                 lifted_E_cache[cache_key] = E_matrix
             return E_matrix
 
-        def _get_lifted_F_basis(k, i, pairs):
+        def _get_lifted_F_basis(k: int, i: int, pairs: PairTuple) -> np.ndarray:
             r"""
             Return cached lifted F basis for one iteration/component/pair pattern.
 
@@ -1332,7 +1416,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                 constraints.append(eq_constraint_sums[k] == 0)
 
         problem = cp.Problem(cp.Minimize(c_K), constraints)
-        solution_handles: Dict[str, Any] = {
+        solution_handles: _IterationDependentCvxpySolutionHandles = {
             "K": K,
             "dim_Q": dim_Q,
             "dim_q": dim_q,
@@ -1351,7 +1435,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         return problem, solution_handles
 
     @staticmethod
-    def _pairs_to_readable(pairs: PairTuple) -> List[Dict[str, Union[int, str]]]:
+    def _pairs_to_readable(pairs: PairTuple) -> List[_ReadablePair]:
         r"""
         Convert internal interpolation pairs to readable dictionary records.
 
@@ -1369,8 +1453,8 @@ class IterationDependent(metaclass=_IterationDependentMeta):
 
     @staticmethod
     def _serialize_iteration_dependent_multipliers(
-            multiplier_vars: Dict[Tuple[int, int, PairTuple, int], Any]
-    ) -> List[Dict[str, Any]]:
+            multiplier_vars: IterationDependentMultiplierMap,
+    ) -> List[_IterationDependentMultiplierRecord]:
         r"""
         Convert scalar multiplier variables into sorted, readable records.
 
@@ -1387,7 +1471,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         - (:class:`~typing.List`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
           Sorted readable multiplier records.
         """
-        records: List[Dict[str, Any]] = []
+        records: List[_IterationDependentMultiplierRecord] = []
         for key, var in sorted(
                 multiplier_vars.items(),
                 key=lambda item: (item[0][0], item[0][1], item[0][3], str(item[0][2]))):
@@ -1403,7 +1487,9 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         return records
 
     @staticmethod
-    def _extract_iteration_dependent_certificate(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_iteration_dependent_certificate(
+            solution_handles: _IterationDependentMosekSolutionHandles,
+    ) -> _IterationDependentCertificate:
         r"""
         Extract a solved iteration-dependent certificate into NumPy/Python values.
 
@@ -1464,7 +1550,9 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         }
 
     @staticmethod
-    def _extract_iteration_dependent_certificate_cvxpy(solution_handles: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_iteration_dependent_certificate_cvxpy(
+            solution_handles: _IterationDependentCvxpySolutionHandles,
+    ) -> _IterationDependentCertificate:
         r"""
         Extract a solved CVXPY-backed iteration-dependent certificate.
 
@@ -1536,7 +1624,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             q_K: Optional[np.ndarray] = None,
             solver_options: Optional[SolverOptions] = None,
             verbosity: int = 1,
-    ) -> Dict[str, Any]:
+    ) -> Mapping[str, Any]:
         r"""
         Search for an iteration-dependent Lyapunov certificate via an SDP.
 
@@ -1599,7 +1687,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
 
         **Returns**
 
-        - (:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]): Result dictionary
+        - (:class:`~typing.Mapping`\[:class:`str`, :class:`~typing.Any`\]): Result mapping
           with keys `status`, `solve_status`, `c_K`, and `certificate`.
 
           - `status` (:class:`str`): One of `"feasible"`, `"infeasible"`, or
@@ -1608,7 +1696,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             solve status (`None` when unavailable).
           - `c_K` (:class:`~typing.Optional`\[:class:`float`\]): Optimal objective value when
             `status == "feasible"`; otherwise `None`. This is the horizon-dependent scalar.
-          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Any`\]\]):
+          - `certificate` (:class:`~typing.Optional`\[:class:`~typing.Mapping`\[:class:`str`, :class:`~typing.Any`\]\]):
             `None` unless `status == "feasible"`.
 
           When `status == "feasible"`, `certificate` has:

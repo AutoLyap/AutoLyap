@@ -6,10 +6,8 @@ class GradientNesterovMomentum(Algorithm):
     r"""
     Gradient method with Nesterov-like momentum.
 
-    Class-level reference
-    =====================
-
-    Mathematical notation and shared definitions used by methods are defined in this class docstring.
+    See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+    for mathematical notation and definitions.
 
     Notation-driven assumptions are declared by the user via
     :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with
@@ -75,7 +73,7 @@ class GradientNesterovMomentum(Algorithm):
     .. math::
         I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
-    def __init__(self, gamma, delta):
+    def __init__(self, gamma: float, delta: float) -> None:
         r"""
         Initialize the method.
 

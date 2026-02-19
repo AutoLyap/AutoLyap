@@ -7,10 +7,8 @@ class ITEM(Algorithm):
     r"""
     Information-theoretic exact method (ITEM).
 
-    Class-level reference
-    =====================
-
-    Mathematical notation and shared definitions used by methods are defined in this class docstring.
+    See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+    for mathematical notation and definitions.
 
     Notation-driven assumptions are declared by the user via
     :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with
@@ -86,7 +84,7 @@ class ITEM(Algorithm):
     .. math::
         I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
-    def __init__(self, mu, L):
+    def __init__(self, mu: float, L: float) -> None:
         r"""
         Initialize ITEM.
 
