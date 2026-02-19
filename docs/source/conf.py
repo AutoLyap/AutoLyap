@@ -4,6 +4,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from xml.sax.saxutils import escape as xml_escape
 
+from docutils import nodes
 from sphinx import addnodes
 from sphinx.domains.python._object import PyObject
 project = "AutoLyap"
@@ -472,6 +473,30 @@ def _normalized_baseurl(app):
     return str(context_baseurl).strip().rstrip("/")
 
 
+def _docname_url_path(app, docname):
+    """Resolve a URL path for a docname in the current HTML builder."""
+    if docname == app.config.root_doc:
+        return "/"
+
+    builder_name = str(getattr(app.builder, "name", "")).strip().lower()
+    if builder_name == "dirhtml":
+        return f"/{docname}/"
+
+    try:
+        target_uri = str(app.builder.get_target_uri(docname)).strip()
+    except Exception:
+        target_uri = f"{docname}.html"
+
+    if not target_uri:
+        return "/"
+    return f"/{target_uri.lstrip('/')}"
+
+
+def _docname_page_url(app, docname, baseurl):
+    """Resolve an absolute canonical URL for a docname."""
+    return f"{baseurl}{_docname_url_path(app, docname)}"
+
+
 def _is_noindex_docname(docname: str) -> bool:
     """Return whether a generated HTML page should be excluded from indexing."""
     noindex_pages = {"search", "genindex", "py-modindex", "modindex"}
@@ -483,10 +508,118 @@ def _is_noindex_docname(docname: str) -> bool:
     )
 
 
+def _normalize_meta_text(text):
+    """Collapse whitespace in free-form text for meta tag usage."""
+    return " ".join(str(text).split())
+
+
+def _truncate_meta_description(text, *, max_length=160):
+    """Trim text to a sensible meta-description length without mid-word cuts."""
+    normalized = _normalize_meta_text(text)
+    if len(normalized) <= max_length:
+        return normalized
+
+    ellipsis = "..."
+    if max_length <= len(ellipsis):
+        return ellipsis[:max_length]
+
+    hard_limit = max_length - len(ellipsis)
+    cutoff = normalized.rfind(" ", 0, hard_limit + 1)
+    if cutoff < int(hard_limit * 0.6):
+        cutoff = hard_limit
+
+    truncated = normalized[:cutoff].rstrip(" ,.;:-")
+    if not truncated:
+        truncated = normalized[:hard_limit]
+    return f"{truncated}{ellipsis}"
+
+
+def _extract_auto_page_description(doctree):
+    """Extract a concise page description from the first substantial paragraph."""
+    if doctree is None:
+        return ""
+
+    for paragraph in doctree.findall(nodes.paragraph):
+        candidate = _truncate_meta_description(paragraph.astext())
+        if len(candidate) >= 40:
+            return candidate
+    return ""
+
+
+def _collect_page_feature_flags(doctree):
+    """Return per-page feature flags used to trim optional runtime scripts."""
+    flags = {
+        "page_has_math": False,
+        "page_has_code_blocks": False,
+        "page_has_images": False,
+    }
+    if doctree is None:
+        return flags
+
+    flags["page_has_math"] = bool(
+        any(doctree.findall(nodes.math)) or any(doctree.findall(nodes.math_block))
+    )
+    flags["page_has_code_blocks"] = bool(any(doctree.findall(nodes.literal_block)))
+    flags["page_has_images"] = bool(any(doctree.findall(nodes.image)))
+    return flags
+
+
+def _script_filename(script_file):
+    """Normalize a script file object/string into a comparable filename."""
+    filename = getattr(script_file, "filename", "")
+    if filename:
+        return str(filename)
+    return str(script_file)
+
+
+def _filter_optional_script_files(
+    context, *, page_has_math, page_has_code_blocks, page_has_images
+):
+    """Drop optional scripts from pages that do not need them."""
+    script_files = context.get("script_files")
+    if not script_files:
+        return
+
+    keep_copybutton = bool(page_has_code_blocks)
+    keep_math_tag_links = bool(page_has_math)
+    keep_perf = bool(page_has_images)
+    filtered = []
+    for script_file in script_files:
+        script_name = _script_filename(script_file)
+        if "perf.js" in script_name and not keep_perf:
+            continue
+        if "copybutton.js" in script_name and not keep_copybutton:
+            continue
+        if "math_tag_links.js" in script_name and not keep_math_tag_links:
+            continue
+        filtered.append(script_file)
+
+    context["script_files"] = filtered
+
+
 def _inject_seo_page_context(app, pagename, templatename, context, doctree):
     """Expose normalized URL and indexability flags to templates."""
     if app.builder.format != "html":
         return
+
+    seo_pages = app.config.html_context.get("seo_pages", {})
+    seo_page = seo_pages.get(pagename, {}) if isinstance(seo_pages, dict) else {}
+    if not isinstance(seo_page, dict):
+        seo_page = {}
+    description = seo_page.get("description")
+    if description:
+        context["seo_page_description"] = _truncate_meta_description(description)
+    else:
+        context["seo_page_description"] = _extract_auto_page_description(doctree)
+
+    feature_flags = _collect_page_feature_flags(doctree)
+    context.update(feature_flags)
+    _filter_optional_script_files(
+        context,
+        page_has_math=feature_flags["page_has_math"],
+        page_has_code_blocks=feature_flags["page_has_code_blocks"],
+        page_has_images=feature_flags["page_has_images"],
+    )
 
     context["seo_is_noindex"] = _is_noindex_docname(pagename)
     try:
@@ -506,12 +639,8 @@ def _inject_seo_page_context(app, pagename, templatename, context, doctree):
     if not baseurl:
         return
 
-    root_doc = app.config.root_doc
-    if pagename == root_doc:
-        page_url = f"{baseurl}/"
-    else:
-        page_url = f"{baseurl}/{pagename}.html"
-
+    page_url = _docname_page_url(app, pagename, baseurl)
+    context["seo_search_url"] = _docname_page_url(app, "search", baseurl)
     context["pageurl"] = page_url
     context["seo_page_url"] = page_url
 
@@ -535,11 +664,10 @@ def _write_sitemap_and_robots(app, exception):
     for docname in sorted(env.found_docs):
         if _is_noindex_docname(docname):
             continue
+        loc = _docname_page_url(app, docname, baseurl)
         if docname == app.config.root_doc:
-            loc = f"{baseurl}/"
             priority = "1.0"
         else:
-            loc = f"{baseurl}/{docname}.html"
             priority = "0.8"
 
         source_path = Path(env.doc2path(docname, base=None))
@@ -575,9 +703,10 @@ def _write_sitemap_and_robots(app, exception):
     robots_lines = [
         "User-agent: *",
         "Allow: /",
-        "Disallow: /search.html",
-        "Disallow: /genindex.html",
-        "Disallow: /py-modindex.html",
+        f"Disallow: {_docname_url_path(app, 'search')}",
+        f"Disallow: {_docname_url_path(app, 'genindex')}",
+        f"Disallow: {_docname_url_path(app, 'py-modindex')}",
+        f"Disallow: {_docname_url_path(app, 'modindex')}",
         "Disallow: /_sources/",
         "Disallow: /_modules/",
         f"Sitemap: {baseurl}/sitemap.xml",
