@@ -35,6 +35,8 @@ setup(
         "test": [
             "pytest>=7.4",
             "pytest-cov>=4.1",
+            "ruff",
+            "mypy",
         ],
     },
     classifiers=[
