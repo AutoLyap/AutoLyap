@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class GradientNesterovMomentum(Algorithm):
     r"""
-    Gradient method with Nesterov-like momentum.
+    Gradient method with Nesterov-like momentum :cite:`nesterov2018lecturesconvexoptimization`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

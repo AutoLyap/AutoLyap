@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class HeavyBallMethod(Algorithm):
     r"""
-    Heavy-ball method.
+    Heavy-ball method :cite:`Polyak1964HeavyBall`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

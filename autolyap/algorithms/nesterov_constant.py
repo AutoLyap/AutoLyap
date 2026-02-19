@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class NesterovConstant(Algorithm):
     r"""
-    Nesterov's constant-step scheme.
+    Nesterov's constant-step scheme :cite:`nesterov2018lecturesconvexoptimization{Constant step scheme III}`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

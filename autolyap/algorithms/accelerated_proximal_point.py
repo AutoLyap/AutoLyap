@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class AcceleratedProximalPoint(Algorithm):
     r"""
-    Accelerated proximal point method.
+    Accelerated proximal point method :cite:`kim2021acceleratedproximalpoint`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

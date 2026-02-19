@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class ChambollePock(Algorithm):
     r"""
-    Chambolle--Pock primal-dual method.
+    Chambolle--Pock primal-dual method :cite:`chambolle2011firstorderprimal`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.
