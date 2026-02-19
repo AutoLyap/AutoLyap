@@ -4,11 +4,15 @@ These helpers are shared across algorithms, problem classes, and analysis/solver
 
 Public API docs using these helpers are surfaced through {doc}`/solver_backends` and {doc}`/api_reference`.
 
-## Module inventory
+## Module map
 
-1. {py:mod}`autolyap.utils.validation`: scalar, index, and finite-array validation helpers.
-2. {py:mod}`autolyap.utils.helper_functions`: symmetric-matrix construction helpers.
-3. {py:mod}`autolyap.utils.backend_types`: protocol-based structural typing aliases for optional solver backends.
+| Module | Responsibility |
+| --- | --- |
+| {py:mod}`autolyap.utils.validation` | Scalar, index, and finite-array validation helpers. |
+| {py:mod}`autolyap.utils.helper_functions` | Symmetric-matrix construction helpers. |
+| {py:mod}`autolyap.utils.backend_types` | Protocol-based structural typing aliases for optional solver backends. |
+
+## Package namespace
 
 ```{eval-rst}
 .. automodule:: autolyap.utils
