@@ -1,8 +1,8 @@
 (() => {
   let cachedEqnoStyle = null;
   let alignRafId = 0;
-  let alignIntervalId = 0;
-  let alignIntervalRuns = 0;
+  const alignRetryTimeoutIds = [];
+  let observerIdleTimeoutId = 0;
   const EQ_ALIGN_SELECTORS = [
     "div.math.eq-align-dep-w",
     "div.math.eq-align-dep-theta",
@@ -10,6 +10,15 @@
     "div.math.eq-align-w",
     "div.math.eq-align-theta",
   ];
+  const MATH_NODE_SELECTOR = [
+    "mjx-container",
+    "mjx-tag",
+    "mjx-mtext",
+    "mjx-mi",
+    ".rst-content div.math",
+    ".rst-content span.math",
+  ].join(", ");
+  const ALIGN_RETRY_DELAYS_MS = [120, 320, 800, 1800, 3600, 7000];
   const INLINE_LABEL_TARGETS = {
     C1: "eq-c1",
     C2: "eq-c2",
@@ -293,21 +302,48 @@
     }
   }
 
-  function startAlignmentWatch() {
-    if (alignIntervalId) {
-      window.clearInterval(alignIntervalId);
-      alignIntervalId = 0;
+  function hasAlignmentTargets(root = document) {
+    return EQ_ALIGN_SELECTORS.some((selector) => !!root.querySelector(selector));
+  }
+
+  function hasMathContent(root = document) {
+    return !!root.querySelector(MATH_NODE_SELECTOR);
+  }
+
+  function clearAlignmentRetryTimeouts() {
+    while (alignRetryTimeoutIds.length) {
+      window.clearTimeout(alignRetryTimeoutIds.pop());
     }
-    alignIntervalRuns = 0;
-    // MathJax and font metrics can settle a bit after initial render.
-    alignIntervalId = window.setInterval(() => {
-      scheduleEqualsAlignment();
-      alignIntervalRuns += 1;
-      if (alignIntervalRuns >= 150) {
-        window.clearInterval(alignIntervalId);
-        alignIntervalId = 0;
-      }
-    }, 200);
+  }
+
+  function scheduleAlignmentRetries() {
+    clearAlignmentRetryTimeouts();
+    for (const delayMs of ALIGN_RETRY_DELAYS_MS) {
+      alignRetryTimeoutIds.push(
+        window.setTimeout(() => {
+          scheduleEqualsAlignment();
+        }, delayMs)
+      );
+    }
+  }
+
+  function armObserverIdleTimeout(observer) {
+    if (observerIdleTimeoutId) {
+      window.clearTimeout(observerIdleTimeoutId);
+    }
+    observerIdleTimeoutId = window.setTimeout(() => {
+      observer.disconnect();
+    }, 20000);
+  }
+
+  function nodeHasMathContent(node) {
+    if (!(node instanceof Element)) {
+      return false;
+    }
+    if (node.matches(MATH_NODE_SELECTOR)) {
+      return true;
+    }
+    return !!node.querySelector(MATH_NODE_SELECTOR);
   }
 
   function scheduleEqualsAlignment() {
@@ -321,22 +357,35 @@
   }
 
   function init() {
+    if (!hasMathContent()) {
+      return;
+    }
+
     bindAllTags();
     bindAllInlineLabels();
-    scheduleEqualsAlignment();
-    startAlignmentWatch();
-    window.addEventListener("resize", scheduleEqualsAlignment);
-    window.addEventListener("pageshow", scheduleEqualsAlignment);
+    if (hasAlignmentTargets()) {
+      scheduleEqualsAlignment();
+      scheduleAlignmentRetries();
+    }
+    window.addEventListener("resize", scheduleEqualsAlignment, { passive: true });
+    window.addEventListener("pageshow", scheduleEqualsAlignment, { passive: true });
     if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
       document.fonts.ready.then(() => {
         scheduleEqualsAlignment();
       });
     }
     const observer = new MutationObserver((mutations) => {
+      let sawMathMutation = false;
+      let sawAlignmentMutation = false;
       for (const mutation of mutations) {
-        mutation.addedNodes.forEach((node) => {
+        for (const node of mutation.addedNodes) {
+          if (!nodeHasMathContent(node)) {
+            continue;
+          }
+          sawMathMutation = true;
+
           if (!(node instanceof Element)) {
-            return;
+            continue;
           }
           if (node.matches("mjx-tag")) {
             bindTag(node);
@@ -349,11 +398,26 @@
           }
           bindAllTags(node);
           bindAllInlineLabels(node);
-        });
+          if (!sawAlignmentMutation && hasAlignmentTargets(node)) {
+            sawAlignmentMutation = true;
+          }
+        }
       }
-      scheduleEqualsAlignment();
+      if (!sawMathMutation) {
+        return;
+      }
+
+      armObserverIdleTimeout(observer);
+      if (!sawAlignmentMutation && hasAlignmentTargets()) {
+        sawAlignmentMutation = true;
+      }
+      if (sawAlignmentMutation) {
+        scheduleEqualsAlignment();
+        scheduleAlignmentRetries();
+      }
     });
     observer.observe(document.body, { childList: true, subtree: true });
+    armObserverIdleTimeout(observer);
   }
 
   if (

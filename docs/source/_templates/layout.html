@@ -16,7 +16,13 @@
 {% block scripts %}
 {%- if not embedded %}
   {%- for scriptfile in script_files %}
-    {{ js_tag(scriptfile) }}
+    {%- set _script_tag = js_tag(scriptfile) -%}
+    {%- set _is_perf = "perf.js" in _script_tag -%}
+    {%- set _is_copybutton = "copybutton.js" in _script_tag -%}
+    {%- set _is_math_tags = "math_tag_links.js" in _script_tag -%}
+    {%- if (not _is_perf or page_has_images | default(false)) and (not _is_copybutton or page_has_code_blocks | default(false)) and (not _is_math_tags or page_has_math | default(false)) -%}
+    {{ _script_tag }}
+    {%- endif -%}
   {%- endfor %}
   <script defer="defer" src="{{ pathto('_static/js/theme.js', 1) }}"></script>
 
@@ -34,8 +40,10 @@
 
 {% block extrahead %}
 {{ super() }}
+{%- if page_has_math | default(false) %}
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
+{%- endif %}
 <link rel="icon" type="image/svg+xml" href="{{ pathto('_static/favicon.svg', 1) }}"/>
 <link rel="icon" type="image/png" sizes="32x32" href="{{ pathto('_static/favicon-32.png', 1) }}"/>
 <link rel="icon" type="image/png" sizes="64x64" href="{{ pathto('_static/favicon.png', 1) }}"/>
@@ -47,7 +55,8 @@
 {%- set _seo_pages = seo_pages | default({}) %}
 {%- set _seo_page = _seo_pages.get(pagename, {}) %}
 {%- set _seo_title = _seo_page.get("title", title | striptags) %}
-{%- set _seo_description = _seo_page.get("description", _seo_default_description) %}
+{%- set _seo_page_description = seo_page_description | default("", true) %}
+{%- set _seo_description = _seo_page_description if _seo_page_description else _seo_default_description %}
 {%- set _seo_keywords = _seo_page.get("keywords", _seo_default_keywords) %}
 {%- set _seo_repo_url = seo_repo_url | default("https://github.com/AutoLyap/AutoLyap") %}
 {%- set _seo_author = seo_author | default(author, true) | default("AutoLyap contributors", true) %}
@@ -60,6 +69,7 @@
 {%- set _seo_og_image_path = seo_og_image_path | default("/_static/favicon-master.png") %}
 {%- set _seo_og_image_width = seo_og_image_width | default(512) %}
 {%- set _seo_og_image_height = seo_og_image_height | default(512) %}
+{%- set _seo_search_url = seo_search_url | default(_seo_baseurl ~ "/search/", true) %}
 {%- set _seo_lastmod_iso = seo_lastmod_iso | default("", true) %}
 {%- set _seo_twitter_site = seo_twitter_site | default("", true) %}
 {%- set _root_doc = root_doc | default(master_doc) %}
@@ -132,7 +142,7 @@
   {%- endif %}
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "{{ _seo_baseurl }}/search.html?q={search_term_string}",
+    "target": "{{ _seo_search_url }}?q={search_term_string}",
     "query-input": "required name=search_term_string"
   }
 }
