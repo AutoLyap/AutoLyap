@@ -1,55 +1,69 @@
 # Developer reference
 
-This page is for contributors working on AutoLyap internals.
+Use this page as a guide to AutoLyap internals.
+It is intended for contributors implementing or refactoring core behavior.
 
-Internal implementation APIs may change without deprecation; use the user-facing API reference for stability guarantees.
+Internal APIs can change without deprecation. For stable contracts, use the public docs first.
 
-## Public API map
+## Start here
 
-Use these pages for stable API contracts and normal package usage.
+1. Read {doc}`dev_internal_problemclass` to understand interpolation-condition data contracts.
+2. Read {doc}`dev_internal_algorithms` to see how algorithm steps are lifted into matrix objects.
+3. Read {doc}`dev_internal_core` to follow SDP assembly and solver execution.
+4. Use {doc}`dev_internal_utils` as the shared helper reference across all layers.
 
-1. {doc}`/problem_class`
-2. {doc}`/algorithms`
-3. {doc}`/lyapunov_analyses`
-4. {doc}`/solver_backends`
+## Documentation map
 
-## Internal API map
+### Public docs (stable API)
 
-These pages document implementation details that are useful when developing AutoLyap.
+| If you need to... | Go to... |
+| --- | --- |
+| Define interpolation-based inclusion problems | {doc}`/problem_class` |
+| Select and configure algorithms | {doc}`/algorithms` |
+| Run convergence analyses | {doc}`/lyapunov_analyses` |
+| Configure solver backends | {doc}`/solver_backends` |
+
+### Internal docs (implementation details)
+
+| If you need to... | Go to... |
+| --- | --- |
+| Work on SDP assembly and solver option normalization | {doc}`dev_internal_core` |
+| Modify the internal `Algorithm` contract or matrix/projection accessors | {doc}`dev_internal_algorithms` |
+| Change interpolation-condition internals, indices, or inclusion-problem assembly | {doc}`dev_internal_problemclass` |
+| Reuse validators, matrix helpers, or backend typing protocols | {doc}`dev_internal_utils` |
 
 ```{toctree}
-:maxdepth: 1
+:hidden:
 
 dev_internal_core
 dev_internal_algorithms
 dev_internal_problemclass
 dev_internal_utils
-```
-
-```{toctree}
-:hidden:
-
 dev_external_reference_targets
 ```
 
-## Architecture map
+## Architecture at a glance
 
-1. {py:mod}`autolyap.problemclass` defines interpolation conditions and index semantics.
-2. {py:mod}`autolyap.algorithms` maps method updates into lifted matrices and projection operators.
-3. {py:mod}`autolyap.iteration_independent` and {py:mod}`autolyap.iteration_dependent` build SDP certificates on top of problem and algorithm structure.
-4. {py:mod}`autolyap.solver_options` normalizes backend configuration for MOSEK Fusion and CVXPY execution paths.
-5. {py:mod}`autolyap.utils` provides shared validation, matrix-construction, and backend structural-typing helpers used across modules.
+| Layer | Core modules | What it owns |
+| --- | --- | --- |
+| Problem definitions | {py:mod}`autolyap.problemclass` | Interpolation conditions, index semantics, and component validation. |
+| Algorithm lifting | {py:mod}`autolyap.algorithms` | Conversion of updates into lifted matrix objects (`X`, `Y`, `U`, `P`, `F`, `E`, `W`). |
+| Analysis assembly | {py:mod}`autolyap.iteration_independent`, {py:mod}`autolyap.iteration_dependent` | Construction and solving of SDP certificates from problem and algorithm structure. |
+| Backend normalization | {py:mod}`autolyap.solver_options` | One-pass normalization of solver options before backend-specific calls. |
+| Shared utilities | {py:mod}`autolyap.utils` | Validation helpers, matrix helpers, and backend protocol types. |
 
-## Extension points
+## Common extension tasks
 
-1. Add a new algorithm by subclassing {py:class}`autolyap.algorithms.algorithm.Algorithm` and implementing its required matrix/projection accessors.
-2. Add a new interpolation condition by implementing {py:meth}`autolyap.problemclass.base._InterpolationCondition.get_data` in the relevant {py:mod}`autolyap.problemclass` hierarchy.
-3. Add or modify analysis workflows in {py:mod}`autolyap.iteration_independent` or {py:mod}`autolyap.iteration_dependent` while preserving solver-backend parity.
-4. Keep parameter validation centralized by reusing helpers in {py:mod}`autolyap.utils.validation`, and keep backend protocol types centralized in {py:mod}`autolyap.utils.backend_types`.
+| Task | Primary entry point | Keep in mind |
+| --- | --- | --- |
+| Add a new algorithm | {py:class}`autolyap.algorithms.algorithm.Algorithm` | Implement required matrix/projection accessors consistently. |
+| Add a new interpolation condition | {py:meth}`autolyap.problemclass.base._InterpolationCondition.get_data` | Follow the existing {py:mod}`autolyap.problemclass` condition hierarchy. |
+| Add or modify analysis workflows | {py:mod}`autolyap.iteration_independent`, {py:mod}`autolyap.iteration_dependent` | Preserve solver-backend parity across supported backends. |
+| Add validation or backend typing logic | {py:mod}`autolyap.utils.validation`, {py:mod}`autolyap.utils.backend_types` | Keep shared checks centralized; avoid per-module duplication. |
 
-## Developer invariants and pitfalls
+## Invariants and common pitfalls
 
-1. User-facing interpolation indices are 1-based and validated strictly.
-2. Matrix dimensions must remain consistent across `Y`, `P`, and interpolation blocks; shape drift usually surfaces as SDP assembly failures.
-3. Solver options should be normalized once via {py:func}`autolyap.solver_options._normalize_solver_options` before backend-specific solve code.
-4. Shared numeric checks should stay in validation helpers rather than being duplicated per algorithm or condition class.
+- Interpolation indices exposed to users are 1-based and strictly validated.
+- Keep matrix dimensions aligned across `Y`, `P`, and interpolation blocks; shape drift usually appears as SDP assembly failures.
+- Normalize solver options exactly once via {py:func}`autolyap.solver_options._normalize_solver_options` before backend-specific solve calls.
+- Keep numeric checks in shared validation helpers instead of duplicating them inside algorithm or condition modules.
