@@ -1,7 +1,5 @@
 """Interpolation index helpers for problem classes."""
 
-from typing import Any
-
 class _InterpolationIndices:
     r"""
     Wrapper for interpolation indices that enforces allowed values.
@@ -34,7 +32,7 @@ class _InterpolationIndices:
     ALLOWED_VALUES = frozenset({"r1<r2", "r1!=r2", "r1", "r1!=star"})
     __slots__ = ("_value",)
 
-    def __init__(self, value: str):
+    def __init__(self, value: str) -> None:
         self.value = value
 
     @property
@@ -52,7 +50,7 @@ class _InterpolationIndices:
     def __str__(self) -> str:
         return self._value
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, _InterpolationIndices):
             return self._value == other._value
         if isinstance(other, str):

@@ -6,10 +6,8 @@ class AcceleratedProximalPoint(Algorithm):
     r"""
     Accelerated proximal point method.
 
-    Class-level reference
-    =====================
-
-    Mathematical notation and shared definitions used by methods are defined in this class docstring.
+    See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+    for mathematical notation and definitions.
 
     Notation-driven assumptions are declared by the user via
     :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with
@@ -82,7 +80,7 @@ class AcceleratedProximalPoint(Algorithm):
         n = 3,\quad m = 1,\quad (\bar{m}_i)_{i=1}^{m} = (1),\quad \bar{m} = 1,\quad
         I_{\text{func}} = \{1\},\quad I_{\text{op}} = \varnothing.
     """
-    def __init__(self, gamma, type: str = "operator"):
+    def __init__(self, gamma: float, type: str = "operator") -> None:
         r"""
         Initialize the accelerated proximal point method.
 

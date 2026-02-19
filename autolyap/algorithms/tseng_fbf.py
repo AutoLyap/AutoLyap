@@ -6,10 +6,8 @@ class TsengFBF(Algorithm):
     r"""
     Tseng's forward-backward-forward method.
 
-    Class-level reference
-    =====================
-
-    Mathematical notation and shared definitions used by methods are defined in this class docstring.
+    See :doc:`3. Algorithm representation </theory/algorithm_representation>`
+    for mathematical notation and definitions.
 
     Notation-driven assumptions are declared by the user via
     :class:`~autolyap.problemclass.InclusionProblem`: when present, terms written with
@@ -81,7 +79,7 @@ class TsengFBF(Algorithm):
     .. math::
         I_{\text{func}} = \varnothing,\quad I_{\text{op}} = \{1,2\}.
     """
-    def __init__(self, gamma, theta):
+    def __init__(self, gamma: float, theta: float) -> None:
         r"""
         Initialize the Tseng FBF method.
 

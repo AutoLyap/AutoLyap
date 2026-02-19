@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional
 
+from autolyap.utils.backend_types import CvxpyStatusModuleProtocol
+
 
 SUPPORTED_SOLVER_BACKENDS = ("mosek_fusion", "cvxpy")
 _DEFAULT_CVXPY_SOLVER_PARAMS = {
@@ -190,7 +192,7 @@ def _get_cvxpy_solve_kwargs(options: SolverOptions) -> Dict[str, Any]:
     return kwargs
 
 
-def _get_cvxpy_accepted_statuses(cp, options: SolverOptions) -> set:
+def _get_cvxpy_accepted_statuses(cp: CvxpyStatusModuleProtocol, options: SolverOptions) -> set[str]:
     r"""
     Return CVXPY statuses treated as successful solves.
 

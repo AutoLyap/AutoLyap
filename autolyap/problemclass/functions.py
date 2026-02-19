@@ -111,7 +111,7 @@ class _ParametrizedFunctionInterpolationCondition(_FunctionInterpolationConditio
     - `ValueError`: If `mu` is not a number, if :math:`L \le 0` with :math:`L < +\infty`,
       or if :math:`\mu \geq L`.
     """
-    def __init__(self, mu: Union[int, float], L: Union[int, float]):
+    def __init__(self, mu: Union[int, float], L: Union[int, float]) -> None:
         mu, L = self._validate_mu_L(mu, L)
         self.mu = mu
         self.L = L
@@ -227,7 +227,7 @@ class Convex(_ParametrizedFunctionInterpolationCondition):
           \end{bmatrix}.
 
     """
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(mu=0.0, L=INF)
 
 class StronglyConvex(_ParametrizedFunctionInterpolationCondition):
@@ -276,7 +276,7 @@ class StronglyConvex(_ParametrizedFunctionInterpolationCondition):
 
     - `ValueError`: If `mu` is not valid.
     """
-    def __init__(self, mu: Union[int, float]):
+    def __init__(self, mu: Union[int, float]) -> None:
         mu = _ensure_positive_finite(mu, "Parameter mu", "For StronglyConvex, mu must be > 0 and finite.")
         super().__init__(mu=mu, L=INF)
 
@@ -326,7 +326,7 @@ class WeaklyConvex(_ParametrizedFunctionInterpolationCondition):
 
     - `ValueError`: If `mu_tilde` is not valid.
     """
-    def __init__(self, mu_tilde: Union[int, float]):
+    def __init__(self, mu_tilde: Union[int, float]) -> None:
         mu_tilde, mu = _ensure_positive_mu_tilde(mu_tilde, "WeaklyConvex")
         super().__init__(mu=mu, L=INF)
         self.mu_tilde = mu_tilde
@@ -379,7 +379,7 @@ class Smooth(_ParametrizedFunctionInterpolationCondition):
 
     - `ValueError`: If `L` is not valid.
     """
-    def __init__(self, L: Union[int, float]):
+    def __init__(self, L: Union[int, float]) -> None:
         L = _ensure_positive_finite(L, "Parameter L", "For Smooth, L must be > 0 and finite.")
         super().__init__(mu=-L, L=L)
 
@@ -430,7 +430,7 @@ class SmoothConvex(_ParametrizedFunctionInterpolationCondition):
 
     - `ValueError`: If `L` is not valid.
     """
-    def __init__(self, L: Union[int, float]):
+    def __init__(self, L: Union[int, float]) -> None:
         L = _ensure_positive_finite(L, "Parameter L", "For SmoothConvex, L must be > 0 and finite.")
         super().__init__(mu=0.0, L=L)
 
@@ -483,7 +483,7 @@ class SmoothStronglyConvex(_ParametrizedFunctionInterpolationCondition):
 
     - `ValueError`: If parameters are not valid.
     """
-    def __init__(self, mu: Union[int, float], L: Union[int, float]):
+    def __init__(self, mu: Union[int, float], L: Union[int, float]) -> None:
         mu = _ensure_positive_finite(
             mu,
             "Parameter mu",
@@ -547,7 +547,7 @@ class SmoothWeaklyConvex(_ParametrizedFunctionInterpolationCondition):
 
     - `ValueError`: If parameters are not valid.
     """
-    def __init__(self, mu_tilde: Union[int, float], L: Union[int, float]):
+    def __init__(self, mu_tilde: Union[int, float], L: Union[int, float]) -> None:
         mu_tilde, mu = _ensure_positive_mu_tilde(mu_tilde, "SmoothWeaklyConvex")
         L = _ensure_positive_finite(
             L,
@@ -561,8 +561,31 @@ class IndicatorFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
     r"""
     Function interpolation condition for indicator functions of nonempty, closed, and convex sets.
 
-    Let :math:`C \subseteq \calH` be nonempty, closed, and convex,
-    :math:`\delta_C` be its indicator function, and :math:`N_C` its normal cone.
+    Let :math:`C \subseteq \calH` be nonempty, closed, and convex, and define
+    its indicator function :math:`\delta_C : \calH \to \reals \cup \{\pm\infty\}`
+    by
+
+    .. math::
+        \delta_C(x) =
+        \begin{cases}
+            0, & \text{if } x \in C, \\
+            +\infty, & \text{if } x \notin C.
+        \end{cases}
+
+    Let :math:`N_C:\calH\rightrightarrows\calH` denote the normal cone of :math:`C`, defined by
+
+    .. math::
+        N_C(x) =
+        \begin{cases}
+            \{g \in \calH : \langle g, z - x \rangle \le 0,\ \forall z \in C\},
+            & \text{if } x \in C, \\
+            \emptyset, & \text{if } x \notin C,
+        \end{cases}
+
+    which coincides with the subdifferential of the indicator:
+
+    .. math::
+        \partial \delta_C(x) = N_C(x), \qquad \forall x \in \calH.
 
     - Interpolation inequalities used:
 
@@ -573,10 +596,10 @@ class IndicatorFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
       .. math::
           \langle g_{r_2}, x_{r_1} - x_{r_2} \rangle \le 0 \quad \text{for } r_1 \ne r_2,
 
-    and
+      and
 
       .. math::
-          F_{r_1} = 0 \quad \text{for each interpolation entry } x_{r_1} \in C.
+          F_{r_1} = 0.
 
     - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
 
@@ -641,8 +664,12 @@ class SupportFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
     r"""
     Function interpolation condition for support functions of nonempty, closed, and convex sets.
 
-    Let :math:`C \subseteq \calH` be nonempty, closed, and convex, and
-    :math:`\sigma_C` be its support function.
+    Let :math:`C \subseteq \calH` be nonempty, closed, and convex, and define
+    its support function :math:`\sigma_C : \calH \to \reals \cup \{\pm\infty\}`
+    by
+
+    .. math::
+        \sigma_C(x) = \sup_{c \in C} \langle x, c \rangle.
 
     - Interpolation inequalities used:
 
@@ -651,12 +678,12 @@ class SupportFunctionOfClosedConvexSet(_FunctionInterpolationCondition):
       and :math:`F_{r_1} = \sigma_C(x_{r_1})`, :math:`F_{r_2} = \sigma_C(x_{r_2})`,
 
       .. math::
-          F_{r_1} = \langle x_{r_1}, g_{r_1} \rangle,
+        F_{r_1} = \langle x_{r_1}, g_{r_1} \rangle,
 
-    and
+      and
 
       .. math::
-          \langle x_{r_2}, g_{r_1} - g_{r_2} \rangle \le 0 \quad \text{for } r_1 \ne r_2
+        \langle x_{r_2}, g_{r_1} - g_{r_2} \rangle \le 0.
 
     - Matrix/vector form used in :doc:`Interpolation conditions </theory/interpolation_conditions>`:
 
@@ -764,12 +791,6 @@ class GradientDominated(_FunctionInterpolationCondition):
               0 & 0 & 0 & 0
           \end{bmatrix}.
 
-    Note: This gradient-dominated condition is only sufficient for the analysis in AutoLyap,
-    and there is no guarantee of tightness of the resulting analysis.
-
-    Note: When used inside :class:`~autolyap.problemclass.InclusionProblem`, AutoLyap enforces that the total number
-    of components is exactly one (i.e., :math:`m = 1`) if any component uses this condition.
-
     **Parameters**
 
     - `mu_gd` (:class:`~typing.Union`\[:class:`int`, :class:`float`\]): The gradient-dominated parameter corresponding
@@ -778,8 +799,19 @@ class GradientDominated(_FunctionInterpolationCondition):
     **Raises**
 
     - `ValueError`: If `mu_gd` is not a number, :math:`\le 0`, or infinite.
+
+    **Note**
+
+    - This condition is only sufficient for AutoLyap analyses; tightness of
+      the resulting bound is not guaranteed.
+    - When used inside :class:`~autolyap.problemclass.InclusionProblem`,
+      the problem must have exactly one component. In the notation of
+      :doc:`3. Algorithm representation </theory/algorithm_representation>`,
+      :math:`m = 1`, :math:`m_{\textup{func}} = 1`, and
+      :math:`m_{\textup{op}} = 0`. This single component may still
+      contain a list of function conditions (an intersection).
     """
-    def __init__(self, mu_gd: Union[int, float]):
+    def __init__(self, mu_gd: Union[int, float]) -> None:
         mu_gd = _ensure_positive_finite(
             mu_gd,
             "Gradient-dominated parameter",

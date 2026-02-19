@@ -2,9 +2,13 @@
 
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Sequence, Tuple, Union
 
 from autolyap.problemclass.indices import _InterpolationIndices
+
+OperatorInterpolationData = Tuple[np.ndarray, _InterpolationIndices]
+FunctionInterpolationData = Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]
+InterpolationData = Union[OperatorInterpolationData, FunctionInterpolationData]
 
 class _InterpolationCondition(ABC):
     r"""
@@ -24,7 +28,7 @@ class _InterpolationCondition(ABC):
 
     """
     @abstractmethod
-    def get_data(self):
+    def get_data(self) -> Sequence[InterpolationData]:
         r"""
         Return interpolation data.
 
@@ -85,7 +89,7 @@ class _OperatorInterpolationCondition(_InterpolationCondition):
 
     """
     @abstractmethod
-    def get_data(self) -> List[Tuple[np.ndarray, _InterpolationIndices]]:
+    def get_data(self) -> Sequence[OperatorInterpolationData]:
         r"""
         Return operator interpolation data.
 
@@ -166,7 +170,7 @@ class _FunctionInterpolationCondition(_InterpolationCondition):
 
     """
     @abstractmethod
-    def get_data(self) -> List[Tuple[np.ndarray, np.ndarray, bool, _InterpolationIndices]]:
+    def get_data(self) -> Sequence[FunctionInterpolationData]:
         r"""
         Return function interpolation data.
 
