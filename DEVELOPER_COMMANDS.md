@@ -9,10 +9,12 @@ It is intentionally separate from user documentation.
 
 - Runs local CI checks via `bash scripts/check_local_ci.sh`.
 - Sequence:
-  1. `ruff` fatal checks (`E9`, `F63`, `F7`, `F82`).
-  2. `mypy` on selected modules.
-  3. `pytest -m "not mosek"`.
-  4. `pytest -m "mosek"` (only when a MOSEK license is available).
+  1. `python scripts/sync_citation_version.py --check`.
+  2. `ruff` fatal checks (`E9`, `F63`, `F7`, `F82`).
+  3. Core lint policy checks on key modules via `ruff check`.
+  4. `mypy` on selected modules.
+  5. `pytest -m "not mosek"`.
+  6. Strict `pytest -m "mosek"` validation (fails if MOSEK is unavailable or MOSEK tests are skipped).
 - Fails fast on missing `ruff`/`mypy`.
 - Side effects: creates temporary files for pytest XML reports when needed.
 

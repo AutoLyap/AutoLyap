@@ -781,7 +781,7 @@ class _LinearConvergence:
 
         cp = IterationIndependent._import_cvxpy()
         rho_param = cp.Parameter(nonneg=True, value=upper_bound)
-        problem, solution_handles = IterationIndependent._build_iteration_independent_problem_cvxpy(
+        problem, cvxpy_solution_handles = IterationIndependent._build_iteration_independent_problem_cvxpy(
             prob,
             algo,
             P,
@@ -925,7 +925,9 @@ class _LinearConvergence:
                 certificate=None,
             )
 
-        certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(solution_handles)
+        certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(
+            cvxpy_solution_handles
+        )
         if verbosity > 0:
             extra = (
                 f" ({not_solved_checks} intermediate checks not solved and treated conservatively)."
@@ -1744,7 +1746,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
         return float(value_arr[0]) if value_arr.size > 0 else 0.0
 
     @staticmethod
-    def _pairs_from_readable(pairs_readable: List[Dict[str, Union[int, str]]]) -> PairTuple:
+    def _pairs_from_readable(pairs_readable: List[_ReadablePair]) -> PairTuple:
         r"""
         Convert serialized pair dictionaries into internal tuple form.
 
@@ -1753,7 +1755,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
 
         **Parameters**
 
-        - `pairs_readable` (:class:`~typing.List`\[:class:`~typing.Dict`\[:class:`str`, :class:`~typing.Union`\[:class:`int`, :class:`str`\]\]\]):
+        - `pairs_readable` (:class:`~typing.List`\[:class:`_ReadablePair`\]):
           Readable pair list.
 
         **Returns**
@@ -1809,7 +1811,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
             remove_C2: bool,
             remove_C3: bool,
             remove_C4: bool,
-            certificate: Dict[str, Any],
+            certificate: _IterationIndependentCertificate,
     ) -> Dict[str, Any]:
         r"""
         Compute post-solve diagnostics for feasibility sanity checks.
@@ -3583,7 +3585,7 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                 Mod.dispose()
 
         cp = IterationIndependent._import_cvxpy()
-        problem, solution_handles = IterationIndependent._build_iteration_independent_problem_cvxpy(
+        problem, cvxpy_solution_handles = IterationIndependent._build_iteration_independent_problem_cvxpy(
             prob,
             algo,
             P,
@@ -3652,7 +3654,9 @@ class IterationIndependent(metaclass=_IterationIndependentMeta):
                 certificate=None,
             )
 
-        certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(solution_handles)
+        certificate = IterationIndependent._extract_iteration_independent_certificate_cvxpy(
+            cvxpy_solution_handles
+        )
         if verbosity > 0:
             try:
                 diagnostics = IterationIndependent._compute_iteration_independent_diagnostics(

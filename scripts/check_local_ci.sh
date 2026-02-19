@@ -5,6 +5,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Run local checks that mirror the GitHub Actions PR workflow.
+Default mode enforces strict MOSEK validation and fails if MOSEK is unavailable.
 
 Usage:
   bash scripts/check_local_ci.sh [--mosek-only]
@@ -97,30 +98,46 @@ if ! python -m mypy --version >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "[1/4] Ruff checks"
+echo "[1/6] Validate CITATION.cff version matches VERSION"
+python scripts/sync_citation_version.py --check
+
+echo "[2/6] Ruff checks"
 python -m ruff check autolyap tests setup.py --select E9,F63,F7,F82
 
-echo "[2/4] Mypy checks"
+echo "[3/6] Ruff core lint policy checks"
+python -m ruff check \
+  autolyap/solver_options.py \
+  autolyap/iteration_independent.py \
+  autolyap/iteration_dependent.py \
+  autolyap/algorithms/algorithm.py
+
+echo "[4/6] Mypy checks"
 python -m mypy \
   autolyap/solver_options.py \
+  autolyap/iteration_independent.py \
+  autolyap/iteration_dependent.py \
+  autolyap/algorithms/algorithm.py \
   autolyap/problemclass \
   --ignore-missing-imports \
   --follow-imports=silent
 
-echo "[3/4] Pytest core suite checks"
+echo "[5/6] Pytest core suite checks"
 python -m pytest -m "not mosek"
 
-echo "[4/4] Pytest MOSEK suite checks"
+echo "[6/6] Pytest MOSEK suite checks (strict)"
 if has_mosek_license; then
-  python -m pytest -m "mosek"
+  run_strict_mosek_suite
 else
   cat <<'EOF' >&2
-Warning: MOSEK is not available in this local environment.
-MOSEK tests are skipped locally.
-If your changes affect MOSEK behavior, run:
+MOSEK is not available in this local environment.
+`make check` enforces strict MOSEK validation to mirror required CI checks.
+Install/configure MOSEK and a valid license, then rerun:
+  make check
+
+To debug MOSEK setup independently, run:
   make check-mosek
-in a MOSEK-enabled environment, and include the result in your PR description.
 EOF
+  exit 1
 fi
 
 echo "All checks passed."

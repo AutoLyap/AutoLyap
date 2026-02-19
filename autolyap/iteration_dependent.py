@@ -293,7 +293,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         return float(value_arr[0]) if value_arr.size > 0 else 0.0
 
     @staticmethod
-    def _pairs_from_readable(pairs_readable: List[Dict[str, Union[int, str]]]) -> PairTuple:
+    def _pairs_from_readable(pairs_readable: List[_ReadablePair]) -> PairTuple:
         r"""
         Convert readable interpolation-pair records to internal tuple form.
 
@@ -345,7 +345,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             algo: Algorithm,
             K: int,
             c_K_value: float,
-            certificate: Dict[str, Any],
+            certificate: _IterationDependentCertificate,
     ) -> Dict[str, Any]:
         r"""
         Compute post-solve diagnostics for constrained scalars, PSD blocks, and equalities.
@@ -1864,7 +1864,7 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                 Mod.dispose()
 
         cp = IterationDependent._import_cvxpy()
-        problem, solution_handles = IterationDependent._build_iteration_dependent_problem_cvxpy(
+        problem, cvxpy_solution_handles = IterationDependent._build_iteration_dependent_problem_cvxpy(
             prob,
             algo,
             K,
@@ -1928,8 +1928,8 @@ class IterationDependent(metaclass=_IterationDependentMeta):
                 certificate=None,
             )
 
-        c_K_val = IterationDependent._extract_scalar_variable_value(solution_handles["c_K_var"])
-        certificate = IterationDependent._extract_iteration_dependent_certificate_cvxpy(solution_handles)
+        c_K_val = IterationDependent._extract_scalar_variable_value(cvxpy_solution_handles["c_K_var"])
+        certificate = IterationDependent._extract_iteration_dependent_certificate_cvxpy(cvxpy_solution_handles)
         if verbosity > 0:
             try:
                 diagnostics = IterationDependent._compute_iteration_dependent_diagnostics(
