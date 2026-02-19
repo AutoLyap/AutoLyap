@@ -5,7 +5,7 @@ from .algorithm import Algorithm
 
 class OptimizedGradientMethod(Algorithm):
     r"""
-    Optimized gradient method.
+    Optimized gradient method :cite:`kim2015optimizedfirstorder`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class DavisYin(Algorithm):
     r"""
-    Davis--Yin three-operator splitting.
+    Davis--Yin three-operator splitting :cite:`davis2017threeoperatorsplitting`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

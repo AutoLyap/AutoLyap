@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class ProximalPoint(Algorithm):
     r"""
-    Proximal point method.
+    Proximal point method :cite:`Moreau1965`, :cite:`Martinet1970`, :cite:`Rockafellar1976PPA`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

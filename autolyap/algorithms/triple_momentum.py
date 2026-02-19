@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class TripleMomentum(Algorithm):
     r"""
-    Triple-momentum method.
+    Triple-momentum method :cite:`vanscoy2018fastestknownglobally`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.
@@ -22,7 +22,7 @@ class TripleMomentum(Algorithm):
     Let :math:`q = \mu/L`,
 
     .. math::
-        \alpha = \frac{2-\sqrt{q}}{L}, \qquad
+        \alpha_{\mathrm{tm}} = \frac{2-\sqrt{q}}{L}, \qquad
         \beta_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{1+\sqrt{q}}, \qquad
         \gamma_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{(2-\sqrt{q})(1+\sqrt{q})}.
 
@@ -33,7 +33,7 @@ class TripleMomentum(Algorithm):
         \left[
         \begin{aligned}
             y^k &= x^k + \gamma_{\mathrm{tm}}(x^k - x^{k-1}), \\
-            x^{k+1} &= x^k + \beta_{\mathrm{tm}}(x^k - x^{k-1}) - \alpha \nabla f(y^k).
+            x^{k+1} &= x^k + \beta_{\mathrm{tm}}(x^k - x^{k-1}) - \alpha_{\mathrm{tm}} \nabla f(y^k).
         \end{aligned}
         \right.
 
@@ -50,7 +50,7 @@ class TripleMomentum(Algorithm):
     Let :math:`q = \mu/L`, and define
 
     .. math::
-        \alpha = \frac{2-\sqrt{q}}{L}, \qquad
+        \alpha_{\mathrm{tm}} = \frac{2-\sqrt{q}}{L}, \qquad
         \beta_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{1+\sqrt{q}}, \qquad
         \gamma_{\mathrm{tm}} = \frac{(1-\sqrt{q})^2}{(2-\sqrt{q})(1+\sqrt{q})}.
 
@@ -65,7 +65,7 @@ class TripleMomentum(Algorithm):
             \end{bmatrix}, &
             B_k &=
             \begin{bmatrix}
-            -\alpha \\
+            -\alpha_{\mathrm{tm}} \\
             0
             \end{bmatrix}, \\
             C_k &=
@@ -139,13 +139,13 @@ class TripleMomentum(Algorithm):
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         q = self.mu / self.L
         
-        alpha = (2-np.sqrt(q))/self.L
-        _beta = (1-np.sqrt(q))**2/(1+np.sqrt(q))
-        gamma = (1-np.sqrt(q))**2/((2-np.sqrt(q))*(1+np.sqrt(q)))    
+        alpha_tm = (2 - np.sqrt(q)) / self.L
+        beta_tm = (1 - np.sqrt(q)) ** 2 / (1 + np.sqrt(q))
+        gamma_tm = (1 - np.sqrt(q)) ** 2 / ((2 - np.sqrt(q)) * (1 + np.sqrt(q)))
         
-        A = np.array([[1+_beta,-_beta],[1,0]])
-        B = np.array([[-alpha],[0]])
-        C = np.array([[1+gamma,-gamma]])
+        A = np.array([[1 + beta_tm, -beta_tm], [1, 0]])
+        B = np.array([[-alpha_tm], [0]])
+        C = np.array([[1 + gamma_tm, -gamma_tm]])
         D = np.array([[0]])
         
         return (A, B, C, D)

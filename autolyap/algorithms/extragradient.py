@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class Extragradient(Algorithm):
     r"""
-    Extragradient method.
+    Extragradient method :cite:`korpelevich1976extragradientmethodfinding`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

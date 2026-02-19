@@ -5,7 +5,7 @@ from .algorithm import Algorithm
 
 class MalitskyTamFRB(Algorithm):
     r"""
-    Malitsky--Tam forward-reflected-backward method.
+    Malitsky--Tam forward-reflected-backward method :cite:`malitsky2020forwardbackwardsplitting`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

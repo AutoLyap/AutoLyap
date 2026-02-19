@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class TsengFBF(Algorithm):
     r"""
-    Tseng's forward-backward-forward method.
+    Tseng's forward-backward-forward method :cite:`tseng2000modifiedforwardbackward`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

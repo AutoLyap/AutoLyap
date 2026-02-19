@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class DouglasRachford(Algorithm):
     r"""
-    Douglas--Rachford splitting.
+    Douglas--Rachford splitting :cite:`douglas1956numericalsolutionheat`, :cite:`eckstein1992douglasrachfordsplittingmethod`, :cite:`lions1979splittingalgorithmssum`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.
@@ -87,6 +87,7 @@ class DouglasRachford(Algorithm):
         \text{type}=\text{"function"}:\quad
         n = 1,\quad m = 2,\quad (\bar{m}_i)_{i=1}^{m} = (1,1),\quad \bar{m} = 2,\quad
         I_{\text{func}} = \{1,2\},\quad I_{\text{op}} = \varnothing.
+
     """
     def __init__(self, gamma: float, lambda_value: float, type: str = "operator") -> None:
         r"""

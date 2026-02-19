@@ -315,6 +315,8 @@ html_context = {
 maximum_signature_line_length = 1
 toc_object_entries = True
 html_use_opensearch = "https://autolyap.github.io"
+# Pin MathJax for stable glyph rendering across environments.
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 
 # MathJax macros aligned with Paper/ver_5/commands.tex and Paper/ver_5/preamble.tex.
 mathjax3_config = {
@@ -600,3 +602,4 @@ source_suffix = {
 
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "alpha"
+suppress_warnings = ["bibtex.duplicate_citation"]

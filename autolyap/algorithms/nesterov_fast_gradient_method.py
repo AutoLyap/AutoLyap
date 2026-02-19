@@ -4,7 +4,7 @@ from .algorithm import Algorithm
 
 class NesterovFastGradientMethod(Algorithm):
     r"""
-    Nesterov's fast gradient method.
+    Nesterov's fast gradient method :cite:`nesterov1983fast`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.

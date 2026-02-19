@@ -5,7 +5,7 @@ from .algorithm import Algorithm
 
 class ITEM(Algorithm):
     r"""
-    Information-theoretic exact method (ITEM).
+    Information-theoretic exact method (ITEM) :cite:`taylor2023optimalgradientmethod`.
 
     See :doc:`3. Algorithm representation </theory/algorithm_representation>`
     for mathematical notation and definitions.
