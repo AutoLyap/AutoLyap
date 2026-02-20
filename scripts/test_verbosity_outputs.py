@@ -5,7 +5,14 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 from typing import Callable, Dict, Tuple
+
+# Allow running this script directly via "python scripts/test_verbosity_outputs.py".
+if __package__ in (None, ""):
+    repo_root = Path(__file__).resolve().parents[1]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
 
 from autolyap import IterationDependent, IterationIndependent
 from autolyap.algorithms import GradientMethod, OptimizedGradientMethod
