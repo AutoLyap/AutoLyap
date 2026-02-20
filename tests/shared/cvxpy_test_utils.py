@@ -1,5 +1,6 @@
 """Shared CVXPY/MOSEK test helpers for backend and convergence test modules."""
 
+from importlib import metadata as importlib_metadata
 from typing import Any, Mapping, Optional, Sequence, Set
 
 import pytest
@@ -12,6 +13,17 @@ _DEFAULT_SCS_TEST_PARAMS = {
     "eps": 1e-5,
     "max_iters": 50000,
     "acceleration_lookback": 0,
+}
+_DEFAULT_SDPA_TEST_PARAMS = {
+    "maxIteration": 100,
+    "epsilonStar": 1e-7,
+    "epsilonDash": 1e-7,
+}
+_DEFAULT_SDPA_MULTIPRECISION_TEST_PARAMS = {
+    "maxIteration": 500,
+    "epsilonStar": 1e-30,
+    "epsilonDash": 1e-30,
+    "mpfPrecision": 512,
 }
 _DEFAULT_MOSEK_FUSION_PARAMS = {
     "intpntCoTolPfeas": 1e-9,
@@ -58,6 +70,35 @@ def require_cvxpy_clarabel_solver() -> str:
     return "CLARABEL"
 
 
+def require_cvxpy_sdpa_solver() -> str:
+    cp = require_cvxpy_module()
+    installed = get_installed_cvxpy_solvers(cp)
+    if "SDPA" not in installed:
+        pytest.skip("CVXPY SDPA solver is not available.")
+    return "SDPA"
+
+
+def _is_python_distribution_installed(distribution_name: str) -> bool:
+    try:
+        importlib_metadata.version(distribution_name)
+    except importlib_metadata.PackageNotFoundError:
+        return False
+    return True
+
+
+def require_cvxpy_sdpa_multiprecision_solver() -> str:
+    solver_name = require_cvxpy_sdpa_solver()
+    if not any(
+        _is_python_distribution_installed(name)
+        for name in ("sdpa-multiprecision", "sdpa_multiprecision")
+    ):
+        pytest.skip(
+            "SDPA multiprecision backend is not available. "
+            "Install it with `pip install sdpa-multiprecision`."
+        )
+    return solver_name
+
+
 def require_cvxpy_mosek_solver() -> str:
     try:
         import cvxpy as cp
@@ -79,11 +120,33 @@ def make_cvxpy_solver_options(
     params = {"verbose": False}
     if solver_name == "SCS":
         params.update(_DEFAULT_SCS_TEST_PARAMS)
+    if solver_name == "SDPA":
+        params.update(_DEFAULT_SDPA_TEST_PARAMS)
     if extra_params is not None:
         params.update(dict(extra_params))
     return SolverOptions(
         backend="cvxpy",
         cvxpy_solver=solver_name,
+        cvxpy_solver_params=params,
+        cvxpy_accept_inaccurate=not strict_status,
+    )
+
+
+def make_cvxpy_sdpa_options(
+        *,
+        multiprecision: bool = False,
+        strict_status: bool = False,
+        extra_params: Optional[Mapping[str, Any]] = None,
+) -> SolverOptions:
+    params = dict(_DEFAULT_SDPA_TEST_PARAMS)
+    if multiprecision:
+        params.update(_DEFAULT_SDPA_MULTIPRECISION_TEST_PARAMS)
+    if extra_params is not None:
+        params.update(dict(extra_params))
+    params.setdefault("verbose", False)
+    return SolverOptions(
+        backend="cvxpy",
+        cvxpy_solver="SDPA",
         cvxpy_solver_params=params,
         cvxpy_accept_inaccurate=not strict_status,
     )

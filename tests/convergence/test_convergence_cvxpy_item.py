@@ -9,8 +9,18 @@ from autolyap.problemclass import InclusionProblem, SmoothStronglyConvex
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
 
-def test_convergence_item_c_matches_theoretical_bound_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def _is_sdpa_multiprecision_profile(solver_options) -> bool:
+    params = solver_options.cvxpy_solver_params or {}
+    return (
+        solver_options.cvxpy_solver == "SDPA"
+        and params.get("mpfPrecision") == 512
+        and params.get("epsilonStar") == 1e-30
+        and params.get("epsilonDash") == 1e-30
+    )
+
+
+def test_convergence_item_c_matches_theoretical_bound_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     mu = 1.0
     L = 200.0
@@ -24,7 +34,11 @@ def test_convergence_item_c_matches_theoretical_bound_cvxpy_clarabel(
     Q_0 = (Xs0[0][1, :] - Ys0["star"]).T @ (Xs0[0][1, :] - Ys0["star"])
     q_0 = np.zeros(algorithm.m_bar_func + algorithm.m_func)
 
-    for k in range(1, 11):
+    if _is_sdpa_multiprecision_profile(cvxpy_convergence_solver_options):
+        k_values = range(1, 2)
+    else:
+        k_values = range(1, 11)
+    for k in k_values:
         A_k = algorithm.get_A(k)
         bound_theoretical = 1.0 / (1.0 + q * A_k)
 
@@ -41,7 +55,7 @@ def test_convergence_item_c_matches_theoretical_bound_cvxpy_clarabel(
             Q_k,
             q_0=q_0,
             q_K=q_k,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
 
         assert result["status"] == "feasible"

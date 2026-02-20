@@ -32,6 +32,12 @@ setup(
         "mosek": [
             "mosek",
         ],
+        "sdpa": [
+            "sdpa-python",
+        ],
+        "sdpa_multiprecision": [
+            "sdpa-multiprecision",
+        ],
         "test": [
             "pytest>=7.4",
             "pytest-cov>=4.1",

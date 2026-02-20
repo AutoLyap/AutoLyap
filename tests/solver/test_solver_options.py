@@ -78,6 +78,21 @@ def test_get_cvxpy_solve_kwargs_applies_clarabel_defaults():
     assert kwargs["warm_start"] is True
 
 
+def test_get_cvxpy_solve_kwargs_applies_sdpa_defaults():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="SDPA",
+        )
+    )
+    kwargs = _get_cvxpy_solve_kwargs(options)
+    assert kwargs["solver"] == "SDPA"
+    assert kwargs["maxIteration"] == 100
+    assert kwargs["epsilonStar"] == 1e-7
+    assert kwargs["epsilonDash"] == 1e-7
+    assert kwargs["warm_start"] is True
+
+
 def test_get_cvxpy_solve_kwargs_user_params_override_defaults():
     options = _normalize_solver_options(
         SolverOptions(
@@ -91,6 +106,26 @@ def test_get_cvxpy_solve_kwargs_user_params_override_defaults():
     assert kwargs["tol_feas"] == 5e-8
     assert kwargs["tol_gap_abs"] == 1e-8
     assert kwargs["tol_gap_rel"] == 1e-8
+
+
+def test_get_cvxpy_solve_kwargs_user_params_override_sdpa_defaults():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="SDPA",
+            cvxpy_solver_params={
+                "maxIteration": 500,
+                "epsilonStar": 1e-30,
+                "epsilonDash": 1e-30,
+                "mpfPrecision": 512,
+            },
+        )
+    )
+    kwargs = _get_cvxpy_solve_kwargs(options)
+    assert kwargs["maxIteration"] == 500
+    assert kwargs["epsilonStar"] == 1e-30
+    assert kwargs["epsilonDash"] == 1e-30
+    assert kwargs["mpfPrecision"] == 512
 
 
 def test_solver_options_rejects_non_bool_cvxpy_accept_inaccurate():

@@ -11,8 +11,8 @@ pytestmark = [
 ]
 
 
-def test_convergence_optimized_gradient_method_c_matches_theory_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def test_convergence_optimized_gradient_method_c_matches_theory_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     L = 1.0
     problem = InclusionProblem([SmoothConvex(L)])
@@ -35,7 +35,7 @@ def test_convergence_optimized_gradient_method_c_matches_theory_cvxpy_clarabel(
             Q_k,
             q_0=q_0,
             q_K=q_k,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
         assert result["status"] == "feasible"
         assert result["c_K"] is not None

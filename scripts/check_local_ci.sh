@@ -122,7 +122,7 @@ python -m mypy \
   --follow-imports=silent
 
 echo "[5/6] Pytest core suite checks"
-python -m pytest -m "not mosek"
+python -m pytest -m "not mosek and not sdpa and not sdpa_multiprecision"
 
 echo "[6/6] Pytest MOSEK suite checks (strict)"
 if has_mosek_license; then

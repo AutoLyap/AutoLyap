@@ -10,8 +10,8 @@ from tests.convergence.convergence_proximal_gradient_docs_utils import (
 
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
-def test_docs_example_proximal_gradient_workflow_matches_theory_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def test_docs_example_proximal_gradient_workflow_matches_theory_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     mu = 1.0
     L = 4.0
@@ -39,7 +39,7 @@ def test_docs_example_proximal_gradient_workflow_matches_theory_cvxpy_clarabel(
         S_equals_T=True,
         s_equals_t=True,
         remove_C3=True,
-        solver_options=cvxpy_clarabel_solver_options,
+        solver_options=cvxpy_convergence_solver_options,
     )
 
     assert result["status"] == "feasible"

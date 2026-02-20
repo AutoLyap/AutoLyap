@@ -16,6 +16,11 @@ _DEFAULT_CVXPY_SOLVER_PARAMS = {
         "eps": 1e-6,
         "max_iters": 200000,
     },
+    "SDPA": {
+        "maxIteration": 100,
+        "epsilonStar": 1e-7,
+        "epsilonDash": 1e-7,
+    },
 }
 
 
@@ -47,11 +52,14 @@ class SolverOptions:
 
     ``cvxpy_solver`` (``str | None``, default ``None``)
         CVXPY solver name, for example ``"CLARABEL"``, ``"SCS"``, or
-        ``"MOSEK"``. If ``None``, CVXPY chooses.
+        ``"MOSEK"``/``"SDPA"``. If ``None``, CVXPY chooses.
         Used when ``backend="cvxpy"``.
 
     ``cvxpy_solver_params`` (``Mapping[str, Any] | None``, default ``None``)
         Keyword arguments forwarded to ``cvxpy.Problem.solve(...)``.
+        For SDPA multiprecision via ``cvxpy_solver="SDPA"``, this can include
+        options such as ``epsilonStar``, ``epsilonDash``, and
+        ``mpfPrecision``.
         Used when ``backend="cvxpy"``.
 
     ``cvxpy_accept_inaccurate`` (``bool``, default ``True``)
@@ -109,6 +117,31 @@ class SolverOptions:
                    "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-8,    # default
                    "MSK_DPAR_INTPNT_CO_TOL_REL_GAP": 1e-8,  # default
                },
+           },
+       )
+
+       # CVXPY + SDPA (explicit default profile; requires `pip install sdpa-python`)
+       SolverOptions(
+           backend="cvxpy",
+           cvxpy_solver="SDPA",
+           cvxpy_accept_inaccurate=True,  # default
+           cvxpy_solver_params={
+               "maxIteration": 100,  # default
+               "epsilonStar": 1e-7,  # default
+               "epsilonDash": 1e-7,  # default
+           },
+       )
+
+       # CVXPY + SDPA multiprecision (requires `pip install sdpa-multiprecision`)
+       SolverOptions(
+           backend="cvxpy",
+           cvxpy_solver="SDPA",
+           cvxpy_accept_inaccurate=True,  # default
+           cvxpy_solver_params={
+               "maxIteration": 500,
+               "epsilonStar": 1e-30,
+               "epsilonDash": 1e-30,
+               "mpfPrecision": 512,
            },
        )
 
