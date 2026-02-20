@@ -126,7 +126,7 @@ as blue dots.
 
 ## Iteration-dependent example: The optimized gradient method
 
-For background on the optimized gradient method, see {cite}`quick-kin2028ogm`.
+For background on the optimized gradient method, see {cite}`quick-kim2015optimizedfirstorder`.
 
 Consider minimizing a convex and {math}`L`-smooth function {math}`f : \calH \to \reals`, with {math}`L > 0`; for initial points {math}`x^0, y^0 \in \calH`, smoothness constant {math}`L \in \reals_{++}`, and iteration budget {math}`K \in \mathbb{N}`, the optimized gradient method updates as
 
