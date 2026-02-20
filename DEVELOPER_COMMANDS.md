@@ -15,6 +15,13 @@ If you need MOSEK-backed tests/examples, also install:
 python -m pip install -e '.[mosek]'
 ```
 
+If you need SDPA-backed convergence checks, install:
+
+```bash
+python -m pip install -e '.[sdpa]'
+python -m pip install -e '.[sdpa_multiprecision]'  # for multiprecision checks
+```
+
 For documentation builds, install docs dependencies:
 
 ```bash
@@ -31,7 +38,7 @@ make -C docs deps
   2. `ruff` fatal checks (`E9`, `F63`, `F7`, `F82`).
   3. Core lint policy checks on key modules via `ruff check`.
   4. `mypy` on selected modules.
-  5. `pytest -m "not mosek"`.
+  5. `pytest -m "not mosek and not sdpa and not sdpa_multiprecision"`.
   6. Strict `pytest -m "mosek"` validation (fails if MOSEK is unavailable or MOSEK tests are skipped).
 - Fails fast on missing `ruff`/`mypy`.
 - Side effects: creates temporary files for pytest XML reports when needed.
@@ -44,6 +51,20 @@ make -C docs deps
   - MOSEK-marked tests run.
   - Zero skipped tests in the MOSEK suite.
 - Intended for changes affecting MOSEK-backed behavior.
+
+### `make check-sdpa`
+
+- Runs SDPA-marked convergence tests via:
+  `python -m pytest tests/convergence/test_convergence_cvxpy_*.py -m "sdpa and not sdpa_multiprecision"`.
+- Intended for optional CVXPY+SDPA regular-precision validation.
+- Not part of the default `make check` suite.
+
+### `make check-sdpa-multiprecision`
+
+- Runs SDPA multiprecision-marked convergence tests via:
+  `python -m pytest tests/convergence/test_convergence_cvxpy_*.py -m "sdpa_multiprecision"`.
+- Intended for optional CVXPY+SDPA multiprecision validation.
+- Not part of the default `make check` suite.
 
 ### `make docs`
 

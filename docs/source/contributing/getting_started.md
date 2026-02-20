@@ -50,4 +50,11 @@ If you need to run MOSEK-backed tests or examples, also install:
 python -m pip install -e '.[mosek]'
 ```
 
+If you need to run SDPA-backed tests or examples, also install:
+
+```bash
+python -m pip install -e '.[sdpa]'
+python -m pip install -e '.[sdpa_multiprecision]'
+```
+
 AutoLyap requires Python `>=3.9`.

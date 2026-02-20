@@ -9,8 +9,8 @@ from autolyap.problemclass import InclusionProblem, SmoothStronglyConvex, Strong
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
 
-def test_convergence_gradient_method_rho_matches_theory_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def test_convergence_gradient_method_rho_matches_theory_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     mu = 1.0
     L = 4.0
@@ -32,7 +32,7 @@ def test_convergence_gradient_method_rho_matches_theory_cvxpy_clarabel(
             S_equals_T=True,
             s_equals_t=True,
             remove_C3=True,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
         assert result["status"] == "feasible"
         rho_al = result["rho"]
@@ -41,8 +41,8 @@ def test_convergence_gradient_method_rho_matches_theory_cvxpy_clarabel(
         assert abs(rho_al - rho_theoretical) < tol
 
 
-def test_convergence_proximal_point_rho_matches_theory_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def test_convergence_proximal_point_rho_matches_theory_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     mu = 1.0
     problem = InclusionProblem([StronglyConvex(mu)])
@@ -63,7 +63,7 @@ def test_convergence_proximal_point_rho_matches_theory_cvxpy_clarabel(
             S_equals_T=True,
             s_equals_t=True,
             remove_C3=True,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
         assert result["status"] == "feasible"
         rho_al = result["rho"]

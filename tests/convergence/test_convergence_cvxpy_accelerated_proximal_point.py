@@ -9,8 +9,18 @@ from autolyap.problemclass import Convex, InclusionProblem, MaximallyMonotone
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
 
-def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_rate_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def _is_sdpa_multiprecision_profile(solver_options) -> bool:
+    params = solver_options.cvxpy_solver_params or {}
+    return (
+        solver_options.cvxpy_solver == "SDPA"
+        and params.get("mpfPrecision") == 512
+        and params.get("epsilonStar") == 1e-30
+        and params.get("epsilonDash") == 1e-30
+    )
+
+
+def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_rate_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     problem_operator = InclusionProblem([MaximallyMonotone()])
     algorithm_operator = AcceleratedProximalPoint(gamma=1.0, type="operator")
@@ -20,7 +30,11 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
     diff0 = Xs0[0][1, :] - Ys0["star"][0, :]
     Q_0_operator = np.outer(diff0, diff0)
 
-    for k in range(1, 8):
+    if _is_sdpa_multiprecision_profile(cvxpy_convergence_solver_options):
+        k_values = range(1, 2)
+    else:
+        k_values = range(1, 8)
+    for k in k_values:
         Xs = algorithm_operator._get_Xs(k, k)
         diff = Xs[k + 1][0, :] - Xs[k][1, :]
         Q_k_operator = np.outer(diff, diff)
@@ -31,7 +45,7 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
             k,
             Q_0_operator,
             Q_k_operator,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
 
         assert result["status"] == "feasible"
@@ -40,8 +54,8 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
         assert result["c_K"] == pytest.approx(kim_bound, abs=2e-4)
 
 
-def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_rate_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_rate_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     problem_function = InclusionProblem([Convex()])
     algorithm_function = AcceleratedProximalPoint(gamma=1.0, type="function")
@@ -52,7 +66,11 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
     Q_0_function = np.outer(diff0, diff0)
     q_0_function = np.zeros(algorithm_function.m_bar_func + algorithm_function.m_func)
 
-    for k in range(1, 8):
+    if _is_sdpa_multiprecision_profile(cvxpy_convergence_solver_options):
+        k_values = range(1, 2)
+    else:
+        k_values = range(1, 8)
+    for k in k_values:
         Xs = algorithm_function._get_Xs(k, k)
         diff = Xs[k + 1][0, :] - Xs[k][1, :]
         Q_k_function = np.outer(diff, diff)
@@ -66,7 +84,7 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
             Q_k_function,
             q_0=q_0_function,
             q_K=q_k_function,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
 
         assert result["status"] == "feasible"

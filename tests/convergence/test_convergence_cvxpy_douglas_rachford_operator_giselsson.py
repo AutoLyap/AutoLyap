@@ -21,8 +21,8 @@ from tests.convergence.convergence_douglas_rachford_utils import (
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
 
-def test_convergence_douglas_rachford_operator_mm_strong_lipschitz_giselsson_thm65_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def test_convergence_douglas_rachford_operator_mm_strong_lipschitz_giselsson_thm65_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     mu = 1.0
     L = 2.0
@@ -40,7 +40,7 @@ def test_convergence_douglas_rachford_operator_mm_strong_lipschitz_giselsson_thm
         result = bisection_rho(
             problem,
             algorithm,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
         assert result["status"] == "feasible"
         rho_al = result["rho"]
@@ -49,8 +49,8 @@ def test_convergence_douglas_rachford_operator_mm_strong_lipschitz_giselsson_thm
         assert rho_al == pytest.approx(rho_theoretical, abs=2e-3)
 
 
-def test_convergence_douglas_rachford_operator_mm_strong_cocoercive_giselsson_thm74_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def test_convergence_douglas_rachford_operator_mm_strong_cocoercive_giselsson_thm74_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     mu = 1.0
     beta = 0.5
@@ -69,7 +69,7 @@ def test_convergence_douglas_rachford_operator_mm_strong_cocoercive_giselsson_th
         result = bisection_rho(
             problem,
             algorithm,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
         assert result["status"] == "feasible"
         rho_al = result["rho"]

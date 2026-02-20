@@ -13,8 +13,8 @@ from tests.convergence.convergence_douglas_rachford_utils import (
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
 
-def test_convergence_douglas_rachford_function_smooth_strong_plus_convex_giselsson_boyd_cvxpy_clarabel(
-    cvxpy_clarabel_solver_options,
+def test_convergence_douglas_rachford_function_smooth_strong_plus_convex_giselsson_boyd_cvxpy(
+    cvxpy_convergence_solver_options,
 ):
     mu = 1.0
     L = 2.0
@@ -30,7 +30,7 @@ def test_convergence_douglas_rachford_function_smooth_strong_plus_convex_giselss
         result = bisection_rho(
             problem,
             algorithm,
-            solver_options=cvxpy_clarabel_solver_options,
+            solver_options=cvxpy_convergence_solver_options,
         )
         assert result["status"] == "feasible"
         rho_al = result["rho"]
