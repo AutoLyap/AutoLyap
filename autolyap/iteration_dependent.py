@@ -1652,6 +1652,9 @@ class IterationDependent(metaclass=_IterationDependentMeta):
         Built-in constructors for choosing endpoint parameters are:
 
         - :meth:`~autolyap.IterationDependent.get_parameters_distance_to_solution`
+        - :meth:`~autolyap.IterationDependent.get_parameters_state_component_distance_to_solution`
+        - :meth:`~autolyap.IterationDependent.get_parameters_state_component_difference`
+        - :meth:`~autolyap.IterationDependent.get_parameters_state_component_cross_iteration_difference`
         - :meth:`~autolyap.IterationDependent.get_parameters_function_value_suboptimality`
         - :meth:`~autolyap.IterationDependent.get_parameters_fixed_point_residual`
         - :meth:`~autolyap.IterationDependent.get_parameters_optimality_measure`
@@ -2206,6 +2209,318 @@ class IterationDependent(metaclass=_IterationDependentMeta):
             dim_q_k = m_bar_func + m_func
             q_k_vec = np.zeros(dim_q_k)
             return Q_k, q_k_vec
+        else:
+            return Q_k
+
+    @staticmethod
+    def get_parameters_state_component_distance_to_solution(
+            algo: Algorithm,
+            k: int,
+            ell: int = 1
+        ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+        r"""
+        Compute Lyapunov parameters for a state-component distance-to-solution metric at iteration :math:`k`.
+
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(Q_k,q_k)`, see
+        :doc:`/theory/iteration_dependent_analyses`.
+
+        **Resulting lower bounds**
+
+        With this choice of :math:`(Q_k,q_k)`,
+
+        .. math::
+            \mathcal{V}(Q_k,q_k,k) = \|x_{\ell}^{k} - y^{\star}\|^{2}.
+
+        **Matrix construction**
+
+        The matrix :math:`Q_k` is constructed as
+
+        .. math::
+            Q_k
+            =
+            \left(e_\ell^\top X_k^{k,k} - P_{(1,\star)}Y_\star^{k,k}\right)^\top
+            \left(e_\ell^\top X_k^{k,k} - P_{(1,\star)}Y_\star^{k,k}\right),
+
+        where:
+
+        - :math:`X_k^{k,k}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`, using `k_min = k` and `k_max = k`.
+        - :math:`Y_\star^{k,k}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, using `k_min = k` and `k_max = k`.
+        - :math:`P_{(1,\star)}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
+        - :math:`e_\ell \in \mathbb{R}^{n}` is the `ell`-th standard basis vector.
+
+        The remaining vector is set to zero:
+
+        - If :math:`\NumFunc > 0`, then :math:`q_k = 0`.
+
+        **Parameters**
+
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): Algorithm instance providing dimensions and
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`,
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ys`, and
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Ps`.
+        - `k` (:class:`int`): Nonnegative iteration index :math:`k`.
+        - `ell` (:class:`int`): State coordinate index, with
+          :math:`\ell \in \llbracket 1, n\rrbracket`.
+
+        **Returns**
+
+        - (:class:`~typing.Union`\[:class:`numpy.ndarray`, :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\]\]):
+          If `algo.m_func == 0`, returns :math:`Q_k` with
+
+          .. math::
+              Q_k \in \sym^{n + \NumEval + m}.
+
+          Otherwise, returns :math:`(Q_k, q_k)` with
+
+          .. math::
+              \begin{aligned}
+              Q_k &\in \sym^{n + \NumEval + m},\\
+              q_k &\in \mathbb{R}^{\NumEvalFunc + \NumFunc}.
+              \end{aligned}
+
+        **Raises**
+
+        - `ValueError`: If an input is invalid or a required matrix is missing.
+        """
+        # ----- Input Checking -----
+        k = ensure_integral(k, "k", minimum=0)
+        ell = ensure_integral(ell, "ell", minimum=1)
+        if ell > algo.n:
+            raise ValueError(f"State index ell must be in [1, {algo.n}]. Got {ell}.")
+
+        # ----- Retrieve required matrices -----
+        Xs = algo._get_Xs(k, k)
+        if k not in Xs:
+            raise ValueError(f"X matrix for iteration k = {k} not found.")
+
+        Ys = algo._get_Ys(k, k)
+        if 'star' not in Ys:
+            raise ValueError("Y star matrix ('star') not found.")
+
+        Ps = algo._get_Ps()
+        if (1, 'star') not in Ps:
+            raise ValueError("Projection matrix for component 1 star not found.")
+
+        # ----- Compute Q_k -----
+        selector = np.zeros((1, algo.n))
+        selector[0, ell - 1] = 1.0
+        diff = selector @ Xs[k] - (Ps[(1, 'star')] @ Ys['star'])
+        Q_k = diff.T @ diff
+
+        # ----- Set q_k to zero -----
+        if algo.m_func > 0:
+            q_dim = algo.m_bar_func + algo.m_func
+            q_k = np.zeros(q_dim)
+            return Q_k, q_k
+        else:
+            return Q_k
+
+    @staticmethod
+    def get_parameters_state_component_cross_iteration_difference(
+            algo: Algorithm,
+            k: int,
+            ell: int = 1,
+            ell_prime: int = 1
+        ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+        r"""
+        Compute Lyapunov parameters for a cross-iteration state-component difference metric at iteration :math:`k`.
+
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(Q_k,q_k)`, see
+        :doc:`/theory/iteration_dependent_analyses`.
+
+        **Resulting lower bounds**
+
+        With this choice of :math:`(Q_k,q_k)`,
+
+        .. math::
+            \mathcal{V}(Q_k,q_k,k) = \|x_{\ell}^{k+1} - x_{\ell^{\prime}}^{k}\|^{2}.
+
+        **Matrix construction**
+
+        The matrix :math:`Q_k` is constructed as
+
+        .. math::
+            Q_k
+            =
+            \left(e_\ell^\top X_{k+1}^{k,k} - e_{\ell^{\prime}}^\top X_k^{k,k}\right)^\top
+            \left(e_\ell^\top X_{k+1}^{k,k} - e_{\ell^{\prime}}^\top X_k^{k,k}\right),
+
+        where:
+
+        - :math:`X_k^{k,k}` and :math:`X_{k+1}^{k,k}` are retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`, using `k_min = k` and `k_max = k`.
+        - :math:`e_\ell, e_{\ell^\prime} \in \mathbb{R}^{n}` are standard basis vectors.
+
+        The remaining vector is set to zero:
+
+        - If :math:`\NumFunc > 0`, then :math:`q_k = 0`.
+
+        **Parameters**
+
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): Algorithm instance providing dimensions and
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`.
+        - `k` (:class:`int`): Nonnegative iteration index :math:`k`.
+        - `ell` (:class:`int`): State coordinate index at iteration :math:`k+1`, with
+          :math:`\ell \in \llbracket 1, n\rrbracket`.
+        - `ell_prime` (:class:`int`): State coordinate index at iteration :math:`k`, with
+          :math:`\ell^\prime \in \llbracket 1, n\rrbracket`.
+
+        **Returns**
+
+        - (:class:`~typing.Union`\[:class:`numpy.ndarray`, :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\]\]):
+          If `algo.m_func == 0`, returns :math:`Q_k` with
+
+          .. math::
+              Q_k \in \sym^{n + \NumEval + m}.
+
+          Otherwise, returns :math:`(Q_k, q_k)` with
+
+          .. math::
+              \begin{aligned}
+              Q_k &\in \sym^{n + \NumEval + m},\\
+              q_k &\in \mathbb{R}^{\NumEvalFunc + \NumFunc}.
+              \end{aligned}
+
+        **Raises**
+
+        - `ValueError`: If an input is invalid or a required matrix is missing.
+        """
+        # ----- Input Checking -----
+        k = ensure_integral(k, "k", minimum=0)
+        ell = ensure_integral(ell, "ell", minimum=1)
+        if ell > algo.n:
+            raise ValueError(f"State index ell must be in [1, {algo.n}]. Got {ell}.")
+        ell_prime = ensure_integral(ell_prime, "ell_prime", minimum=1)
+        if ell_prime > algo.n:
+            raise ValueError(f"State index ell_prime must be in [1, {algo.n}]. Got {ell_prime}.")
+
+        # ----- Retrieve required matrices -----
+        Xs = algo._get_Xs(k, k)
+        if k not in Xs or (k + 1) not in Xs:
+            raise ValueError(f"X matrices for iterations {k} and {k+1} not found.")
+
+        # ----- Compute Q_k -----
+        selector_ell = np.zeros((1, algo.n))
+        selector_ell[0, ell - 1] = 1.0
+        selector_ell_prime = np.zeros((1, algo.n))
+        selector_ell_prime[0, ell_prime - 1] = 1.0
+        diff = selector_ell @ Xs[k + 1] - selector_ell_prime @ Xs[k]
+        Q_k = diff.T @ diff
+
+        # ----- Set q_k to zero -----
+        if algo.m_func > 0:
+            q_dim = algo.m_bar_func + algo.m_func
+            q_k = np.zeros(q_dim)
+            return Q_k, q_k
+        else:
+            return Q_k
+
+    @staticmethod
+    def get_parameters_state_component_difference(
+            algo: Algorithm,
+            k: int,
+            ell: int = 1,
+            ell_prime: int = 1
+        ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+        r"""
+        Compute Lyapunov parameters for a same-iteration state-component difference metric at iteration :math:`k`.
+
+        For the matrix constructions used in this method, see
+        :doc:`/theory/performance_estimation_via_sdps`.
+        For the role of :math:`(Q_k,q_k)`, see
+        :doc:`/theory/iteration_dependent_analyses`.
+
+        **Resulting lower bounds**
+
+        With this choice of :math:`(Q_k,q_k)`,
+
+        .. math::
+            \mathcal{V}(Q_k,q_k,k) = \|x_{\ell}^{k} - x_{\ell^{\prime}}^{k}\|^{2}.
+
+        **Matrix construction**
+
+        The matrix :math:`Q_k` is constructed as
+
+        .. math::
+            Q_k
+            =
+            \left(e_\ell^\top X_k^{k,k} - e_{\ell^{\prime}}^\top X_k^{k,k}\right)^\top
+            \left(e_\ell^\top X_k^{k,k} - e_{\ell^{\prime}}^\top X_k^{k,k}\right),
+
+        where:
+
+        - :math:`X_k^{k,k}` is retrieved via
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`, using `k_min = k` and `k_max = k`.
+        - :math:`e_\ell, e_{\ell^\prime} \in \mathbb{R}^{n}` are standard basis vectors.
+
+        The remaining vector is set to zero:
+
+        - If :math:`\NumFunc > 0`, then :math:`q_k = 0`.
+
+        **Parameters**
+
+        - `algo` (:class:`~typing.Type`\[:class:`~autolyap.algorithms.Algorithm`\]): Algorithm instance providing dimensions and
+          :meth:`~autolyap.algorithms.algorithm.Algorithm._get_Xs`.
+        - `k` (:class:`int`): Nonnegative iteration index :math:`k`.
+        - `ell` (:class:`int`): State coordinate index at iteration :math:`k`, with
+          :math:`\ell \in \llbracket 1, n\rrbracket`.
+        - `ell_prime` (:class:`int`): State coordinate index at iteration :math:`k`, with
+          :math:`\ell^\prime \in \llbracket 1, n\rrbracket`.
+
+        **Returns**
+
+        - (:class:`~typing.Union`\[:class:`numpy.ndarray`, :class:`~typing.Tuple`\[:class:`numpy.ndarray`, :class:`numpy.ndarray`\]\]):
+          If `algo.m_func == 0`, returns :math:`Q_k` with
+
+          .. math::
+              Q_k \in \sym^{n + \NumEval + m}.
+
+          Otherwise, returns :math:`(Q_k, q_k)` with
+
+          .. math::
+              \begin{aligned}
+              Q_k &\in \sym^{n + \NumEval + m},\\
+              q_k &\in \mathbb{R}^{\NumEvalFunc + \NumFunc}.
+              \end{aligned}
+
+        **Raises**
+
+        - `ValueError`: If an input is invalid or a required matrix is missing.
+        """
+        # ----- Input Checking -----
+        k = ensure_integral(k, "k", minimum=0)
+        ell = ensure_integral(ell, "ell", minimum=1)
+        if ell > algo.n:
+            raise ValueError(f"State index ell must be in [1, {algo.n}]. Got {ell}.")
+        ell_prime = ensure_integral(ell_prime, "ell_prime", minimum=1)
+        if ell_prime > algo.n:
+            raise ValueError(f"State index ell_prime must be in [1, {algo.n}]. Got {ell_prime}.")
+
+        # ----- Retrieve required matrices -----
+        Xs = algo._get_Xs(k, k)
+        if k not in Xs:
+            raise ValueError(f"X matrix for iteration k = {k} not found.")
+
+        # ----- Compute Q_k -----
+        selector_ell = np.zeros((1, algo.n))
+        selector_ell[0, ell - 1] = 1.0
+        selector_ell_prime = np.zeros((1, algo.n))
+        selector_ell_prime[0, ell_prime - 1] = 1.0
+        diff = selector_ell @ Xs[k] - selector_ell_prime @ Xs[k]
+        Q_k = diff.T @ diff
+
+        # ----- Set q_k to zero -----
+        if algo.m_func > 0:
+            q_dim = algo.m_bar_func + algo.m_func
+            q_k = np.zeros(q_dim)
+            return Q_k, q_k
         else:
             return Q_k
 

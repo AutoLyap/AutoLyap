@@ -61,6 +61,124 @@ def test_iteration_dependent_distance_to_solution_rejects_negative_k(tiny_functi
         )
 
 
+def test_iteration_dependent_state_component_distance_to_solution_values(tiny_functional_algorithm):
+    Q_k, q_k = IterationDependent.get_parameters_state_component_distance_to_solution(
+        tiny_functional_algorithm, k=0, ell=1
+    )
+    expected_Q_k = np.array(
+        [
+            [1.0, 0.0, -1.0],
+            [0.0, 0.0, 0.0],
+            [-1.0, 0.0, 1.0],
+        ]
+    )
+    assert np.allclose(Q_k, expected_Q_k)
+    assert q_k.shape == (2,)
+    assert np.allclose(q_k, 0.0)
+
+
+@pytest.mark.parametrize("ell", [0, 2], ids=["ell_zero", "ell_too_large"])
+def test_iteration_dependent_state_component_distance_to_solution_rejects_bad_ell(
+    tiny_functional_algorithm, ell
+):
+    with pytest.raises(ValueError):
+        IterationDependent.get_parameters_state_component_distance_to_solution(
+            tiny_functional_algorithm, k=0, ell=ell
+        )
+
+
+def test_iteration_dependent_state_component_distance_to_solution_rejects_negative_k(
+    tiny_functional_algorithm,
+):
+    with pytest.raises(ValueError):
+        IterationDependent.get_parameters_state_component_distance_to_solution(
+            tiny_functional_algorithm, k=-1, ell=1
+        )
+
+
+def test_iteration_dependent_state_component_cross_iteration_difference_values(tiny_functional_algorithm):
+    Q_k, q_k = IterationDependent.get_parameters_state_component_cross_iteration_difference(
+        tiny_functional_algorithm, k=0, ell=1, ell_prime=1
+    )
+    expected_Q_k = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [0.0, 0.25, 0.0],
+            [0.0, 0.0, 0.0],
+        ]
+    )
+    assert np.allclose(Q_k, expected_Q_k)
+    assert q_k.shape == (2,)
+    assert np.allclose(q_k, 0.0)
+
+
+@pytest.mark.parametrize("ell", [0, 2], ids=["ell_zero", "ell_too_large"])
+def test_iteration_dependent_state_component_cross_iteration_difference_rejects_bad_ell(
+    tiny_functional_algorithm, ell
+):
+    with pytest.raises(ValueError):
+        IterationDependent.get_parameters_state_component_cross_iteration_difference(
+            tiny_functional_algorithm, k=0, ell=ell, ell_prime=1
+        )
+
+
+@pytest.mark.parametrize("ell_prime", [0, 2], ids=["ell_prime_zero", "ell_prime_too_large"])
+def test_iteration_dependent_state_component_cross_iteration_difference_rejects_bad_ell_prime(
+    tiny_functional_algorithm, ell_prime
+):
+    with pytest.raises(ValueError):
+        IterationDependent.get_parameters_state_component_cross_iteration_difference(
+            tiny_functional_algorithm, k=0, ell=1, ell_prime=ell_prime
+        )
+
+
+def test_iteration_dependent_state_component_cross_iteration_difference_rejects_negative_k(
+    tiny_functional_algorithm,
+):
+    with pytest.raises(ValueError):
+        IterationDependent.get_parameters_state_component_cross_iteration_difference(
+            tiny_functional_algorithm, k=-1, ell=1, ell_prime=1
+        )
+
+
+def test_iteration_dependent_state_component_difference_values(tiny_functional_algorithm):
+    Q_k, q_k = IterationDependent.get_parameters_state_component_difference(
+        tiny_functional_algorithm, k=0, ell=1, ell_prime=1
+    )
+    assert np.allclose(Q_k, 0.0)
+    assert q_k.shape == (2,)
+    assert np.allclose(q_k, 0.0)
+
+
+@pytest.mark.parametrize("ell", [0, 2], ids=["ell_zero", "ell_too_large"])
+def test_iteration_dependent_state_component_difference_rejects_bad_ell(
+    tiny_functional_algorithm, ell
+):
+    with pytest.raises(ValueError):
+        IterationDependent.get_parameters_state_component_difference(
+            tiny_functional_algorithm, k=0, ell=ell, ell_prime=1
+        )
+
+
+@pytest.mark.parametrize("ell_prime", [0, 2], ids=["ell_prime_zero", "ell_prime_too_large"])
+def test_iteration_dependent_state_component_difference_rejects_bad_ell_prime(
+    tiny_functional_algorithm, ell_prime
+):
+    with pytest.raises(ValueError):
+        IterationDependent.get_parameters_state_component_difference(
+            tiny_functional_algorithm, k=0, ell=1, ell_prime=ell_prime
+        )
+
+
+def test_iteration_dependent_state_component_difference_rejects_negative_k(
+    tiny_functional_algorithm,
+):
+    with pytest.raises(ValueError):
+        IterationDependent.get_parameters_state_component_difference(
+            tiny_functional_algorithm, k=-1, ell=1, ell_prime=1
+        )
+
+
 def test_iteration_dependent_function_value_suboptimality_values(tiny_functional_algorithm):
     Q_k, q_k = IterationDependent.get_parameters_function_value_suboptimality(
         tiny_functional_algorithm, k=0, j=1
