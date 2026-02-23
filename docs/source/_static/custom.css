@@ -354,7 +354,8 @@ a.reference:hover {
 /* Render custom theorem-like containers as light-gray callout boxes. */
 .rst-content .assumption.docutils.container,
 .rst-content .definition.docutils.container,
-.rst-content .theorem.docutils.container {
+.rst-content .theorem.docutils.container,
+.rst-content .proof.docutils.container {
   background: #f7f7f7;
   border: 1px solid var(--nord-border);
   border-radius: 3px;
@@ -364,23 +365,68 @@ a.reference:hover {
 
 .rst-content .assumption.docutils.container > :first-child,
 .rst-content .definition.docutils.container > :first-child,
-.rst-content .theorem.docutils.container > :first-child {
+.rst-content .theorem.docutils.container > :first-child,
+.rst-content .proof.docutils.container > :first-child {
   margin-top: 0;
 }
 
 .rst-content .assumption.docutils.container > :last-child,
 .rst-content .definition.docutils.container > :last-child,
-.rst-content .theorem.docutils.container > :last-child {
+.rst-content .theorem.docutils.container > :last-child,
+.rst-content .proof.docutils.container > :last-child {
   margin-bottom: 0;
 }
 
+.rst-content .proof.docutils.container .proof-toggle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.rst-content .proof.docutils.container .proof-toggle-title {
+  margin: 0;
+  font-style: italic;
+}
+
+.rst-content .proof.docutils.container .proof-toggle-button {
+  border: 1px solid var(--nord-border);
+  background: #ffffff;
+  color: var(--nord-muted);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+}
+
+.rst-content .proof.docutils.container .proof-toggle-button:hover {
+  color: var(--nord-text);
+  border-color: #c2ccd6;
+}
+
+.rst-content .proof.docutils.container .proof-toggle-button:focus-visible {
+  outline: 2px solid rgba(95, 168, 232, 0.45);
+  outline-offset: 1px;
+}
+
+.rst-content .proof.docutils.container .proof-content[hidden] {
+  display: none !important;
+}
+
+.rst-content .proof.docutils.container .proof-content {
+  margin-top: 0.6rem;
+}
+
 /* Right-flush end-of-proof square while keeping it in the final paragraph line. */
-.rst-content .proof.docutils.container > p:last-child > .math:last-child {
+.rst-content .proof.docutils.container > p:last-child > .math:last-child,
+.rst-content .proof.docutils.container .proof-content > p:last-child > .math:last-child {
   float: right;
   margin-left: 0.35rem;
 }
 
-.rst-content .proof.docutils.container > p:last-child::after {
+.rst-content .proof.docutils.container > p:last-child::after,
+.rst-content .proof.docutils.container .proof-content > p:last-child::after {
   content: "";
   display: block;
   clear: both;

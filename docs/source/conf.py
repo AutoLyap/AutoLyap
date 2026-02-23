@@ -722,6 +722,7 @@ def setup(app):
     # Defer non-critical scripts to reduce render-blocking time.
     app.add_js_file("copybutton.js", defer="defer")
     app.add_js_file("perf.js", defer="defer")
+    app.add_js_file("proof_toggle.js", defer="defer")
     app.add_js_file("math_tag_links.js", defer="defer")
 
 source_suffix = {
