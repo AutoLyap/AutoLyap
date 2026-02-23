@@ -1,7 +1,8 @@
 import pytest
 
-from autolyap import SolverOptions
+from autolyap import IterationDependent, IterationIndependent, SolverOptions
 from autolyap.solver_options import (
+    _DEFAULT_MOSEK_FUSION_PARAMS,
     SUPPORTED_SOLVER_BACKENDS,
     _get_cvxpy_accepted_statuses,
     _get_cvxpy_solve_kwargs,
@@ -16,6 +17,38 @@ def test_solver_options_defaults_to_mosek_fusion():
     assert options.cvxpy_solver is None
     assert options.cvxpy_solver_params is None
     assert options.cvxpy_accept_inaccurate is True
+
+
+def test_default_mosek_fusion_profile_uses_1000_max_iterations():
+    assert _DEFAULT_MOSEK_FUSION_PARAMS["intpntCoTolPfeas"] == 1e-8
+    assert _DEFAULT_MOSEK_FUSION_PARAMS["intpntCoTolDfeas"] == 1e-8
+    assert _DEFAULT_MOSEK_FUSION_PARAMS["intpntCoTolRelGap"] == 1e-8
+    assert _DEFAULT_MOSEK_FUSION_PARAMS["intpntMaxIterations"] == 1000
+
+
+def test_mosek_fusion_default_profile_is_applied_when_mosek_params_not_provided():
+    class _DummyModel:
+        def __init__(self):
+            self.params = {}
+
+        def setSolverParam(self, name, value):
+            self.params[name] = value
+
+    options = _normalize_solver_options(None)
+
+    model_i = _DummyModel()
+    IterationIndependent._apply_mosek_solver_params(model_i, options)
+    assert model_i.params["intpntCoTolPfeas"] == 1e-8
+    assert model_i.params["intpntCoTolDfeas"] == 1e-8
+    assert model_i.params["intpntCoTolRelGap"] == 1e-8
+    assert model_i.params["intpntMaxIterations"] == 1000
+
+    model_d = _DummyModel()
+    IterationDependent._apply_mosek_solver_params(model_d, options)
+    assert model_d.params["intpntCoTolPfeas"] == 1e-8
+    assert model_d.params["intpntCoTolDfeas"] == 1e-8
+    assert model_d.params["intpntCoTolRelGap"] == 1e-8
+    assert model_d.params["intpntMaxIterations"] == 1000
 
 
 def test_solver_options_rejects_unknown_backend():
