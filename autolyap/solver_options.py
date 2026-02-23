@@ -5,6 +5,12 @@ from autolyap.utils.backend_types import CvxpyStatusModuleProtocol
 
 
 SUPPORTED_SOLVER_BACKENDS = ("mosek_fusion", "cvxpy")
+_DEFAULT_MOSEK_FUSION_PARAMS = {
+    "intpntCoTolPfeas": 1e-8,
+    "intpntCoTolDfeas": 1e-8,
+    "intpntCoTolRelGap": 1e-8,
+    "intpntMaxIterations": 1000,
+}
 _DEFAULT_CVXPY_SOLVER_PARAMS = {
     "CLARABEL": {
         "max_iter": 2000,
@@ -49,6 +55,9 @@ class SolverOptions:
         MOSEK Fusion parameters forwarded to
         ``Model.setSolverParam(name, value)``.
         Used when ``backend="mosek_fusion"``.
+        If ``None``, AutoLyap applies the explicit default MOSEK profile:
+        ``intpntCoTolPfeas=1e-8``, ``intpntCoTolDfeas=1e-8``,
+        ``intpntCoTolRelGap=1e-8``, and ``intpntMaxIterations=1000``.
 
     ``cvxpy_solver`` (``str | None``, default ``None``)
         CVXPY solver name, for example ``"CLARABEL"``, ``"SCS"``, or
@@ -78,7 +87,7 @@ class SolverOptions:
                "intpntCoTolPfeas": 1e-8,   # default
                "intpntCoTolDfeas": 1e-8,   # default
                "intpntCoTolRelGap": 1e-8,  # default
-               "intpntMaxIterations": 400, # default
+               "intpntMaxIterations": 1000, # default
            },
        )
 

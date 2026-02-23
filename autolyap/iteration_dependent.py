@@ -15,6 +15,7 @@ from autolyap.utils.backend_types import (
 )
 from autolyap.solver_options import (
     SolverOptions,
+    _DEFAULT_MOSEK_FUSION_PARAMS,
     _normalize_solver_options,
     _get_cvxpy_solve_kwargs,
     _get_cvxpy_accepted_statuses,
@@ -261,7 +262,9 @@ class IterationDependent(metaclass=_IterationDependentMeta):
 
         - `None`: Parameters are applied in place.
         """
-        params = solver_options.mosek_params or {}
+        params = dict(_DEFAULT_MOSEK_FUSION_PARAMS)
+        if solver_options.mosek_params is not None:
+            params.update(solver_options.mosek_params)
         for name, value in params.items():
             mod.setSolverParam(name, value)
 
