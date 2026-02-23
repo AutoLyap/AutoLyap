@@ -42,27 +42,27 @@ def bisection_rho(problem, algorithm, h: int = 0, alpha: int = 0, solver_options
     )
 
 
-def giselsson_thm65_delta(mu: float, L: float, gamma: float) -> float:
+def dr_maximally_monotone_plus_strongly_monotone_lipschitz_delta(mu: float, L: float, gamma: float) -> float:
     return np.sqrt(1 - (4 * gamma * mu) / (1 + 2 * gamma * mu + (gamma * L) ** 2))
 
 
-def giselsson_thm65_rate_sq(lambda_value: float, mu: float, L: float, gamma: float) -> float:
+def dr_maximally_monotone_plus_strongly_monotone_lipschitz_rate_sq(lambda_value: float, mu: float, L: float, gamma: float) -> float:
     alpha = lambda_value / 2
-    delta = giselsson_thm65_delta(mu, L, gamma)
+    delta = dr_maximally_monotone_plus_strongly_monotone_lipschitz_delta(mu, L, gamma)
     return (abs(1 - alpha) + alpha * delta) ** 2
 
 
-def giselsson_thm74_delta(mu: float, L: float, gamma: float) -> float:
+def dr_maximally_monotone_plus_strongly_monotone_cocoercive_delta(mu: float, L: float, gamma: float) -> float:
     return np.sqrt(1 - (4 * gamma * mu) / (1 + 2 * gamma * mu + (gamma**2) * mu * L))
 
 
-def giselsson_thm74_rate_sq(lambda_value: float, mu: float, L: float, gamma: float) -> float:
+def dr_maximally_monotone_plus_strongly_monotone_cocoercive_rate_sq(lambda_value: float, mu: float, L: float, gamma: float) -> float:
     alpha = lambda_value / 2
-    delta = giselsson_thm74_delta(mu, L, gamma)
+    delta = dr_maximally_monotone_plus_strongly_monotone_cocoercive_delta(mu, L, gamma)
     return (abs(1 - alpha) + alpha * delta) ** 2
 
 
-def ryu_thm41_rate(mu: float, beta: float, lambda_value: float, gamma: float) -> float:
+def dr_cocoercive_plus_strongly_monotone_rate(mu: float, beta: float, lambda_value: float, gamma: float) -> float:
     if gamma <= 0:
         raise ValueError("gamma must be > 0")
 
@@ -150,7 +150,7 @@ def ryu_thm41_rate(mu: float, beta: float, lambda_value: float, gamma: float) ->
     return (np.sqrt(2 - lambda_value) / 2) * np.sqrt(numerator / denominator)
 
 
-def ryu_thm43_rate(mu: float, lambda_value: float, L: float, gamma: float) -> float:
+def dr_maximally_monotone_lipschitz_plus_strongly_monotone_rate(mu: float, lambda_value: float, L: float, gamma: float) -> float:
     if gamma <= 0:
         raise ValueError("gamma must be > 0")
 
@@ -201,10 +201,10 @@ def ryu_thm43_rate(mu: float, lambda_value: float, L: float, gamma: float) -> fl
     return np.sqrt(numerator_c / denominator_c)
 
 
-def giselsson_boyd_delta(L: float, mu: float, gamma: float) -> float:
+def dr_smooth_strongly_convex_plus_convex_delta(L: float, mu: float, gamma: float) -> float:
     return max((gamma * L - 1) / (gamma * L + 1), (1 - gamma * mu) / (1 + gamma * mu))
 
 
-def giselsson_boyd_rate_sq(lambda_value: float, mu: float, L: float, gamma: float) -> float:
-    delta = giselsson_boyd_delta(L, mu, gamma)
+def dr_smooth_strongly_convex_plus_convex_rate_sq(lambda_value: float, mu: float, L: float, gamma: float) -> float:
+    delta = dr_smooth_strongly_convex_plus_convex_delta(L, mu, gamma)
     return (abs(1 - lambda_value / 2) + (lambda_value / 2) * delta) ** 2
