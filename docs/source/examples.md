@@ -13,5 +13,6 @@ examples/gradient_method/index
 examples/nesterov_momentum/index
 examples/heavy_ball/index
 examples/optimized_gradient
+examples/davis_yin_three_operator
 examples/proximal_point
 ```
