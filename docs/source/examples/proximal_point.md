@@ -2,15 +2,51 @@
 
 ## Problem setup
 
-Consider minimizing a {math}`\mu`-strongly convex function
-{math}`f : \calH \to \reals`, with {math}`\mu > 0`; for an initial point
-{math}`x^0 \in \calH` and step size {math}`\gamma \in \reals_{++}`, the proximal
-point method updates as
+Consider the unconstrained minimization problem
+
+```{math}
+\minimize_{x \in \calH} f(x) \quad \iff \quad \text{find } x \in \calH \text{ such that } 0 \in \partial f(x),
+```
+
+where {math}`f : \calH \to \reals` is {math}`\mu`-strongly convex with
+{math}`\mu>0`.
+
+For an initial point {math}`x^0 \in \calH` and step size
+{math}`\gamma \in \reals_{++}`, the proximal point update
+{cite}`Moreau1965,Martinet1970,Rockafellar1976PPA` is
 
 ```{math}
 (\forall k \in \naturals)\quad
 x^{k+1} = \prox_{\gamma f}(x^k).
 ```
+
+In this example, we search for the smallest contraction factor
+{math}`\rho\in[0,1)` provable using AutoLyap such that
+
+```{eval-rst}
+.. math::
+   \|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad k\to\infty,
+```
+
+where
+
+```{eval-rst}
+.. math::
+   x^\star \in \Argmin_{x \in \calH} f(x).
+```
+
+## Model the problem in AutoLyap and search for the smallest rho
+
+- {math}`f` is modeled by
+  {py:class}`StronglyConvex <autolyap.problemclass.StronglyConvex>`.
+- The optimization problem is represented by
+  {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>`.
+- The update rule is represented by
+  {py:class}`ProximalPoint <autolyap.algorithms.ProximalPoint>`.
+- Distance-to-solution parameters are obtained with
+  {py:meth}`IterationIndependent.LinearConvergence.get_parameters_distance_to_solution <autolyap.IterationIndependent.LinearConvergence.get_parameters_distance_to_solution>`.
+- The contraction factor is searched with
+  {py:meth}`IterationIndependent.LinearConvergence.bisection_search_rho <autolyap.IterationIndependent.LinearConvergence.bisection_search_rho>`.
 
 ## Run the iteration-independent analysis
 
@@ -33,7 +69,10 @@ gamma = 0.6
 problem = InclusionProblem([StronglyConvex(mu)])
 algorithm = ProximalPoint(gamma=gamma)
 solver_options = SolverOptions(backend="mosek_fusion")
+# License-free option:
+# solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
 
+# Build V(P, p, k) and R(T, t, k) for distance-to-solution analysis.
 P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
     algorithm
 )
@@ -61,15 +100,32 @@ print(f"rho (AutoLyap): {rho_autolyap:.8f}")
 print(f"rho (theory):   {rho_theory:.8f}")
 ```
 
-The computed value `rho (AutoLyap)` matches the theoretical rate expression
-given in {cite}`Rockafellar1976PPA`, i.e.,
+What to inspect in `result`:
+
+- `result["status"]`: `feasible`, `infeasible`, or `not_solved`.
+- `result["solve_status"]`: raw backend status.
+- `result["rho"]`: certified contraction factor when feasible.
+- `result["certificate"]`: Lyapunov certificate matrices/scalars.
+
+The computed value `rho (AutoLyap)` matches (up to solver numerical
+tolerances) the theoretical rate expression in {cite}`Rockafellar1976PPA`,
+i.e.,
 
 ```{math}
-\|x^k - x^\star\|^2 = O(\rho^k), \qquad
+\|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad k\to\infty,
+```
+
+where
+
+```{math}
 \rho = \left(\frac{1}{1+\gamma\mu}\right)^2,
 ```
 
-where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
+and
+
+```{math}
+x^\star \in \Argmin_{x \in \calH} f(x).
+```
 
 Equivalently,
 

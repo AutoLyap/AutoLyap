@@ -149,13 +149,14 @@ html_context = {
         "examples": {
             "description": (
                 "AutoLyap examples for proximal point, proximal gradient, and "
-                "heavy-ball analyses."
+                "momentum-based method analyses."
             ),
             "keywords": [
                 "AutoLyap examples",
                 "proximal point method analysis",
                 "proximal gradient Lyapunov analysis",
                 "heavy-ball method convergence",
+                "constant Nesterov momentum",
             ],
         },
         "examples/proximal_point": {
@@ -169,7 +170,74 @@ html_context = {
                 "first-order method convergence proof",
             ],
         },
-        "examples/proximal_gradient": {
+        "examples/gradient_method/index": {
+            "description": (
+                "Gradient-method examples in AutoLyap for Lyapunov-based "
+                "convergence analysis under different problem settings."
+            ),
+            "keywords": [
+                "gradient method examples",
+                "AutoLyap gradient method",
+                "Lyapunov convergence certificates",
+            ],
+        },
+        "examples/gradient_method/smooth_strongly_convex": {
+            "description": (
+                "Gradient-method smooth strongly-convex example in AutoLyap with "
+                "iteration-independent Lyapunov analysis and bisection search."
+            ),
+            "keywords": [
+                "gradient method smooth strongly convex",
+                "AutoLyap bisection rho",
+                "distance-to-solution convergence",
+            ],
+        },
+        "examples/gradient_method/gradient_dominated_smooth": {
+            "description": (
+                "Gradient-method gradient-dominated smooth example in AutoLyap "
+                "with certified linear function-value rates."
+            ),
+            "keywords": [
+                "gradient method nonconvex",
+                "gradient dominated smooth",
+                "AutoLyap function-value convergence",
+            ],
+        },
+        "examples/optimized_gradient": {
+            "description": (
+                "Optimized gradient method example in AutoLyap with "
+                "iteration-dependent Lyapunov analysis and finite-horizon "
+                "function-value guarantees."
+            ),
+            "keywords": [
+                "optimized gradient method AutoLyap",
+                "iteration-dependent Lyapunov analysis",
+                "finite-horizon c_K certificate",
+            ],
+        },
+        "examples/chambolle_pock": {
+            "description": (
+                "Chambolle--Pock example in AutoLyap with fixed-point-residual "
+                "summability certification and layered (h, alpha) regions."
+            ),
+            "keywords": [
+                "Chambolle Pock AutoLyap",
+                "fixed-point residual summability",
+                "history overlap Lyapunov analysis",
+            ],
+        },
+        "examples/define_your_own_algorithm/index": {
+            "description": (
+                "Examples in AutoLyap for defining custom algorithms from the "
+                "base Algorithm interface."
+            ),
+            "keywords": [
+                "define your own algorithm",
+                "AutoLyap custom algorithm examples",
+                "Algorithm interface examples",
+            ],
+        },
+        "examples/define_your_own_algorithm/proximal_gradient_method": {
             "description": (
                 "Proximal gradient example in AutoLyap with SDP-based Lyapunov "
                 "verification."
@@ -180,15 +248,60 @@ html_context = {
                 "SDP convergence analysis",
             ],
         },
-        "examples/heavy_ball": {
+        "examples/heavy_ball/index": {
             "description": (
-                "Heavy-ball example in AutoLyap showing certified parameter "
-                "regions for smooth convex optimization."
+                "Heavy-ball examples in AutoLyap for Lyapunov-based "
+                "convergence analysis under different problem settings."
             ),
             "keywords": [
                 "heavy-ball method analysis",
+                "AutoLyap heavy-ball examples",
+                "Lyapunov convergence certificates",
+            ],
+        },
+        "examples/heavy_ball/smooth_convex": {
+            "description": (
+                "Heavy-ball smooth-convex example in AutoLyap with certified "
+                "sublinear function-value convergence."
+            ),
+            "keywords": [
+                "heavy-ball smooth convex",
                 "AutoLyap heavy-ball",
-                "smooth convex optimization convergence",
+                "sublinear convergence certificate",
+            ],
+        },
+        "examples/nesterov_momentum/index": {
+            "description": (
+                "Constant Nesterov momentum examples in AutoLyap for "
+                "Lyapunov-based convergence analysis under different "
+                "problem settings."
+            ),
+            "keywords": [
+                "constant Nesterov momentum",
+                "AutoLyap momentum examples",
+                "Lyapunov convergence certificates",
+            ],
+        },
+        "examples/nesterov_momentum/smooth_convex": {
+            "description": (
+                "Constant Nesterov momentum smooth-convex example in AutoLyap "
+                "with certified sublinear function-value convergence."
+            ),
+            "keywords": [
+                "constant Nesterov momentum smooth convex",
+                "AutoLyap Nesterov momentum",
+                "sublinear convergence certificate",
+            ],
+        },
+        "examples/nesterov_momentum/gradient_dominated_smooth": {
+            "description": (
+                "Constant Nesterov momentum gradient-dominated smooth example "
+                "in AutoLyap with certified linear rates."
+            ),
+            "keywords": [
+                "constant Nesterov momentum nonconvex",
+                "gradient dominated smooth",
+                "AutoLyap bisection rho",
             ],
         },
         "function_classes": {
