@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="480" viewBox="0 0 960 480" role="img" aria-label="Accelerated proximal point c_K versus K in log-log scale">
+  <title>Accelerated proximal point bound vs iteration budget (log-log)</title>
+  <desc>Log-log c_K vs K for accelerated proximal point: Kim's bound and AutoLyap points.</desc>
+  <rect x="0" y="0" width="960" height="480" fill="#ffffff"/>
+  <rect x="96.000" y="24.000" width="832.000" height="368.000" fill="#f8fafc"/>
+  <defs>
+    <clipPath id="plot-area-clip">
+      <rect x="96.000" y="24.000" width="832.000" height="368.000"/>
+    </clipPath>
+  </defs>
+  <style type="text/css"><![CDATA[
+@font-face {
+  font-family: 'Lato';
+  src:
+    url('css/fonts/lato-normal.woff2') format('woff2'),
+    url('../_static/css/fonts/lato-normal.woff2') format('woff2'),
+    url('css/fonts/lato-normal.woff') format('woff'),
+    url('../_static/css/fonts/lato-normal.woff') format('woff');
+  font-style: normal;
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Lato';
+  src:
+    url('css/fonts/lato-normal-italic.woff2') format('woff2'),
+    url('../_static/css/fonts/lato-normal-italic.woff2') format('woff2'),
+    url('css/fonts/lato-normal-italic.woff') format('woff'),
+    url('../_static/css/fonts/lato-normal-italic.woff') format('woff');
+  font-style: italic;
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Lato';
+  src:
+    url('css/fonts/lato-bold.woff2') format('woff2'),
+    url('../_static/css/fonts/lato-bold.woff2') format('woff2'),
+    url('css/fonts/lato-bold.woff') format('woff'),
+    url('../_static/css/fonts/lato-bold.woff') format('woff');
+  font-style: normal;
+  font-weight: 700;
+}
+@font-face {
+  font-family: 'Lato';
+  src:
+    url('css/fonts/lato-bold-italic.woff2') format('woff2'),
+    url('../_static/css/fonts/lato-bold-italic.woff2') format('woff2'),
+    url('css/fonts/lato-bold-italic.woff') format('woff'),
+    url('../_static/css/fonts/lato-bold-italic.woff') format('woff');
+  font-style: italic;
+  font-weight: 700;
+}
+  ]]></style>
+  <line x1="96.000" y1="24.000" x2="96.000" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="114.240" y1="24.000" x2="114.240" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="234.240" y1="24.000" x2="234.240" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="304.435" y1="24.000" x2="304.435" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="354.239" y1="24.000" x2="354.239" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="392.870" y1="24.000" x2="392.870" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="424.434" y1="24.000" x2="424.434" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="451.121" y1="24.000" x2="451.121" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="474.239" y1="24.000" x2="474.239" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="494.630" y1="24.000" x2="494.630" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="512.870" y1="24.000" x2="512.870" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="632.869" y1="24.000" x2="632.869" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="703.065" y1="24.000" x2="703.065" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="752.869" y1="24.000" x2="752.869" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="791.500" y1="24.000" x2="791.500" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="823.064" y1="24.000" x2="823.064" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="849.751" y1="24.000" x2="849.751" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="872.868" y1="24.000" x2="872.868" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="893.259" y1="24.000" x2="893.259" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="911.500" y1="24.000" x2="911.500" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="392.000" x2="928.000" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="369.844" x2="928.000" y2="369.844" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="356.884" x2="928.000" y2="356.884" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="347.688" x2="928.000" y2="347.688" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="340.556" x2="928.000" y2="340.556" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="334.728" x2="928.000" y2="334.728" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="329.801" x2="928.000" y2="329.801" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="325.533" x2="928.000" y2="325.533" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="321.768" x2="928.000" y2="321.768" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="318.400" x2="928.000" y2="318.400" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="296.244" x2="928.000" y2="296.244" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="283.284" x2="928.000" y2="283.284" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="274.088" x2="928.000" y2="274.088" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="266.956" x2="928.000" y2="266.956" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="261.128" x2="928.000" y2="261.128" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="256.201" x2="928.000" y2="256.201" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="251.933" x2="928.000" y2="251.933" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="248.168" x2="928.000" y2="248.168" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="244.800" x2="928.000" y2="244.800" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="222.644" x2="928.000" y2="222.644" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="209.684" x2="928.000" y2="209.684" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="200.488" x2="928.000" y2="200.488" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="193.356" x2="928.000" y2="193.356" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="187.528" x2="928.000" y2="187.528" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="182.601" x2="928.000" y2="182.601" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="178.333" x2="928.000" y2="178.333" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="174.568" x2="928.000" y2="174.568" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="171.200" x2="928.000" y2="171.200" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="149.044" x2="928.000" y2="149.044" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="136.084" x2="928.000" y2="136.084" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="126.888" x2="928.000" y2="126.888" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="119.756" x2="928.000" y2="119.756" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="113.928" x2="928.000" y2="113.928" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="109.001" x2="928.000" y2="109.001" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="104.733" x2="928.000" y2="104.733" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="100.968" x2="928.000" y2="100.968" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="97.600" x2="928.000" y2="97.600" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="75.444" x2="928.000" y2="75.444" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="62.484" x2="928.000" y2="62.484" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="53.288" x2="928.000" y2="53.288" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="46.156" x2="928.000" y2="46.156" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="40.328" x2="928.000" y2="40.328" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="35.401" x2="928.000" y2="35.401" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="31.133" x2="928.000" y2="31.133" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="27.368" x2="928.000" y2="27.368" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="24.000" x2="928.000" y2="24.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <g clip-path="url(#plot-area-clip)">
+    <g fill="#5fa8e8" fill-opacity="0.900">
+    <circle cx="114.240" cy="68.312" r="4.500"/>
+    <circle cx="234.240" cy="94.232" r="4.500"/>
+    <circle cx="304.435" cy="112.623" r="4.500"/>
+    <circle cx="354.239" cy="126.888" r="4.500"/>
+    <circle cx="392.870" cy="138.544" r="4.500"/>
+    <circle cx="424.434" cy="148.398" r="4.500"/>
+    <circle cx="451.121" cy="156.935" r="4.500"/>
+    <circle cx="474.239" cy="164.464" r="4.500"/>
+    <circle cx="494.630" cy="171.200" r="4.500"/>
+    <circle cx="512.870" cy="177.293" r="4.500"/>
+    <circle cx="529.370" cy="182.855" r="4.500"/>
+    <circle cx="544.434" cy="187.972" r="4.500"/>
+    <circle cx="558.291" cy="192.710" r="4.500"/>
+    <circle cx="571.121" cy="197.120" r="4.500"/>
+    <circle cx="583.065" cy="201.246" r="4.500"/>
+    <circle cx="594.238" cy="205.121" r="4.500"/>
+    <circle cx="604.734" cy="208.776" r="4.500"/>
+    <circle cx="614.629" cy="212.232" r="4.500"/>
+    <circle cx="623.989" cy="215.507" r="4.500"/>
+    <circle cx="632.869" cy="218.630" r="4.500"/>
+    <circle cx="641.316" cy="221.604" r="4.500"/>
+    <circle cx="649.370" cy="224.445" r="4.500"/>
+    <circle cx="657.065" cy="227.163" r="4.500"/>
+    <circle cx="664.433" cy="229.776" r="4.500"/>
+    <circle cx="671.501" cy="232.283" r="4.500"/>
+    <circle cx="678.291" cy="234.694" r="4.500"/>
+    <circle cx="684.824" cy="237.018" r="4.500"/>
+    <circle cx="691.120" cy="239.260" r="4.500"/>
+    <circle cx="697.196" cy="241.425" r="4.500"/>
+    <circle cx="703.065" cy="243.519" r="4.500"/>
+    <circle cx="708.741" cy="245.548" r="4.500"/>
+    <circle cx="714.238" cy="247.514" r="4.500"/>
+    <circle cx="719.565" cy="249.419" r="4.500"/>
+    <circle cx="724.733" cy="251.268" r="4.500"/>
+    <circle cx="729.752" cy="253.070" r="4.500"/>
+    <circle cx="734.629" cy="254.826" r="4.500"/>
+    <circle cx="739.372" cy="256.532" r="4.500"/>
+    <circle cx="743.989" cy="258.188" r="4.500"/>
+    <circle cx="748.486" cy="259.822" r="4.500"/>
+    <circle cx="752.869" cy="261.399" r="4.500"/>
+    <circle cx="757.144" cy="262.938" r="4.500"/>
+    <circle cx="761.316" cy="264.431" r="4.500"/>
+    <circle cx="765.389" cy="265.900" r="4.500"/>
+    <circle cx="769.369" cy="267.344" r="4.500"/>
+    <circle cx="773.260" cy="268.746" r="4.500"/>
+    <circle cx="777.065" cy="270.116" r="4.500"/>
+    <circle cx="780.788" cy="271.441" r="4.500"/>
+    <circle cx="784.433" cy="272.792" r="4.500"/>
+    <circle cx="788.003" cy="274.080" r="4.500"/>
+    <circle cx="791.500" cy="275.343" r="4.500"/>
+    <circle cx="794.928" cy="276.580" r="4.500"/>
+    <circle cx="798.290" cy="277.793" r="4.500"/>
+    <circle cx="801.588" cy="278.979" r="4.500"/>
+    <circle cx="804.824" cy="280.142" r="4.500"/>
+    <circle cx="808.001" cy="281.282" r="4.500"/>
+    <circle cx="811.120" cy="282.400" r="4.500"/>
+    <circle cx="814.184" cy="283.567" r="4.500"/>
+    <circle cx="817.195" cy="284.656" r="4.500"/>
+    <circle cx="820.154" cy="285.728" r="4.500"/>
+    <circle cx="823.064" cy="286.782" r="4.500"/>
+    <circle cx="825.926" cy="287.819" r="4.500"/>
+    <circle cx="828.741" cy="288.841" r="4.500"/>
+    <circle cx="831.511" cy="289.848" r="4.500"/>
+    <circle cx="834.237" cy="290.840" r="4.500"/>
+    <circle cx="836.921" cy="291.818" r="4.500"/>
+    <circle cx="839.565" cy="292.775" r="4.500"/>
+    <circle cx="842.168" cy="293.717" r="4.500"/>
+    <circle cx="844.733" cy="294.643" r="4.500"/>
+    <circle cx="847.260" cy="295.552" r="4.500"/>
+    <circle cx="849.751" cy="296.484" r="4.500"/>
+    <circle cx="852.207" cy="297.350" r="4.500"/>
+    <circle cx="854.628" cy="298.220" r="4.500"/>
+    <circle cx="857.016" cy="299.072" r="4.500"/>
+    <circle cx="859.372" cy="299.983" r="4.500"/>
+    <circle cx="861.695" cy="300.811" r="4.500"/>
+    <circle cx="863.988" cy="301.626" r="4.500"/>
+    <circle cx="866.251" cy="302.430" r="4.500"/>
+    <circle cx="868.485" cy="303.316" r="4.500"/>
+    <circle cx="870.691" cy="304.003" r="4.500"/>
+    <circle cx="872.868" cy="304.766" r="4.500"/>
+    <circle cx="875.019" cy="305.680" r="4.500"/>
+    <circle cx="877.143" cy="306.448" r="4.500"/>
+    <circle cx="879.242" cy="307.209" r="4.500"/>
+    <circle cx="881.315" cy="307.965" r="4.500"/>
+    <circle cx="883.364" cy="308.701" r="4.500"/>
+    <circle cx="885.389" cy="309.437" r="4.500"/>
+    <circle cx="887.390" cy="310.162" r="4.500"/>
+    <circle cx="889.369" cy="310.878" r="4.500"/>
+    <circle cx="891.325" cy="311.585" r="4.500"/>
+    <circle cx="893.259" cy="312.288" r="4.500"/>
+    <circle cx="895.172" cy="312.980" r="4.500"/>
+    <circle cx="897.064" cy="313.670" r="4.500"/>
+    <circle cx="898.936" cy="314.343" r="4.500"/>
+    <circle cx="900.788" cy="315.013" r="4.500"/>
+    <circle cx="902.620" cy="315.679" r="4.500"/>
+    <circle cx="904.432" cy="316.331" r="4.500"/>
+    <circle cx="906.226" cy="316.978" r="4.500"/>
+    <circle cx="908.002" cy="317.727" r="4.500"/>
+    <circle cx="909.760" cy="318.255" r="4.500"/>
+    <circle cx="911.500" cy="318.863" r="4.500"/>
+    </g>
+    <polyline points="114.240,68.312 234.240,94.232 304.435,112.623 354.239,126.888 392.870,138.544 424.434,148.398 451.121,156.935 474.239,164.464 494.630,171.200 512.870,177.293 529.370,182.855 544.434,187.972 558.291,192.710 571.121,197.121 583.065,201.246 594.238,205.122 604.734,208.776 614.629,212.233 623.989,215.512 632.869,218.631 641.316,221.605 649.370,224.446 657.065,227.167 664.433,229.777 671.501,232.284 678.291,234.697 684.824,237.022 691.120,239.265 697.196,241.432 703.065,243.528 708.741,245.558 714.238,247.525 719.565,249.434 724.733,251.287 729.752,253.088 734.629,254.839 739.372,256.544 743.989,258.205 748.486,259.823 752.869,261.402 757.144,262.942 761.316,264.447 765.389,265.916 769.369,267.353 773.260,268.758 777.065,270.133 780.788,271.479 784.433,272.797 788.003,274.088 791.500,275.354 794.928,276.596 798.290,277.813 801.588,279.008 804.824,280.181 808.001,281.333 811.120,282.465 814.184,283.577 817.195,284.669 820.154,285.744 823.064,286.801 825.926,287.840 828.741,288.863 831.511,289.870 834.237,290.861 836.921,291.837 839.565,292.798 842.168,293.745 844.733,294.679 847.260,295.598 849.751,296.505 852.207,297.399 854.628,298.281 857.016,299.151 859.372,300.009 861.695,300.856 863.988,301.691 866.251,302.516 868.485,303.331 870.691,304.135 872.868,304.929 875.019,305.713 877.143,306.488 879.242,307.254 881.315,308.010 883.364,308.758 885.389,309.497 887.390,310.228 889.369,310.950 891.325,311.664 893.259,312.371 895.172,313.070 897.064,313.761 898.936,314.444 900.788,315.121 902.620,315.790 904.432,316.453 906.226,317.108 908.002,317.758 909.760,318.400 911.500,319.036" fill="none" stroke="#000000" stroke-width="2.800" stroke-opacity="1.000"/>
+  </g>
+  <rect x="96.000" y="24.000" width="832.000" height="368.000" fill="none" stroke="#3f3f46" stroke-width="1.8"/>
+  <rect x="112.000" y="294.000" width="214.500" height="82.000" rx="6" ry="6" fill="#ffffff" fill-opacity="0.94" stroke="#000000" stroke-width="1.2"/>
+  <line x1="126.000" y1="320.000" x2="166.000" y2="320.000" stroke="#000000" stroke-width="2.800" stroke-opacity="1.000"/>
+  <text x="176.000" y="327.000" text-anchor="start" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="20.0">Kim 1/(K+1)<tspan baseline-shift="super" font-size="65%">2</tspan></text>
+  <circle cx="146.000" cy="350.000" r="4.500" fill="#5fa8e8" fill-opacity="1.000"/>
+  <text x="176.000" y="357.000" text-anchor="start" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="20.0">AutoLyap</text>
+  <line x1="96.000" y1="392.000" x2="96.000" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="96.000" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="114.240" y1="392.000" x2="114.240" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="114.240" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">0</tspan></text>
+  <line x1="234.240" y1="392.000" x2="234.240" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="234.240" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="304.435" y1="392.000" x2="304.435" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="304.435" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="354.239" y1="392.000" x2="354.239" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="354.239" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="392.870" y1="392.000" x2="392.870" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="392.870" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="424.434" y1="392.000" x2="424.434" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="424.434" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="451.121" y1="392.000" x2="451.121" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="451.121" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="474.239" y1="392.000" x2="474.239" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="474.239" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="494.630" y1="392.000" x2="494.630" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="494.630" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="512.870" y1="392.000" x2="512.870" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="512.870" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">1</tspan></text>
+  <line x1="632.869" y1="392.000" x2="632.869" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="632.869" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="703.065" y1="392.000" x2="703.065" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="703.065" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="752.869" y1="392.000" x2="752.869" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="752.869" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="791.500" y1="392.000" x2="791.500" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="791.500" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="823.064" y1="392.000" x2="823.064" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="823.064" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="849.751" y1="392.000" x2="849.751" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="849.751" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="872.868" y1="392.000" x2="872.868" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="872.868" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="893.259" y1="392.000" x2="893.259" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="893.259" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="911.500" y1="392.000" x2="911.500" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="911.500" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">2</tspan></text>
+  <line x1="104.000" y1="392.000" x2="96.000" y2="392.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="399.000" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">-5</tspan></text>
+  <line x1="104.000" y1="369.844" x2="96.000" y2="369.844" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="376.844" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="356.884" x2="96.000" y2="356.884" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="363.884" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="347.688" x2="96.000" y2="347.688" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="354.688" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="340.556" x2="96.000" y2="340.556" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="347.556" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="334.728" x2="96.000" y2="334.728" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="341.728" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="329.801" x2="96.000" y2="329.801" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="336.801" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="325.533" x2="96.000" y2="325.533" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="332.533" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="321.768" x2="96.000" y2="321.768" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="328.768" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="318.400" x2="96.000" y2="318.400" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="325.400" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">-4</tspan></text>
+  <line x1="104.000" y1="296.244" x2="96.000" y2="296.244" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="303.244" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="283.284" x2="96.000" y2="283.284" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="290.284" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="274.088" x2="96.000" y2="274.088" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="281.088" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="266.956" x2="96.000" y2="266.956" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="273.956" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="261.128" x2="96.000" y2="261.128" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="268.128" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="256.201" x2="96.000" y2="256.201" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="263.201" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="251.933" x2="96.000" y2="251.933" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="258.933" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="248.168" x2="96.000" y2="248.168" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="255.168" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="244.800" x2="96.000" y2="244.800" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="251.800" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">-3</tspan></text>
+  <line x1="104.000" y1="222.644" x2="96.000" y2="222.644" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="229.644" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="209.684" x2="96.000" y2="209.684" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="216.684" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="200.488" x2="96.000" y2="200.488" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="207.488" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="193.356" x2="96.000" y2="193.356" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="200.356" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="187.528" x2="96.000" y2="187.528" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="194.528" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="182.601" x2="96.000" y2="182.601" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="189.601" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="178.333" x2="96.000" y2="178.333" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="185.333" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="174.568" x2="96.000" y2="174.568" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="181.568" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="171.200" x2="96.000" y2="171.200" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="178.200" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">-2</tspan></text>
+  <line x1="104.000" y1="149.044" x2="96.000" y2="149.044" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="156.044" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="136.084" x2="96.000" y2="136.084" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="143.084" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="126.888" x2="96.000" y2="126.888" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="133.888" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="119.756" x2="96.000" y2="119.756" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="126.756" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="113.928" x2="96.000" y2="113.928" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="120.928" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="109.001" x2="96.000" y2="109.001" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="116.001" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="104.733" x2="96.000" y2="104.733" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="111.733" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="100.968" x2="96.000" y2="100.968" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="107.968" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="97.600" x2="96.000" y2="97.600" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="104.600" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">-1</tspan></text>
+  <line x1="104.000" y1="75.444" x2="96.000" y2="75.444" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="82.444" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="62.484" x2="96.000" y2="62.484" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="69.484" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="53.288" x2="96.000" y2="53.288" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="60.288" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="46.156" x2="96.000" y2="46.156" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="53.156" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="40.328" x2="96.000" y2="40.328" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="47.328" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="35.401" x2="96.000" y2="35.401" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="42.401" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="31.133" x2="96.000" y2="31.133" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="38.133" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="27.368" x2="96.000" y2="27.368" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="34.368" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21"></text>
+  <line x1="104.000" y1="24.000" x2="96.000" y2="24.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="31.000" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">10<tspan baseline-shift="super" font-size="65%">0</tspan></text>
+  <text x="512.000" y="470.000" text-anchor="middle" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28" font-style="italic">K</text>
+  <text x="30.0" y="208.000" text-anchor="middle" transform="rotate(0 30.0 208.000)" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28" font-style="italic">c<tspan baseline-shift="sub" font-size="65%">K</tspan></text>
+</svg>

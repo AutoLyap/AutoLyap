@@ -20,6 +20,7 @@ docs/source/examples/scripts/
   heavy_ball/
   nesterov_momentum/
   optimized_gradient/
+  accelerated_proximal_point/
   nesterov_fast_gradient/
   davis_yin/
   malitsky_tam_frb/

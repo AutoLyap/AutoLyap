@@ -7,6 +7,7 @@ This page covers various usage patterns and examples in AutoLyap.
 
 examples/define_your_own_algorithm/index
 examples/nesterov_fast_gradient
+examples/accelerated_proximal_point
 examples/chambolle_pock
 examples/davis_yin_three_operator
 examples/douglas_rachford/index
