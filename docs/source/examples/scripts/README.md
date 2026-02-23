@@ -22,6 +22,7 @@ docs/source/examples/scripts/
   optimized_gradient/
   nesterov_fast_gradient/
   davis_yin/
+  malitsky_tam_frb/
   douglas_rachford/
 ```
 
