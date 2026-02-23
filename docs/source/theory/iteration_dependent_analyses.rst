@@ -116,6 +116,12 @@ For built-in choices of these boundary terms:
 
 - Distance to solution:
   :meth:`Distance-to-solution helper <autolyap.IterationDependent.get_parameters_distance_to_solution>`.
+- State-component distance to solution:
+  :meth:`State-component-distance helper <autolyap.IterationDependent.get_parameters_state_component_distance_to_solution>`.
+- State-component same-iteration difference:
+  :meth:`State-component-difference helper <autolyap.IterationDependent.get_parameters_state_component_difference>`.
+- State-component cross-iteration difference:
+  :meth:`State-component-cross-iteration-difference helper <autolyap.IterationDependent.get_parameters_state_component_cross_iteration_difference>`.
 - Function-value suboptimality:
   :meth:`Function-value-suboptimality helper <autolyap.IterationDependent.get_parameters_function_value_suboptimality>`.
 - Fixed-point residual:

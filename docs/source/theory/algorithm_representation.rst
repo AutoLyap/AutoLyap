@@ -107,7 +107,7 @@ where
 .. math::
 
    \begin{aligned}
-      \bx^{k} &\in \calH^n, \\
+      \bx^{k} &= \p{x_1^k,\ldots,x_n^k} \in \calH^n, \\
       \bu^{k} &= \p{\bu^{k}_{1},\ldots,\bu^{k}_{m}} \in \prod_{i=1}^{m}\calH^{\NumEval_{i}}, \\
       \by^{k} &= \p{\by^{k}_{1},\ldots,\by^{k}_{m}} \in \prod_{i=1}^{m}\calH^{\NumEval_{i}}, \\
       \bFcn^{k} &\in \reals^{\NumEvalFunc}.
