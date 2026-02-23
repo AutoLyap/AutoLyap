@@ -21,6 +21,7 @@ docs/source/examples/scripts/
   nesterov_momentum/
   optimized_gradient/
   nesterov_fast_gradient/
+  davis_yin/
   douglas_rachford/
 ```
 
