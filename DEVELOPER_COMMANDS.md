@@ -143,6 +143,8 @@ docs/source/examples/scripts/
   nesterov_momentum/
   optimized_gradient/
   nesterov_fast_gradient/
+  davis_yin/
+  malitsky_tam_frb/
   douglas_rachford/
 ```
 
@@ -150,6 +152,7 @@ Run from repository root:
 
 ```bash
 python docs/source/examples/scripts/gradient_method/generate_gradient_method_assets.py
+python docs/source/examples/scripts/gradient_method/generate_gradient_method_gradient_dominated_smooth_assets.py
 python docs/source/examples/scripts/proximal_gradient/generate_proximal_gradient_assets.py
 python docs/source/examples/scripts/proximal_point/generate_proximal_point_assets.py
 python docs/source/examples/scripts/chambolle_pock/generate_chambolle_pock_assets.py --parallel-layers
@@ -159,6 +162,8 @@ python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_gradient_dominated_smooth_assets.py
 python docs/source/examples/scripts/optimized_gradient/generate_optimized_gradient_assets.py
 python docs/source/examples/scripts/nesterov_fast_gradient/generate_nesterov_fast_gradient_assets.py
+python docs/source/examples/scripts/davis_yin/generate_davis_yin_three_operator_assets.py
+python docs/source/examples/scripts/malitsky_tam_frb/generate_malitsky_tam_frb_assets.py
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_lipschitz_assets.py
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_cocoercive_assets.py
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_cocoercive_plus_strongly_monotone_assets.py
@@ -168,6 +173,7 @@ python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_m
 Script-specific notable options:
 
 - `generate_gradient_method_assets.py`: `--mu`, `--L`
+- `generate_gradient_method_gradient_dominated_smooth_assets.py`: `--mu-gd`, `--L`
 - `generate_proximal_gradient_assets.py`: `--mu`, `--L`
 - `generate_proximal_point_assets.py`: `--mu`
 - `generate_chambolle_pock_assets.py`: `--parallel-layers`, `--max-workers`
@@ -177,6 +183,8 @@ Script-specific notable options:
 - `generate_nesterov_momentum_gradient_dominated_smooth_assets.py`: `--mu-gd`, `--L`
 - `generate_optimized_gradient_assets.py`: `--L`, `--k-min`, `--k-max`
 - `generate_nesterov_fast_gradient_assets.py`: `--L`, `--k-min`, `--k-max`
+- `generate_davis_yin_three_operator_assets.py`: `--mu2`, `--L2`
+- `generate_malitsky_tam_frb_assets.py`: `--mu`, `--L`
 - `generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_lipschitz_assets.py`: `--mu`, `--L`, `--lambda-value`
 - `generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_cocoercive_assets.py`: `--mu`, `--beta`, `--lambda-value`
 - `generate_douglas_rachford_cocoercive_plus_strongly_monotone_assets.py`: `--mu`, `--beta`, `--gamma`
@@ -186,6 +194,7 @@ Quick SVG-only refresh (existing CSV data required):
 
 ```bash
 python docs/source/examples/scripts/gradient_method/generate_gradient_method_assets.py --reuse-data
+python docs/source/examples/scripts/gradient_method/generate_gradient_method_gradient_dominated_smooth_assets.py
 python docs/source/examples/scripts/proximal_gradient/generate_proximal_gradient_assets.py --reuse-data
 python docs/source/examples/scripts/proximal_point/generate_proximal_point_assets.py --reuse-data
 python docs/source/examples/scripts/chambolle_pock/generate_chambolle_pock_assets.py --reuse-data
@@ -195,6 +204,8 @@ python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_gradient_dominated_smooth_assets.py --reuse-data
 python docs/source/examples/scripts/optimized_gradient/generate_optimized_gradient_assets.py --reuse-data
 python docs/source/examples/scripts/nesterov_fast_gradient/generate_nesterov_fast_gradient_assets.py --reuse-data
+python docs/source/examples/scripts/davis_yin/generate_davis_yin_three_operator_assets.py --reuse-data
+python docs/source/examples/scripts/malitsky_tam_frb/generate_malitsky_tam_frb_assets.py --reuse-data
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_lipschitz_assets.py --reuse-data
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_cocoercive_assets.py --reuse-data
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_cocoercive_plus_strongly_monotone_assets.py --reuse-data
