@@ -46,12 +46,48 @@ Most analyses follow four steps:
 
 ## Iteration-independent example: The gradient method
 
-Consider minimizing a function {math}`f : \calH \to \reals` that is {math}`\mu`-strongly convex and {math}`L`-smooth; for an initial point {math}`x^0 \in \calH` and step size {math}`0 < \gamma < 2/L`, the gradient method updates as
+### Problem setup
+
+Consider the unconstrained minimization problem
+
+```{math}
+\minimize_{x \in \calH} f(x),
+```
+
+where {math}`f : \calH \to \reals` is {math}`\mu`-strongly convex and
+{math}`L`-smooth, with {math}`0 < \mu < L`.
+
+For an initial point {math}`x^0 \in \calH` and step size
+{math}`0 < \gamma < 2/L`, the gradient update is
 
 ```{math}
 (\forall k \in \naturals)\quad
 x^{k+1} = x^k - \gamma \nabla f(x^k).
 ```
+
+In this example, we search for the smallest contraction factor
+{math}`\rho\in[0,1)` provable using AutoLyap such that
+
+```{math}
+\|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad k\to\infty,
+```
+
+where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
+
+### Model the problem in AutoLyap and search for the smallest rho
+
+- {math}`f` is modeled by
+  {py:class}`SmoothStronglyConvex <autolyap.problemclass.SmoothStronglyConvex>`.
+- The optimization problem is represented by
+  {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>`.
+- The update rule is represented by
+  {py:class}`GradientMethod <autolyap.algorithms.GradientMethod>`.
+- Distance-to-solution parameters are obtained with
+  {py:meth}`IterationIndependent.LinearConvergence.get_parameters_distance_to_solution <autolyap.IterationIndependent.LinearConvergence.get_parameters_distance_to_solution>`.
+- The contraction factor is searched with
+  {py:meth}`IterationIndependent.LinearConvergence.bisection_search_rho <autolyap.IterationIndependent.LinearConvergence.bisection_search_rho>`.
+
+### Run the iteration-independent analysis
 
 ```python
 from autolyap.algorithms import GradientMethod
@@ -67,8 +103,8 @@ problem = InclusionProblem([SmoothStronglyConvex(mu, L)])
 algorithm = GradientMethod(gamma=gamma)
 solver_options = SolverOptions(backend="mosek_fusion")  # requires `autolyap[mosek]`
 
-# License-free option
-#solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
+# License-free option:
+# solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
 
 P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
     algorithm
@@ -98,8 +134,9 @@ print(f"rho (AutoLyap): {rho:.8f}")
 print(f"rho (theory):   {rho_theory:.8f}")
 ```
 
-The computed value `rho (AutoLyap)` matches the theoretical rate expression for
-gradient methods; see {cite}`quick-Polyak1963GradientUSSR`:
+The computed value `rho (AutoLyap)` matches (up to solver numerical
+tolerances) the theoretical rate expression for gradient methods; see
+{cite}`quick-Polyak1963GradientUSSR`:
 
 ```{math}
 \|x^k - x^\star\|^2 = O(\rho^k), \qquad
@@ -126,9 +163,22 @@ as blue dots.
 
 ## Iteration-dependent example: The optimized gradient method
 
-For background on the optimized gradient method, see {cite}`quick-kim2015optimizedfirstorder`.
+### Problem setup
 
-Consider minimizing a convex and {math}`L`-smooth function {math}`f : \calH \to \reals`, with {math}`L > 0`; for initial points {math}`x^0, y^0 \in \calH`, smoothness constant {math}`L \in \reals_{++}`, and iteration budget {math}`K \in \mathbb{N}`, the optimized gradient method updates as
+For background on the optimized gradient method, see
+{cite}`quick-kim2015optimizedfirstorder`.
+
+Consider the unconstrained minimization problem
+
+```{math}
+\minimize_{x \in \calH} f(x),
+```
+
+where {math}`f : \calH \to \reals` is convex and {math}`L`-smooth with
+{math}`L>0`.
+
+For initial points {math}`x^0, y^0 \in \calH` and iteration budget
+{math}`K \in \mathbb{N}`, the optimized gradient method updates as
 
 ```{math}
 (\forall k \in \llbracket 0, K-1 \rrbracket)\quad
@@ -153,6 +203,32 @@ Consider minimizing a convex and {math}`L`-smooth function {math}`f : \calH \to 
 \end{cases}
 ```
 
+In this example, we search for the smallest AutoLyap certificate constant
+{math}`c_K` such that
+
+```{math}
+f(x^K)-f(x^\star)\le c_K\|x^0-x^\star\|^2,
+```
+
+where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
+
+### Model the problem in AutoLyap and search for the smallest c_K
+
+- {math}`f` is modeled by
+  {py:class}`SmoothConvex <autolyap.problemclass.SmoothConvex>`.
+- The optimization problem is represented by
+  {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>`.
+- The update rule is represented by
+  {py:class}`OptimizedGradientMethod <autolyap.algorithms.OptimizedGradientMethod>`.
+- Initial-horizon parameters are obtained with
+  {py:meth}`IterationDependent.get_parameters_distance_to_solution <autolyap.IterationDependent.get_parameters_distance_to_solution>`.
+- Final-horizon function-value parameters are obtained with
+  {py:meth}`IterationDependent.get_parameters_function_value_suboptimality <autolyap.IterationDependent.get_parameters_function_value_suboptimality>`.
+- The certificate constant is computed with
+  {py:meth}`IterationDependent.search_lyapunov <autolyap.IterationDependent.search_lyapunov>`.
+
+### Run the iteration-dependent analysis
+
 ```python
 from autolyap.algorithms import OptimizedGradientMethod
 from autolyap import SolverOptions
@@ -166,8 +242,8 @@ problem = InclusionProblem([SmoothConvex(L)])
 algorithm = OptimizedGradientMethod(L=L, K=K)
 solver_options = SolverOptions(backend="mosek_fusion")  # requires `autolyap[mosek]`
 
-# License-free option
-#solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
+# License-free option:
+# solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
 
 Q_0, q_0 = IterationDependent.get_parameters_distance_to_solution(
     algorithm,
@@ -207,8 +283,8 @@ print(f"c_K (AutoLyap): {c_K:.6e}")
 print(f"c_K (theory):   {c_K_theory:.6e}")
 ```
 
-The computed value `c_K (AutoLyap)` matches the theoretical horizon-`K`
-expression:
+The computed value `c_K (AutoLyap)` matches (up to solver numerical
+tolerances) the theoretical horizon-`K` expression:
 
 ```{math}
 f(x^K) - f(x^\star) \le c_K\,\|x^0 - x^\star\|^2, \qquad

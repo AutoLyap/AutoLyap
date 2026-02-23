@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="480" viewBox="0 0 960 480" role="img" aria-label="Gradient-method rho versus gamma">
+  <title>Gradient-method rho versus gamma</title>
+  <desc>Rho vs gamma for gradient method: theoretical curve and AutoLyap points.</desc>
+  <rect x="0" y="0" width="960" height="480" fill="#ffffff"/>
+  <rect x="96.000" y="24.000" width="832.000" height="368.000" fill="#f8fafc"/>
+  <defs>
+    <clipPath id="plot-area-clip-gradient-nonconvex">
+      <rect x="96.000" y="24.000" width="832.000" height="368.000"/>
+    </clipPath>
+  </defs>
+  <line x1="96.000" y1="24.000" x2="96.000" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="262.400" y1="24.000" x2="262.400" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="428.800" y1="24.000" x2="428.800" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="595.200" y1="24.000" x2="595.200" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="761.600" y1="24.000" x2="761.600" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="928.000" y1="24.000" x2="928.000" y2="392.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="385.967" x2="928.000" y2="385.967" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="325.639" x2="928.000" y2="325.639" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="265.311" x2="928.000" y2="265.311" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="204.984" x2="928.000" y2="204.984" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="144.656" x2="928.000" y2="144.656" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="84.328" x2="928.000" y2="84.328" stroke="#9ca3af" stroke-width="1.350"/>
+  <line x1="96.000" y1="24.000" x2="928.000" y2="24.000" stroke="#9ca3af" stroke-width="1.350"/>
+  <g clip-path="url(#plot-area-clip-gradient-nonconvex)">
+    <g fill="#5fa8e8" fill-opacity="0.900">
+    <circle cx="96.416" cy="24.603" r="4.500"/>
+    <circle cx="104.900" cy="36.786" r="4.500"/>
+    <circle cx="113.384" cy="48.750" r="4.500"/>
+    <circle cx="121.868" cy="60.496" r="4.500"/>
+    <circle cx="130.352" cy="72.025" r="4.500"/>
+    <circle cx="138.835" cy="83.337" r="4.500"/>
+    <circle cx="147.319" cy="94.434" r="4.500"/>
+    <circle cx="155.803" cy="105.316" r="4.500"/>
+    <circle cx="164.287" cy="115.985" r="4.500"/>
+    <circle cx="172.771" cy="126.441" r="4.500"/>
+    <circle cx="181.255" cy="136.685" r="4.500"/>
+    <circle cx="189.739" cy="146.718" r="4.500"/>
+    <circle cx="198.223" cy="156.541" r="4.500"/>
+    <circle cx="206.706" cy="166.156" r="4.500"/>
+    <circle cx="215.190" cy="175.563" r="4.500"/>
+    <circle cx="223.674" cy="184.764" r="4.500"/>
+    <circle cx="232.158" cy="193.760" r="4.500"/>
+    <circle cx="240.642" cy="202.553" r="4.500"/>
+    <circle cx="249.126" cy="211.142" r="4.500"/>
+    <circle cx="257.610" cy="219.531" r="4.500"/>
+    <circle cx="266.094" cy="227.720" r="4.500"/>
+    <circle cx="274.577" cy="235.710" r="4.500"/>
+    <circle cx="283.061" cy="243.503" r="4.500"/>
+    <circle cx="291.545" cy="251.101" r="4.500"/>
+    <circle cx="300.029" cy="258.506" r="4.500"/>
+    <circle cx="308.513" cy="265.718" r="4.500"/>
+    <circle cx="316.997" cy="272.739" r="4.500"/>
+    <circle cx="325.481" cy="279.572" r="4.500"/>
+    <circle cx="333.965" cy="286.217" r="4.500"/>
+    <circle cx="342.448" cy="292.677" r="4.500"/>
+    <circle cx="350.932" cy="298.953" r="4.500"/>
+    <circle cx="359.416" cy="305.048" r="4.500"/>
+    <circle cx="367.900" cy="310.963" r="4.500"/>
+    <circle cx="376.384" cy="316.700" r="4.500"/>
+    <circle cx="384.868" cy="322.261" r="4.500"/>
+    <circle cx="393.352" cy="327.648" r="4.500"/>
+    <circle cx="401.836" cy="332.863" r="4.500"/>
+    <circle cx="410.320" cy="337.909" r="4.500"/>
+    <circle cx="418.803" cy="342.787" r="4.500"/>
+    <circle cx="427.287" cy="347.500" r="4.500"/>
+    <circle cx="435.771" cy="352.049" r="4.500"/>
+    <circle cx="444.255" cy="356.437" r="4.500"/>
+    <circle cx="452.739" cy="360.666" r="4.500"/>
+    <circle cx="461.223" cy="364.739" r="4.500"/>
+    <circle cx="469.707" cy="368.657" r="4.500"/>
+    <circle cx="478.191" cy="372.423" r="4.500"/>
+    <circle cx="486.674" cy="376.040" r="4.500"/>
+    <circle cx="495.158" cy="379.509" r="4.500"/>
+    <circle cx="503.642" cy="382.832" r="4.500"/>
+    <circle cx="512.126" cy="385.982" r="4.500"/>
+    <circle cx="520.610" cy="386.807" r="4.500"/>
+    <circle cx="529.094" cy="387.320" r="4.500"/>
+    <circle cx="537.578" cy="387.519" r="4.500"/>
+    <circle cx="546.062" cy="387.402" r="4.500"/>
+    <circle cx="554.545" cy="386.968" r="4.500"/>
+    <circle cx="563.029" cy="386.212" r="4.500"/>
+    <circle cx="571.513" cy="385.134" r="4.500"/>
+    <circle cx="579.997" cy="383.731" r="4.500"/>
+    <circle cx="588.481" cy="382.002" r="4.500"/>
+    <circle cx="596.965" cy="379.943" r="4.500"/>
+    <circle cx="605.449" cy="377.554" r="4.500"/>
+    <circle cx="613.933" cy="374.831" r="4.500"/>
+    <circle cx="622.416" cy="371.774" r="4.500"/>
+    <circle cx="630.900" cy="368.380" r="4.500"/>
+    <circle cx="639.384" cy="364.647" r="4.500"/>
+    <circle cx="647.868" cy="360.574" r="4.500"/>
+    <circle cx="656.352" cy="356.158" r="4.500"/>
+    <circle cx="664.836" cy="351.398" r="4.500"/>
+    <circle cx="673.320" cy="346.291" r="4.500"/>
+    <circle cx="681.804" cy="340.837" r="4.500"/>
+    <circle cx="690.288" cy="335.034" r="4.500"/>
+    <circle cx="698.771" cy="328.879" r="4.500"/>
+    <circle cx="707.255" cy="322.371" r="4.500"/>
+    <circle cx="715.739" cy="315.509" r="4.500"/>
+    <circle cx="724.223" cy="308.291" r="4.500"/>
+    <circle cx="732.707" cy="300.714" r="4.500"/>
+    <circle cx="741.191" cy="292.779" r="4.500"/>
+    <circle cx="749.675" cy="284.482" r="4.500"/>
+    <circle cx="758.159" cy="275.822" r="4.500"/>
+    <circle cx="766.642" cy="266.799" r="4.500"/>
+    <circle cx="775.126" cy="257.410" r="4.500"/>
+    <circle cx="783.610" cy="247.654" r="4.500"/>
+    <circle cx="792.094" cy="237.530" r="4.500"/>
+    <circle cx="800.578" cy="227.035" r="4.500"/>
+    <circle cx="809.062" cy="216.170" r="4.500"/>
+    <circle cx="817.546" cy="204.931" r="4.500"/>
+    <circle cx="826.030" cy="193.319" r="4.500"/>
+    <circle cx="834.513" cy="181.331" r="4.500"/>
+    <circle cx="842.997" cy="168.966" r="4.500"/>
+    <circle cx="851.481" cy="156.224" r="4.500"/>
+    <circle cx="859.965" cy="143.102" r="4.500"/>
+    <circle cx="868.449" cy="129.599" r="4.500"/>
+    <circle cx="876.933" cy="115.714" r="4.500"/>
+    <circle cx="885.417" cy="101.446" r="4.500"/>
+    <circle cx="893.901" cy="86.794" r="4.500"/>
+    <circle cx="902.384" cy="71.756" r="4.500"/>
+    <circle cx="910.868" cy="56.331" r="4.500"/>
+    <circle cx="919.352" cy="40.519" r="4.500"/>
+    <circle cx="927.836" cy="24.317" r="4.500"/>
+    </g>
+    <path d="M 96.416 24.603 L 104.900 36.786 L 113.384 48.750 L 121.868 60.496 L 130.352 72.025 L 138.835 83.337 L 147.319 94.434 L 155.803 105.316 L 164.287 115.985 L 172.771 126.441 L 181.255 136.684 L 189.739 146.718 L 198.223 156.541 L 206.706 166.156 L 215.190 175.563 L 223.674 184.764 L 232.158 193.760 L 240.642 202.553 L 249.126 211.142 L 257.610 219.531 L 266.094 227.719 L 274.577 235.710 L 283.061 243.503 L 291.545 251.101 L 300.029 258.506 L 308.513 265.718 L 316.997 272.739 L 325.481 279.572 L 333.965 286.217 L 342.448 292.677 L 350.932 298.953 L 359.416 305.048 L 367.900 310.963 L 376.384 316.700 L 384.868 322.261 L 393.352 327.648 L 401.836 332.863 L 410.320 337.909 L 418.803 342.787 L 427.287 347.500 L 435.771 352.049 L 444.255 356.437 L 452.739 360.666 L 461.223 364.739 L 469.707 368.657 L 478.191 372.423 L 486.674 376.040 L 495.158 379.509 L 503.642 382.832 L 512.126 385.982 L 520.610 386.806 L 529.094 387.320 L 537.578 387.519 L 546.062 387.402 L 554.545 386.968 L 563.029 386.212 L 571.513 385.134 L 579.997 383.731 L 588.481 382.002 L 596.965 379.943 L 605.449 377.554 L 613.933 374.831 L 622.416 371.774 L 630.900 368.380 L 639.384 364.647 L 647.868 360.574 L 656.352 356.158 L 664.836 351.398 L 673.320 346.291 L 681.804 340.837 L 690.288 335.034 L 698.771 328.879 L 707.255 322.371 L 715.739 315.509 L 724.223 308.291 L 732.707 300.714 L 741.191 292.779 L 749.675 284.482 L 758.159 275.822 L 766.642 266.799 L 775.126 257.410 L 783.610 247.654 L 792.094 237.530 L 800.578 227.035 L 809.062 216.170 L 817.546 204.471 L 826.030 189.307 L 834.513 174.326 L 842.997 159.542 L 851.481 144.965 L 859.965 130.605 L 868.449 116.469 L 876.933 102.564 L 885.417 88.896 L 893.901 75.470 L 902.384 62.289 L 910.868 49.355 L 919.352 36.671 L 927.836 24.238" fill="none" stroke="#000000" stroke-width="2.800" stroke-opacity="1.000"/>
+  </g>
+  <rect x="96.000" y="24.000" width="832.000" height="368.000" fill="none" stroke="#3f3f46" stroke-width="1.8"/>
+  <rect x="358.000" y="40.000" width="308.000" height="82.000" rx="6" ry="6" fill="#ffffff" fill-opacity="0.94" stroke="#000000" stroke-width="1.2"/>
+  <line x1="372.000" y1="66.000" x2="412.000" y2="66.000" stroke="#000000" stroke-width="2.800" stroke-opacity="1.000"/>
+  <text x="422.000" y="73.000" text-anchor="start" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="20.0">[AdKZ23, Theorem 3]</text>
+  <circle cx="392.000" cy="96.000" r="4.500" fill="#5fa8e8" fill-opacity="1.000"/>
+  <text x="422.000" y="103.000" text-anchor="start" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="20.0">AutoLyap</text>
+  <line x1="96.000" y1="392.000" x2="96.000" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="96.000" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0</text>
+  <line x1="262.400" y1="392.000" x2="262.400" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="262.400" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0.4</text>
+  <line x1="428.800" y1="392.000" x2="428.800" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="428.800" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0.8</text>
+  <line x1="595.200" y1="392.000" x2="595.200" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="595.200" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">1.2</text>
+  <line x1="761.600" y1="392.000" x2="761.600" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="761.600" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">1.6</text>
+  <line x1="928.000" y1="392.000" x2="928.000" y2="384.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="928.000" y="438.000" text-anchor="middle" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">2</text>
+  <line x1="104.000" y1="385.967" x2="96.000" y2="385.967" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="392.967" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0.4</text>
+  <line x1="104.000" y1="325.639" x2="96.000" y2="325.639" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="332.639" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0.5</text>
+  <line x1="104.000" y1="265.311" x2="96.000" y2="265.311" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="272.311" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0.6</text>
+  <line x1="104.000" y1="204.984" x2="96.000" y2="204.984" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="211.984" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0.7</text>
+  <line x1="104.000" y1="144.656" x2="96.000" y2="144.656" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="151.656" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0.8</text>
+  <line x1="104.000" y1="84.328" x2="96.000" y2="84.328" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="91.328" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">0.9</text>
+  <line x1="104.000" y1="24.000" x2="96.000" y2="24.000" stroke="#3f3f46" stroke-width="1.4"/>
+  <text x="82.000" y="31.000" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">1.0</text>
+  <text x="480.000" y="470.000" text-anchor="middle" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28">γ</text>
+  <text x="30.0" y="208.000" text-anchor="middle" transform="rotate(0 30.0 208.000)" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28">ρ</text>
+</svg>

@@ -164,7 +164,7 @@ For interface documentation in AutoLyap, see
 
 - *Base algorithms*: abstract interfaces for users to implement their
   own algorithms; see :doc:`Base algorithms </base_algorithms>`. For an
-  example, see :doc:`Define your own algorithm: The proximal gradient
-  method </examples/proximal_gradient>`.
+  example, see :doc:`The proximal gradient
+  method </examples/define_your_own_algorithm/proximal_gradient_method>`.
 - *Concrete algorithms*: built-in algorithm implementations; see
   :doc:`Concrete algorithms </concrete_algorithms>` for the full list.
