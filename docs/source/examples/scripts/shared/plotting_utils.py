@@ -56,6 +56,7 @@ _LATEX_SYMBOLS = {
     r"\delta": "δ",
     r"\epsilon": "ε",
     r"\eta": "η",
+    r"\theta": "θ",
     r"\kappa": "κ",
     r"\lambda": "λ",
     r"\mu": "μ",

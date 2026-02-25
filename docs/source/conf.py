@@ -215,15 +215,38 @@ html_context = {
                 "finite-horizon c_K certificate",
             ],
         },
-        "examples/chambolle_pock": {
+        "examples/chambolle_pock/index": {
             "description": (
-                "Chambolle--Pock example in AutoLyap with fixed-point-residual "
-                "summability certification and layered (h, alpha) regions."
+                "Chambolle--Pock examples in AutoLyap for Lyapunov-based "
+                "analysis under multiple problem settings."
             ),
             "keywords": [
                 "Chambolle Pock AutoLyap",
+                "Chambolle Pock Lyapunov analysis",
+                "fixed-point residual and linear-rate examples",
+            ],
+        },
+        "examples/chambolle_pock/convex_fixed_point_residual": {
+            "description": (
+                "Chambolle--Pock convex example in AutoLyap with "
+                "fixed-point-residual summability certification and layered "
+                "(h, alpha) regions."
+            ),
+            "keywords": [
+                "Chambolle Pock convex fixed-point residual",
                 "fixed-point residual summability",
                 "history overlap Lyapunov analysis",
+            ],
+        },
+        "examples/chambolle_pock/smooth_strongly_convex": {
+            "description": (
+                "Chambolle--Pock smooth strongly-convex example in AutoLyap "
+                "with iteration-independent linear-rate certification."
+            ),
+            "keywords": [
+                "Chambolle Pock smooth strongly convex",
+                "AutoLyap bisection rho",
+                "distance-to-solution convergence",
             ],
         },
         "examples/define_your_own_algorithm/index": {
