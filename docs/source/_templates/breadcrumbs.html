@@ -3,9 +3,13 @@
 {% block breadcrumbs %}
   {%- set top_level_pages = ["index", "quick_start", "examples", "api_reference", "contributing"] %}
   {%- if pagename not in top_level_pages %}
+    {%- set _breadcrumb_title = title %}
+    {%- if pagename.startswith("examples/") and (": " in (_breadcrumb_title | string)) %}
+      {%- set _breadcrumb_title = (_breadcrumb_title | string).split(": ", 1)[1] %}
+    {%- endif %}
     {%- for doc in parents %}
       <li class="breadcrumb-item"><a href="{{ doc.link|e }}">{{ doc.title }}</a></li>
     {%- endfor %}
-    <li class="breadcrumb-item active">{{ title }}</li>
+    <li class="breadcrumb-item active">{{ _breadcrumb_title }}</li>
   {%- endif %}
 {% endblock %}

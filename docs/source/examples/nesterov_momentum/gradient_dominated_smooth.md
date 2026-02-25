@@ -1,4 +1,4 @@
-# Constant Nesterov momentum: Gradient-dominated and smooth
+# The gradient method with constant Nesterov momentum: Gradient-dominated and smooth
 
 ## Problem setup
 

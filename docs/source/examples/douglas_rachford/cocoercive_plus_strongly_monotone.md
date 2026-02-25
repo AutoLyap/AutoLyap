@@ -1,4 +1,4 @@
-# Douglas--Rachford: Cocoercive + strongly monotone
+# The Douglas--Rachford method: Cocoercive + strongly monotone
 
 ## Problem setup
 

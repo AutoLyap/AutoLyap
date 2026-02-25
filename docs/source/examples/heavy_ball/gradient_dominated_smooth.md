@@ -1,4 +1,4 @@
-# Heavy-ball: Gradient-dominated and smooth
+# The heavy-ball method: Gradient-dominated and smooth
 
 ## Problem setup
 
