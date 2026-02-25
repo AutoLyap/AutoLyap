@@ -20,6 +20,7 @@ docs/source/examples/scripts/
   heavy_ball/
   nesterov_momentum/
   optimized_gradient/
+  information_theoretic_exact_method/
   accelerated_proximal_point/
   nesterov_fast_gradient/
   davis_yin/
