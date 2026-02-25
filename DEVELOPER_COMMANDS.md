@@ -68,8 +68,10 @@ make -C docs deps
 
 ### `make docs`
 
-- Builds documentation with `make -C docs dirhtml`.
-- Requires docs dependencies (install with `make -C docs deps`).
+- Builds documentation via `make -C docs dirhtml`.
+- If `.venv-docs/bin/python` exists, `make docs` uses it automatically.
+- Otherwise it uses the default `python`, which requires docs dependencies
+  (install with `make -C docs deps`).
 - Output: `docs/build/dirhtml/`.
 - Inspect: `docs/build/dirhtml/index.html`.
 
@@ -142,6 +144,8 @@ docs/source/examples/scripts/
   heavy_ball/
   nesterov_momentum/
   optimized_gradient/
+  information_theoretic_exact_method/
+  accelerated_proximal_point/
   nesterov_fast_gradient/
   davis_yin/
   malitsky_tam_frb/
@@ -156,11 +160,14 @@ python docs/source/examples/scripts/gradient_method/generate_gradient_method_gra
 python docs/source/examples/scripts/proximal_gradient/generate_proximal_gradient_assets.py
 python docs/source/examples/scripts/proximal_point/generate_proximal_point_assets.py
 python docs/source/examples/scripts/chambolle_pock/generate_chambolle_pock_assets.py --parallel-layers
+python docs/source/examples/scripts/chambolle_pock/generate_chambolle_pock_smooth_strongly_convex_assets.py
 python docs/source/examples/scripts/heavy_ball/generate_heavy_ball_smooth_convex_assets.py
 python docs/source/examples/scripts/heavy_ball/generate_heavy_ball_gradient_dominated_smooth_assets.py
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_smooth_convex_assets.py
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_gradient_dominated_smooth_assets.py
 python docs/source/examples/scripts/optimized_gradient/generate_optimized_gradient_assets.py
+python docs/source/examples/scripts/information_theoretic_exact_method/generate_information_theoretic_exact_method_assets.py
+python docs/source/examples/scripts/accelerated_proximal_point/generate_accelerated_proximal_point_assets.py
 python docs/source/examples/scripts/nesterov_fast_gradient/generate_nesterov_fast_gradient_assets.py
 python docs/source/examples/scripts/davis_yin/generate_davis_yin_three_operator_assets.py
 python docs/source/examples/scripts/malitsky_tam_frb/generate_malitsky_tam_frb_assets.py
@@ -168,6 +175,7 @@ python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_m
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_cocoercive_assets.py
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_cocoercive_plus_strongly_monotone_assets.py
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_maximally_monotone_lipschitz_plus_strongly_monotone_assets.py
+python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_smooth_strongly_convex_plus_convex_assets.py
 ```
 
 Script-specific notable options:
@@ -177,11 +185,14 @@ Script-specific notable options:
 - `generate_proximal_gradient_assets.py`: `--mu`, `--L`
 - `generate_proximal_point_assets.py`: `--mu`
 - `generate_chambolle_pock_assets.py`: `--parallel-layers`, `--max-workers`
+- `generate_chambolle_pock_smooth_strongly_convex_assets.py`: `--mu`, `--L`
 - `generate_heavy_ball_smooth_convex_assets.py`: `--L`
 - `generate_heavy_ball_gradient_dominated_smooth_assets.py`: `--mu-gd`, `--L`
 - `generate_nesterov_momentum_smooth_convex_assets.py`: `--L`
 - `generate_nesterov_momentum_gradient_dominated_smooth_assets.py`: `--mu-gd`, `--L`
 - `generate_optimized_gradient_assets.py`: `--L`, `--k-min`, `--k-max`
+- `generate_information_theoretic_exact_method_assets.py`: `--mu`, `--L`, `--k-min`, `--k-max`
+- `generate_accelerated_proximal_point_assets.py`: `--gamma`, `--k-min`, `--k-max`
 - `generate_nesterov_fast_gradient_assets.py`: `--L`, `--k-min`, `--k-max`
 - `generate_davis_yin_three_operator_assets.py`: `--mu2`, `--L2`
 - `generate_malitsky_tam_frb_assets.py`: `--mu`, `--L`
@@ -189,20 +200,24 @@ Script-specific notable options:
 - `generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_cocoercive_assets.py`: `--mu`, `--beta`, `--lambda-value`
 - `generate_douglas_rachford_cocoercive_plus_strongly_monotone_assets.py`: `--mu`, `--beta`, `--gamma`
 - `generate_douglas_rachford_maximally_monotone_lipschitz_plus_strongly_monotone_assets.py`: `--mu`, `--L`, `--gamma`
+- `generate_douglas_rachford_smooth_strongly_convex_plus_convex_assets.py`: `--mu`, `--L`, `--lambda-value`
 
 Quick SVG-only refresh (existing CSV data required):
 
 ```bash
 python docs/source/examples/scripts/gradient_method/generate_gradient_method_assets.py --reuse-data
-python docs/source/examples/scripts/gradient_method/generate_gradient_method_gradient_dominated_smooth_assets.py
+python docs/source/examples/scripts/gradient_method/generate_gradient_method_gradient_dominated_smooth_assets.py --reuse-data
 python docs/source/examples/scripts/proximal_gradient/generate_proximal_gradient_assets.py --reuse-data
 python docs/source/examples/scripts/proximal_point/generate_proximal_point_assets.py --reuse-data
 python docs/source/examples/scripts/chambolle_pock/generate_chambolle_pock_assets.py --reuse-data
+python docs/source/examples/scripts/chambolle_pock/generate_chambolle_pock_smooth_strongly_convex_assets.py --reuse-data
 python docs/source/examples/scripts/heavy_ball/generate_heavy_ball_smooth_convex_assets.py --reuse-data
 python docs/source/examples/scripts/heavy_ball/generate_heavy_ball_gradient_dominated_smooth_assets.py --reuse-data
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_smooth_convex_assets.py --reuse-data
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_gradient_dominated_smooth_assets.py --reuse-data
 python docs/source/examples/scripts/optimized_gradient/generate_optimized_gradient_assets.py --reuse-data
+python docs/source/examples/scripts/information_theoretic_exact_method/generate_information_theoretic_exact_method_assets.py --reuse-data
+python docs/source/examples/scripts/accelerated_proximal_point/generate_accelerated_proximal_point_assets.py --reuse-data
 python docs/source/examples/scripts/nesterov_fast_gradient/generate_nesterov_fast_gradient_assets.py --reuse-data
 python docs/source/examples/scripts/davis_yin/generate_davis_yin_three_operator_assets.py --reuse-data
 python docs/source/examples/scripts/malitsky_tam_frb/generate_malitsky_tam_frb_assets.py --reuse-data
@@ -210,6 +225,7 @@ python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_m
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_maximally_monotone_plus_strongly_monotone_cocoercive_assets.py --reuse-data
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_cocoercive_plus_strongly_monotone_assets.py --reuse-data
 python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_maximally_monotone_lipschitz_plus_strongly_monotone_assets.py --reuse-data
+python docs/source/examples/scripts/douglas_rachford/generate_douglas_rachford_smooth_strongly_convex_plus_convex_assets.py --reuse-data
 ```
 
 ## Docs Make targets
