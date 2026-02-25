@@ -1,5 +1,7 @@
 .PHONY: check check-mosek check-sdpa check-sdpa-multiprecision docs sync-citation check-citation
 
+DOCS_PYTHON := $(CURDIR)/.venv-docs/bin/python
+
 check:
 	@bash scripts/check_local_ci.sh
 
@@ -13,7 +15,11 @@ check-sdpa-multiprecision:
 	@python -m pytest tests/convergence/test_convergence_cvxpy_*.py -m "sdpa_multiprecision"
 
 docs:
-	@make -C docs dirhtml
+	@if [ -x "$(DOCS_PYTHON)" ]; then \
+		PYTHON="$(DOCS_PYTHON)" $(MAKE) -C docs dirhtml; \
+	else \
+		$(MAKE) -C docs dirhtml; \
+	fi
 
 sync-citation:
 	@python scripts/sync_citation_version.py
