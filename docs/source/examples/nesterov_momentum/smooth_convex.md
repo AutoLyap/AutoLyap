@@ -1,4 +1,4 @@
-# Constant Nesterov momentum: Smooth and convex
+# The gradient method with constant Nesterov momentum: Smooth and convex
 
 ## Problem setup
 

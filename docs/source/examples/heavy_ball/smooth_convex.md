@@ -1,4 +1,4 @@
-# Heavy-ball: Smooth and convex
+# The heavy-ball method: Smooth and convex
 
 ## Problem setup
 

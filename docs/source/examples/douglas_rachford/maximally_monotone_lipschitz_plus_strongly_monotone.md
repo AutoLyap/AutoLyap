@@ -1,4 +1,4 @@
-# Douglas--Rachford: Maximally monotone/Lipschitz + strongly monotone
+# The Douglas--Rachford method: Maximally monotone/Lipschitz + strongly monotone
 
 ## Problem setup
 

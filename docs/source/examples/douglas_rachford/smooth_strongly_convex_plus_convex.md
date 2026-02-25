@@ -1,18 +1,25 @@
-# The Douglas--Rachford method: Maximally monotone + strongly monotone/cocoercive
+# The Douglas--Rachford method: Smooth and strongly convex + convex
 
 ## Problem setup
 
-Consider the monotone inclusion
+Consider the composite minimization problem
 
 ```{math}
-\text{find } x \in \calH \text{ such that } 0 \in G_1(x) + G_2(x),
+\minimize_{x \in \calH}\; f_1(x)+f_2(x),
 ```
 
 where:
 
-- {math}`G_1 : \calH \rightrightarrows \calH` is maximally monotone,
-- {math}`G_2 : \calH \to \calH` is both {math}`\mu`-strongly monotone and
-  {math}`\beta`-cocoercive, with {math}`\mu>0` and {math}`\beta>0`.
+- {math}`f_1 : \calH \to \reals` is {math}`\mu`-strongly convex and
+  {math}`L`-smooth, with {math}`0 < \mu < L`,
+- {math}`f_2 : \calH \to \reals \cup \set{\pm\infty}` is proper, convex, and
+  lower semicontinuous.
+
+Equivalently, we solve
+
+```{math}
+\text{find } x \in \calH \text{ such that } 0 \in \partial f_1(x) + \partial f_2(x).
+```
 
 For an initial point {math}`x^0 \in \calH`, step size
 {math}`\gamma \in \reals_{++}`, and relaxation
@@ -22,14 +29,15 @@ For an initial point {math}`x^0 \in \calH`, step size
 (\forall k \in \naturals)\quad
 \left[
 \begin{aligned}
-v^k &= J_{\gamma G_1}(x^k), \\
-w^k &= J_{\gamma G_2}(2v^k - x^k), \\
+v^k &= \prox_{\gamma f_1}(x^k), \\
+w^k &= \prox_{\gamma f_2}(2v^k - x^k), \\
 x^{k+1} &= x^k + \lambda (w^k - v^k).
 \end{aligned}
 \right.
 ```
 
-In this example, we search for the smallest contraction factor
+In this example, we fix {math}`\mu=1`, {math}`L=2`, {math}`\lambda=1`, sweep
+{math}`\gamma \in (0,5]`, and search for the smallest contraction factor
 {math}`\rho\in[0,1)` provable using AutoLyap such that
 
 ```{eval-rst}
@@ -41,20 +49,20 @@ where
 
 ```{eval-rst}
 .. math::
-   x^\star \in \zer(G_1 + G_2).
+   x^\star \in \zer\bigl(\partial f_1 + \partial f_2\bigr).
 ```
 
 ## Model the problem in AutoLyap and search for the smallest rho
 
-- {math}`G_1` is modeled by
-  {py:class}`MaximallyMonotone <autolyap.problemclass.MaximallyMonotone>`.
-- {math}`G_2` is modeled as an intersection of
-  {py:class}`StronglyMonotone <autolyap.problemclass.StronglyMonotone>` and
-  {py:class}`Cocoercive <autolyap.problemclass.Cocoercive>`.
+- {math}`f_1` is modeled by
+  {py:class}`SmoothStronglyConvex <autolyap.problemclass.SmoothStronglyConvex>`.
+- {math}`f_2` is modeled by
+  {py:class}`Convex <autolyap.problemclass.Convex>`.
 - The full inclusion is built with
   {py:class}`InclusionProblem <autolyap.problemclass.InclusionProblem>`.
 - The update rule is represented by
-  {py:class}`DouglasRachford <autolyap.algorithms.DouglasRachford>`.
+  {py:class}`DouglasRachford <autolyap.algorithms.DouglasRachford>` with
+  `type="function"`.
 - Distance-to-solution parameters are obtained with
   {py:meth}`IterationIndependent.LinearConvergence.get_parameters_distance_to_solution <autolyap.IterationIndependent.LinearConvergence.get_parameters_distance_to_solution>`.
 - The contraction factor is searched with
@@ -72,34 +80,31 @@ pip install "autolyap[mosek]"
 ```python
 import numpy as np
 
-from autolyap import SolverOptions
+from autolyap import IterationIndependent, SolverOptions
 from autolyap.algorithms import DouglasRachford
-from autolyap.problemclass import (
-    Cocoercive,
-    InclusionProblem,
-    MaximallyMonotone,
-    StronglyMonotone,
-)
-from autolyap.iteration_independent import IterationIndependent
+from autolyap.problemclass import Convex, InclusionProblem, SmoothStronglyConvex
 
 mu = 1.0
-beta = 0.5
+L = 2.0
 gamma = 1.0
-lambda_value = 2.0
+lambda_value = 1.0
 
 problem = InclusionProblem(
     [
-        MaximallyMonotone(),  # G1
-        [StronglyMonotone(mu=mu), Cocoercive(beta=beta)],  # G2 in intersection
+        SmoothStronglyConvex(mu=mu, L=L),  # f1
+        Convex(),  # f2
     ]
 )
-algorithm = DouglasRachford(gamma=gamma, lambda_value=lambda_value, type="operator")
+algorithm = DouglasRachford(
+    gamma=gamma,
+    lambda_value=lambda_value,
+    type="function",
+)
 solver_options = SolverOptions(backend="mosek_fusion")
 # License-free option:
 # solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
 
-# Build V(P, p, k) and R(T, t, k) for distance-to-solution analysis.
-P, T = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
+P, p, T, t = IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
     algorithm
 )
 
@@ -108,9 +113,12 @@ result = IterationIndependent.LinearConvergence.bisection_search_rho(
     algorithm,
     P,
     T,
+    p=p,
+    t=t,
     S_equals_T=True,
     s_equals_t=True,
     remove_C3=True,
+    tol=1e-3,
     solver_options=solver_options,
 )
 
@@ -120,8 +128,9 @@ if result["status"] != "feasible":
 rho_autolyap = result["rho"]
 
 alpha = lambda_value / 2.0
-delta = np.sqrt(
-    1.0 - (4.0 * gamma * mu) / (1.0 + 2.0 * gamma * mu + (gamma ** 2) * mu / beta)
+delta = max(
+    (gamma * L - 1.0) / (gamma * L + 1.0),
+    (1.0 - gamma * mu) / (1.0 + gamma * mu),
 )
 rho_theory = (abs(1.0 - alpha) + alpha * delta) ** 2
 
@@ -137,33 +146,24 @@ What to inspect in `result`:
 - `result["certificate"]`: Lyapunov certificate matrices/scalars.
 
 The computed value `rho (AutoLyap)` matches (up to solver numerical tolerances)
-the theoretical rate expression in
-{cite}`Giselsson2017TightDouglasRachford{Theorem 7.4}`, i.e.,
-
-```{math}
-\|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad  k\to\infty,
-```
-
-where
+the rate expression in
+{cite}`giselsson2017linearconvergencemetric{Theorem 2}` for this setting, i.e.,
 
 ```{math}
 \rho = \left(|1-\alpha| + \alpha \delta\right)^2, \quad
 \alpha = \frac{\lambda}{2}, \quad
-\delta = \sqrt{1 - \frac{4\gamma\mu}{1 + 2\gamma\mu + \gamma^2 \mu / \beta}},
-```
-
-and
-
-```{math}
-x^\star \in \zer(G_1 + G_2).
+\delta = \max\left\{
+\frac{\gamma L - 1}{\gamma L + 1},
+\frac{1-\gamma\mu}{1+\gamma\mu}
+\right\}.
 ```
 
 Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 5` (with
-{math}`\mu=1`, {math}`\beta=0.5`, {math}`\lambda=2`) gives the plot below, with the
+{math}`\mu=1`, {math}`L=2`, {math}`\lambda=1`) gives the plot below, with the
 theoretical rate in black and AutoLyap certificates as blue dots.
 
-```{image} ../../_static/douglas_rachford_maximally_monotone_plus_strongly_monotone_cocoercive_rho_vs_gamma.svg
-:alt: Douglas-Rachford rho versus gamma for strongly monotone/cocoercive G2 with theoretical line and AutoLyap points.
+```{image} ../../_static/douglas_rachford_smooth_strongly_convex_plus_convex_rho_vs_gamma.svg
+:alt: Douglas-Rachford rho versus gamma for smooth strongly-convex plus convex splitting, with theoretical line and AutoLyap points.
 :align: center
 :width: 100%
 ```
