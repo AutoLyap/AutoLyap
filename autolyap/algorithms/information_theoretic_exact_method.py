@@ -20,17 +20,17 @@ class ITEM(Algorithm):
     -------------
 
 
-    Let :math:`q = \mu/L`, :math:`A_0 = 0`, and for all :math:`k \in \naturals`,
+    Let :math:`q = \mu/L`, :math:`\tilde{A}_0 = 0`, and for all :math:`k \in \naturals`,
 
     .. math::
-        A_{k+1}
-        = \frac{(1+q)A_k + 2\left(1 + \sqrt{(1+A_k)(1+qA_k)}\right)}{(1-q)^2}.
-
-    .. math::
-        \beta_k = \frac{A_k}{(1-q)A_{k+1}}.
-
-    .. math::
-        \delta_k = \frac{(1-q)^2A_{k+1} - (1+q)A_k}{2(1+q+qA_k)}.
+        \begin{aligned}
+            \tilde{A}_{k+1}
+            &= \frac{(1+q)\tilde{A}_k + 2\left(1 + \sqrt{(1+\tilde{A}_k)(1+q\tilde{A}_k)}\right)}{(1-q)^2}, \\
+            \beta_k
+            &= \frac{\tilde{A}_k}{(1-q)\tilde{A}_{k+1}}, \\
+            \delta_k
+            &= \frac{(1-q)^2\tilde{A}_{k+1} - (1+q)\tilde{A}_k}{2(1+q+q\tilde{A}_k)}.
+        \end{aligned}
 
     For initial points :math:`x^0,z^0 \in \calH`,
 
@@ -146,27 +146,39 @@ class ITEM(Algorithm):
         self._set_dynamic_parameter("mu", mu)
     
     def get_A(self, k: int) -> float:
+        r"""
+        Return the scalar sequence value :math:`\tilde{A}_k`.
+
+        This scalar follows the recurrence stated in the class-level reference of
+        :class:`~autolyap.algorithms.ITEM`.
+        The system matrix :math:`A_k` in :meth:`get_ABCD` uses the same letter by
+        convention; this accessor returns only the scalar sequence
+        :math:`\tilde{A}_k`.
+        """
         k = self._validate_nonnegative_integral(k, "k")
         q = self.mu / self.L
-        A = 0.0 
+        A_tilde = 0.0
         for _ in range(k):
-            A = ((1 + q) * A + 2 * (1 + math.sqrt((1 + A) * (1 + q * A)))) / ((1 - q) ** 2)
-        return A
+            A_tilde = (
+                (1 + q) * A_tilde
+                + 2 * (1 + math.sqrt((1 + A_tilde) * (1 + q * A_tilde)))
+            ) / ((1 - q) ** 2)
+        return A_tilde
 
     def compute_beta(self, k: int) -> float:
         k = self._validate_nonnegative_integral(k, "k")
         q = self.mu / self.L
-        A_k = self.get_A(k)
-        A_k1 = self.get_A(k + 1)
-        return A_k / ((1 - q) * A_k1)
+        A_tilde_k = self.get_A(k)
+        A_tilde_k1 = self.get_A(k + 1)
+        return A_tilde_k / ((1 - q) * A_tilde_k1)
 
     def compute_delta(self, k: int) -> float:
         k = self._validate_nonnegative_integral(k, "k")
         q = self.mu / self.L
-        A_k = self.get_A(k)
-        A_k1 = self.get_A(k + 1)
-        numerator = ((1 - q) ** 2) * A_k1 - (1 + q) * A_k
-        denominator = 2 * (1 + q + q * A_k)
+        A_tilde_k = self.get_A(k)
+        A_tilde_k1 = self.get_A(k + 1)
+        numerator = ((1 - q) ** 2) * A_tilde_k1 - (1 + q) * A_tilde_k
+        denominator = 2 * (1 + q + q * A_tilde_k)
         return numerator / denominator
 
     def get_ABCD(self, k: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
