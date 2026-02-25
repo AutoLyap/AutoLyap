@@ -1,4 +1,4 @@
-# The Chambolle--Pock method
+# The Chambolle--Pock method: Convex
 
 ## Problem setup
 
@@ -139,7 +139,7 @@ Sweeping over multiple values of {math}`\tau=\sigma\in(1,2)` and
 {math}`\theta\in(0,3/2)` for several {math}`(h,\alpha)` settings gives the
 layered region plot below.
 
-```{image} ../_static/chambolle_pock_fixed_point_residual_layers.svg
+```{image} ../../_static/chambolle_pock_fixed_point_residual_layers.svg
 :alt: Feasible regions for Chambolle--Pock fixed-point residual summability in the (tau=sigma, theta) plane for several (h, alpha) settings.
 :align: center
 :width: 100%

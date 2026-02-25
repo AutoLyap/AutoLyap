@@ -12813,5 +12813,5 @@
   <line x1="104.000" y1="24.000" x2="96.000" y2="24.000" stroke="#3f3f46" stroke-width="1.4"/>
   <text x="82.000" y="31.000" text-anchor="end" fill="#52525b" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="21">1.5</text>
   <text x="512.000" y="934.000" text-anchor="middle" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28">τ=σ</text>
-  <text x="30.0" y="440.000" text-anchor="middle" transform="rotate(0 30.0 440.000)" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28">\theta</text>
+  <text x="30.0" y="440.000" text-anchor="middle" transform="rotate(0 30.0 440.000)" fill="#111827" font-family="'Lato', 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif" font-size="28">θ</text>
 </svg>
