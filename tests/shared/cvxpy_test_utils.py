@@ -1,24 +1,15 @@
 """Shared CVXPY/MOSEK test helpers for backend and convergence test modules."""
 
 from importlib import metadata as importlib_metadata
-from typing import Any, Mapping, Optional, Sequence, Set
+from typing import Any, Mapping, Optional, Sequence, Set, cast
 
 import pytest
 
 from autolyap import SolverOptions
+from autolyap.solver_options import _DEFAULT_CVXPY_SOLVER_PARAMS
 from tests.shared.mosek_utils import require_mosek_license, skip_or_fail_mosek
 
-_DEFAULT_SCS_TEST_PARAMS = {
-    # Tuned to prefer stable OPTIMAL status in CI over aggressively tight accuracy.
-    "eps": 1e-5,
-    "max_iters": 50000,
-    "acceleration_lookback": 0,
-}
-_DEFAULT_SDPA_TEST_PARAMS = {
-    "maxIteration": 100,
-    "epsilonStar": 1e-7,
-    "epsilonDash": 1e-7,
-}
+_DEFAULT_SDPA_TEST_PARAMS = cast(Mapping[str, Any], _DEFAULT_CVXPY_SOLVER_PARAMS["SDPA"])
 _DEFAULT_SDPA_MULTIPRECISION_TEST_PARAMS = {
     "maxIteration": 500,
     "epsilonStar": 1e-30,
@@ -70,6 +61,22 @@ def require_cvxpy_clarabel_solver() -> str:
     return "CLARABEL"
 
 
+def require_cvxpy_scs_solver() -> str:
+    cp = require_cvxpy_module()
+    installed = get_installed_cvxpy_solvers(cp)
+    if "SCS" not in installed:
+        pytest.skip("CVXPY SCS solver is not available.")
+    return "SCS"
+
+
+def require_cvxpy_copt_solver() -> str:
+    cp = require_cvxpy_module()
+    installed = get_installed_cvxpy_solvers(cp)
+    if "COPT" not in installed:
+        pytest.skip("CVXPY COPT solver is not available.")
+    return "COPT"
+
+
 def require_cvxpy_sdpa_solver() -> str:
     cp = require_cvxpy_module()
     installed = get_installed_cvxpy_solvers(cp)
@@ -118,10 +125,9 @@ def make_cvxpy_solver_options(
         extra_params: Optional[Mapping[str, Any]] = None,
 ) -> SolverOptions:
     params = {"verbose": False}
-    if solver_name == "SCS":
-        params.update(_DEFAULT_SCS_TEST_PARAMS)
-    if solver_name == "SDPA":
-        params.update(_DEFAULT_SDPA_TEST_PARAMS)
+    default_params = _DEFAULT_CVXPY_SOLVER_PARAMS.get(solver_name.upper())
+    if isinstance(default_params, Mapping):
+        params.update(dict(default_params))
     if extra_params is not None:
         params.update(dict(extra_params))
     return SolverOptions(

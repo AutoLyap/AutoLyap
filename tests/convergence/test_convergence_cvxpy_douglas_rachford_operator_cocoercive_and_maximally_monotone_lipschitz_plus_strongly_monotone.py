@@ -19,6 +19,12 @@ from tests.convergence.convergence_douglas_rachford_utils import (
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
 
+def _rho_tolerance_for_solver(cvxpy_convergence_solver_options) -> float:
+    if cvxpy_convergence_solver_options.cvxpy_solver == "SCS":
+        return 1e-2
+    return 2e-3
+
+
 def test_convergence_douglas_rachford_operator_cocoercive_plus_strongly_monotone_lambda_sweep_cvxpy(
     cvxpy_convergence_solver_options,
 ):
@@ -39,7 +45,10 @@ def test_convergence_douglas_rachford_operator_cocoercive_plus_strongly_monotone
         rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = dr_cocoercive_plus_strongly_monotone_rate(mu, beta, lambda_value, gamma) ** 2
-        assert rho_al == pytest.approx(rho_theoretical, abs=2e-3)
+        assert rho_al == pytest.approx(
+            rho_theoretical,
+            abs=_rho_tolerance_for_solver(cvxpy_convergence_solver_options),
+        )
 
 
 def test_convergence_douglas_rachford_operator_maximally_monotone_lipschitz_plus_strongly_monotone_lambda_sweep_cvxpy(
@@ -64,4 +73,7 @@ def test_convergence_douglas_rachford_operator_maximally_monotone_lipschitz_plus
         rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = dr_maximally_monotone_lipschitz_plus_strongly_monotone_rate(mu, lambda_value, L, gamma) ** 2
-        assert rho_al == pytest.approx(rho_theoretical, abs=2e-3)
+        assert rho_al == pytest.approx(
+            rho_theoretical,
+            abs=_rho_tolerance_for_solver(cvxpy_convergence_solver_options),
+        )

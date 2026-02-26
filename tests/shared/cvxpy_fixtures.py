@@ -3,7 +3,9 @@
 import pytest
 
 from tests.shared.cvxpy_test_utils import (
+    require_cvxpy_copt_solver,
     require_cvxpy_clarabel_solver,
+    require_cvxpy_scs_solver,
     require_cvxpy_sdpa_solver,
     require_cvxpy_sdpa_multiprecision_solver,
     make_cvxpy_mosek_options,
@@ -44,10 +46,34 @@ def cvxpy_clarabel_solver_options():
     return make_cvxpy_solver_options("CLARABEL", extra_params={"max_iter": 400})
 
 
+@pytest.fixture(scope="module")
+def cvxpy_scs_solver_name():
+    return require_cvxpy_scs_solver()
+
+
+@pytest.fixture(scope="module")
+def cvxpy_scs_solver_options():
+    require_cvxpy_scs_solver()
+    return make_cvxpy_solver_options("SCS")
+
+
+@pytest.fixture(scope="module")
+def cvxpy_copt_solver_name():
+    return require_cvxpy_copt_solver()
+
+
+@pytest.fixture(scope="module")
+def cvxpy_copt_solver_options():
+    require_cvxpy_copt_solver()
+    return make_cvxpy_solver_options("COPT")
+
+
 @pytest.fixture(
     scope="module",
     params=[
-        pytest.param("clarabel", id="clarabel"),
+        pytest.param("clarabel", marks=pytest.mark.clarabel, id="clarabel"),
+        pytest.param("scs", marks=pytest.mark.scs, id="scs"),
+        pytest.param("copt", marks=pytest.mark.copt, id="copt"),
         pytest.param("sdpa", marks=pytest.mark.sdpa, id="sdpa"),
         pytest.param(
             "sdpa_multiprecision",
@@ -61,6 +87,12 @@ def cvxpy_convergence_solver_options(request):
     if profile == "clarabel":
         require_cvxpy_clarabel_solver()
         return make_cvxpy_solver_options("CLARABEL", extra_params={"max_iter": 400})
+    if profile == "scs":
+        require_cvxpy_scs_solver()
+        return make_cvxpy_solver_options("SCS")
+    if profile == "copt":
+        require_cvxpy_copt_solver()
+        return make_cvxpy_solver_options("COPT")
     if profile == "sdpa":
         require_cvxpy_sdpa_solver()
         return make_cvxpy_sdpa_options(
@@ -110,3 +142,20 @@ def cvxpy_mosek_solver_options():
 @pytest.fixture(scope="module")
 def mosek_fusion_solver_options():
     return make_mosek_fusion_options()
+
+
+@pytest.fixture(
+    scope="module",
+    params=[
+        pytest.param("mosek_fusion", id="mosek_fusion"),
+        pytest.param("cvxpy_mosek", id="cvxpy_mosek"),
+    ],
+)
+def mosek_convergence_solver_options(request):
+    profile = request.param
+    if profile == "mosek_fusion":
+        return make_mosek_fusion_options()
+    if profile == "cvxpy_mosek":
+        require_cvxpy_mosek_solver()
+        return make_cvxpy_mosek_options(strict_status=False)
+    raise RuntimeError(f"Unsupported MOSEK convergence solver profile: {profile}")
