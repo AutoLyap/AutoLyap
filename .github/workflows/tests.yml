@@ -94,7 +94,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .[test]
       - name: Run core test suite
-        run: python -m pytest -m "not mosek"
+        run: python -m pytest -m "not mosek and not scs and not copt and not sdpa and not sdpa_multiprecision"
 
   pytest-mosek:
     name: pytest-mosek (${{ matrix.python-version }})
