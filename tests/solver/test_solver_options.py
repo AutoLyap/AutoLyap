@@ -2,12 +2,14 @@ import pytest
 
 from autolyap import IterationDependent, IterationIndependent, SolverOptions
 from autolyap.solver_options import (
+    _DEFAULT_CVXPY_SOLVER_PARAMS,
     _DEFAULT_MOSEK_FUSION_PARAMS,
     SUPPORTED_SOLVER_BACKENDS,
     _get_cvxpy_accepted_statuses,
     _get_cvxpy_solve_kwargs,
     _normalize_solver_options,
 )
+from tests.shared.cvxpy_test_utils import make_cvxpy_solver_options
 
 
 def test_solver_options_defaults_to_mosek_fusion():
@@ -81,6 +83,7 @@ def test_get_cvxpy_solve_kwargs_merges_solver_and_params():
     assert kwargs["solver"] == "SCS"
     assert kwargs["max_iters"] == 123
     assert kwargs["eps"] == 1e-6
+    assert kwargs["acceleration_lookback"] == 0
     assert kwargs["warm_start"] is True
 
 
@@ -126,6 +129,27 @@ def test_get_cvxpy_solve_kwargs_applies_sdpa_defaults():
     assert kwargs["warm_start"] is True
 
 
+def test_get_cvxpy_solve_kwargs_applies_copt_defaults():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="COPT",
+        )
+    )
+    kwargs = _get_cvxpy_solve_kwargs(options)
+    assert kwargs["solver"] == "COPT"
+    assert kwargs["SDPMethod"] == 0
+    assert kwargs["BarIterLimit"] == 500
+    assert kwargs["FeasTol"] == 1e-7
+    assert kwargs["DualTol"] == 1e-7
+    assert kwargs["RelGap"] == 1e-8
+    assert kwargs["AbsGap"] == 1e-8
+    assert kwargs["Presolve"] == -1
+    assert kwargs["Scaling"] == -1
+    assert kwargs["Dualize"] == -1
+    assert kwargs["warm_start"] is True
+
+
 def test_get_cvxpy_solve_kwargs_user_params_override_defaults():
     options = _normalize_solver_options(
         SolverOptions(
@@ -159,6 +183,151 @@ def test_get_cvxpy_solve_kwargs_user_params_override_sdpa_defaults():
     assert kwargs["epsilonStar"] == 1e-30
     assert kwargs["epsilonDash"] == 1e-30
     assert kwargs["mpfPrecision"] == 512
+
+
+def test_get_cvxpy_solve_kwargs_accepts_flat_mosek_params():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="MOSEK",
+            cvxpy_solver_params={
+                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": 1e-9,
+                "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 1e-9,
+                "warm_start": False,
+            },
+        )
+    )
+    kwargs = _get_cvxpy_solve_kwargs(options)
+    assert kwargs["solver"] == "MOSEK"
+    assert kwargs["warm_start"] is False
+    assert kwargs["mosek_params"]["MSK_DPAR_INTPNT_CO_TOL_PFEAS"] == 1e-9
+    assert kwargs["mosek_params"]["MSK_DPAR_INTPNT_CO_TOL_DFEAS"] == 1e-9
+    assert "MSK_DPAR_INTPNT_CO_TOL_PFEAS" not in kwargs
+
+
+def test_get_cvxpy_solve_kwargs_user_params_override_copt_defaults():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="COPT",
+            cvxpy_solver_params={
+                "TimeLimit": 60.0,
+                "Threads": 4,
+                "FeasTol": 1e-8,
+            },
+        )
+    )
+    kwargs = _get_cvxpy_solve_kwargs(options)
+    assert kwargs["BarIterLimit"] == 500
+    assert kwargs["TimeLimit"] == 60.0
+    assert kwargs["Threads"] == 4
+    assert kwargs["FeasTol"] == 1e-8
+
+
+def test_get_cvxpy_solve_kwargs_accepts_nested_copt_params_and_flattens():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="COPT",
+            cvxpy_solver_params={
+                "params": {
+                    "TimeLimit": 60.0,
+                    "Threads": 4,
+                    "FeasTol": 1e-8,
+                },
+            },
+        )
+    )
+    kwargs = _get_cvxpy_solve_kwargs(options)
+    assert kwargs["SDPMethod"] == 0
+    assert kwargs["BarIterLimit"] == 500
+    assert kwargs["TimeLimit"] == 60.0
+    assert kwargs["Threads"] == 4
+    assert kwargs["FeasTol"] == 1e-8
+    assert "params" not in kwargs
+
+
+def test_normalize_solver_options_flattens_nested_copt_params():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="COPT",
+            cvxpy_solver_params={"params": {"TimeLimit": 15.0}, "Threads": 2},
+        )
+    )
+    assert options.cvxpy_solver_params is not None
+    assert "params" not in options.cvxpy_solver_params
+    assert options.cvxpy_solver_params["TimeLimit"] == 15.0
+    assert options.cvxpy_solver_params["Threads"] == 2
+
+
+def test_normalize_solver_options_rejects_non_mapping_nested_copt_params():
+    with pytest.raises(ValueError, match="cvxpy_solver_params\\['params'\\] must be a mapping"):
+        _normalize_solver_options(
+            SolverOptions(
+                backend="cvxpy",
+                cvxpy_solver="COPT",
+                cvxpy_solver_params={"params": 1},  # type: ignore[dict-item]
+            )
+        )
+
+
+def test_normalize_solver_options_wraps_flat_mosek_params():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="MOSEK",
+            cvxpy_solver_params={
+                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": 1e-9,
+                "warm_start": True,
+            },
+        )
+    )
+    assert options.cvxpy_solver_params is not None
+    assert "mosek_params" in options.cvxpy_solver_params
+    assert options.cvxpy_solver_params["mosek_params"]["MSK_DPAR_INTPNT_CO_TOL_PFEAS"] == 1e-9
+    assert "MSK_DPAR_INTPNT_CO_TOL_PFEAS" not in options.cvxpy_solver_params
+    assert options.cvxpy_solver_params["warm_start"] is True
+
+
+def test_normalize_solver_options_merges_nested_and_flat_mosek_params():
+    options = _normalize_solver_options(
+        SolverOptions(
+            backend="cvxpy",
+            cvxpy_solver="MOSEK",
+            cvxpy_solver_params={
+                "mosek_params": {
+                    "MSK_DPAR_INTPNT_CO_TOL_PFEAS": 1e-8,
+                },
+                "MSK_DPAR_INTPNT_CO_TOL_PFEAS": 1e-9,
+                "MSK_DPAR_INTPNT_CO_TOL_DFEAS": 2e-9,
+            },
+        )
+    )
+    assert options.cvxpy_solver_params is not None
+    mosek_params = options.cvxpy_solver_params["mosek_params"]
+    assert mosek_params["MSK_DPAR_INTPNT_CO_TOL_PFEAS"] == 1e-9
+    assert mosek_params["MSK_DPAR_INTPNT_CO_TOL_DFEAS"] == 2e-9
+
+
+def test_normalize_solver_options_rejects_non_mapping_nested_mosek_params():
+    with pytest.raises(ValueError, match="cvxpy_solver_params\\['mosek_params'\\] must be a mapping"):
+        _normalize_solver_options(
+            SolverOptions(
+                backend="cvxpy",
+                cvxpy_solver="MOSEK",
+                cvxpy_solver_params={"mosek_params": 1},  # type: ignore[dict-item]
+            )
+        )
+
+
+@pytest.mark.parametrize("solver_name", ["CLARABEL", "SCS", "SDPA", "COPT"])
+def test_make_cvxpy_solver_options_matches_library_default_profile(solver_name: str):
+    options = _normalize_solver_options(make_cvxpy_solver_options(solver_name))
+    kwargs = _get_cvxpy_solve_kwargs(options)
+    assert kwargs["solver"] == solver_name
+    for name, value in _DEFAULT_CVXPY_SOLVER_PARAMS[solver_name].items():
+        assert kwargs[name] == value
 
 
 def test_solver_options_rejects_non_bool_cvxpy_accept_inaccurate():

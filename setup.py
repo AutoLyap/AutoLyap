@@ -35,6 +35,9 @@ setup(
         "sdpa": [
             "sdpa-python",
         ],
+        "copt": [
+            "coptpy",
+        ],
         "sdpa_multiprecision": [
             "sdpa-multiprecision",
         ],
