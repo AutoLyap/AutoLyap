@@ -19,7 +19,9 @@ def _require_mosek():
     require_mosek_license()
 
 
-def test_convergence_douglas_rachford_function_smooth_strongly_convex_plus_convex():
+def test_convergence_douglas_rachford_function_smooth_strongly_convex_plus_convex(
+    mosek_convergence_solver_options,
+):
     mu = 1.0
     L = 2.0
     lambda_value = 1.0
@@ -31,7 +33,11 @@ def test_convergence_douglas_rachford_function_smooth_strongly_convex_plus_conve
         if (lambda_value / 2) >= (2 / (1 + delta)):
             continue
         algorithm.set_gamma(float(gamma))
-        result = bisection_rho(problem, algorithm)
+        result = bisection_rho(
+            problem,
+            algorithm,
+            solver_options=mosek_convergence_solver_options,
+        )
         assert result["status"] == "feasible"
         assert result["certificate"] is not None
         rho_al = result["rho"]

@@ -9,7 +9,9 @@ pytestmark = [pytest.mark.mosek, pytest.mark.public_api]
 
 
 # Convergence-rate test for the optimized gradient method using MOSEK.
-def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
+def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks(
+    mosek_convergence_solver_options,
+):
     require_mosek_license()
     L = 1.0
     problem = InclusionProblem([SmoothConvex(L)])
@@ -30,6 +32,7 @@ def test_convergence_optimized_gradient_method_c_matches_theory_first_10_ks():
             Q_k,
             q_0=q_0,
             q_K=q_k,
+            solver_options=mosek_convergence_solver_options,
         )
         assert result["status"] == "feasible"
         assert result["c_K"] is not None
