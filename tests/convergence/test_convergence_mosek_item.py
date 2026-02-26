@@ -13,7 +13,7 @@ pytestmark = pytest.mark.mosek
 # Mirrors the old experiment:
 #   V(0) = ||z^0 - z^*||^2, V(k) = ||z^k - z^*||^2,
 # with theoretical bound c_k = 1 / (1 + q A_k), q = mu / L.
-def test_convergence_item_c_matches_theoretical_bound():
+def test_convergence_item_c_matches_theoretical_bound(mosek_convergence_solver_options):
     require_mosek_license()
 
     mu = 1.0
@@ -45,6 +45,7 @@ def test_convergence_item_c_matches_theoretical_bound():
             Q_k,
             q_0=q_0,
             q_K=q_k,
+            solver_options=mosek_convergence_solver_options,
         )
 
         assert result["status"] == "feasible"

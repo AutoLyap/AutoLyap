@@ -13,7 +13,9 @@ pytestmark = pytest.mark.mosek
 # The test mirrors the old experiment setup:
 #   V(0) = ||y^0 - y^*||^2,  V(k) = ||x^{k+1} - y^k||^2,
 # and compares c_k with Kim's 1/(k+1)^2 bound.
-def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_rate():
+def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_rate(
+    mosek_convergence_solver_options,
+):
     require_mosek_license()
 
     problem_operator = InclusionProblem([MaximallyMonotone()])
@@ -37,6 +39,7 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
             k,
             Q_0_operator,
             Q_k_operator,
+            solver_options=mosek_convergence_solver_options,
         )
 
         assert result["status"] == "feasible"
@@ -53,7 +56,9 @@ def test_convergence_accelerated_proximal_point_operator_mode_c_bounded_by_kim_r
         assert result["c_K"] == pytest.approx(kim_bound, abs=5e-6)
 
 
-def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_rate():
+def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_rate(
+    mosek_convergence_solver_options,
+):
     require_mosek_license()
 
     problem_function = InclusionProblem([Convex()])
@@ -81,6 +86,7 @@ def test_convergence_accelerated_proximal_point_function_mode_c_bounded_by_kim_r
             Q_k_function,
             q_0=q_0_function,
             q_K=q_k_function,
+            solver_options=mosek_convergence_solver_options,
         )
 
         assert result["status"] == "feasible"

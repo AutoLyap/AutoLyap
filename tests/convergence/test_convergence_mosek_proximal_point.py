@@ -10,7 +10,7 @@ pytestmark = pytest.mark.mosek
 
 # Convergence-rate test for the proximal point method using MOSEK.
 # Theoretical rate reference: Rockafellar1976PPA.
-def test_convergence_proximal_point_rho_matches_theory():
+def test_convergence_proximal_point_rho_matches_theory(mosek_convergence_solver_options):
     require_mosek_license()
     mu = 1.0
     problem = InclusionProblem([StronglyConvex(mu)])
@@ -30,6 +30,7 @@ def test_convergence_proximal_point_rho_matches_theory():
             S_equals_T=True,
             s_equals_t=True,
             remove_C3=True,
+            solver_options=mosek_convergence_solver_options,
         )
         assert result["status"] == "feasible"
         assert result["certificate"] is not None
