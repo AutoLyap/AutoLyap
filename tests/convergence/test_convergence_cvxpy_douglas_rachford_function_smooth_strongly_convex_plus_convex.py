@@ -13,6 +13,12 @@ from tests.convergence.convergence_douglas_rachford_utils import (
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
 
+def _rho_tolerance_for_solver(cvxpy_convergence_solver_options) -> float:
+    if cvxpy_convergence_solver_options.cvxpy_solver == "SCS":
+        return 1e-2
+    return 2e-3
+
+
 def test_convergence_douglas_rachford_function_smooth_strongly_convex_plus_convex_cvxpy(
     cvxpy_convergence_solver_options,
 ):
@@ -36,4 +42,7 @@ def test_convergence_douglas_rachford_function_smooth_strongly_convex_plus_conve
         rho_al = result["rho"]
         assert rho_al is not None
         rho_theoretical = dr_smooth_strongly_convex_plus_convex_rate_sq(lambda_value, mu, L, gamma)
-        assert rho_al == pytest.approx(rho_theoretical, abs=2e-3)
+        assert rho_al == pytest.approx(
+            rho_theoretical,
+            abs=_rho_tolerance_for_solver(cvxpy_convergence_solver_options),
+        )

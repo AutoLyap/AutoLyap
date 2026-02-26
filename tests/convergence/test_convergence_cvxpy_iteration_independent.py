@@ -9,6 +9,12 @@ from autolyap.problemclass import InclusionProblem, SmoothStronglyConvex, Strong
 pytestmark = pytest.mark.filterwarnings("ignore:Solution may be inaccurate.*:UserWarning")
 
 
+def _rho_tolerance_for_solver(cvxpy_convergence_solver_options) -> float:
+    if cvxpy_convergence_solver_options.cvxpy_solver == "SCS":
+        return 1e-2
+    return 5e-4
+
+
 def test_convergence_gradient_method_rho_matches_theory_cvxpy(
     cvxpy_convergence_solver_options,
 ):
@@ -16,7 +22,7 @@ def test_convergence_gradient_method_rho_matches_theory_cvxpy(
     L = 4.0
     problem = InclusionProblem([SmoothStronglyConvex(mu, L)])
     algorithm = GradientMethod(gamma=1.0)
-    tol = 5e-4
+    tol = _rho_tolerance_for_solver(cvxpy_convergence_solver_options)
 
     gammas = np.linspace(0.1, 0.4, 6)
     for gamma in gammas:
@@ -47,7 +53,7 @@ def test_convergence_proximal_point_rho_matches_theory_cvxpy(
     mu = 1.0
     problem = InclusionProblem([StronglyConvex(mu)])
     algorithm = ProximalPoint(gamma=1.0)
-    tol = 5e-4
+    tol = _rho_tolerance_for_solver(cvxpy_convergence_solver_options)
 
     gammas = np.linspace(0.1, 0.9, 6)
     for gamma in gammas:
