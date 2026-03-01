@@ -20,8 +20,16 @@
     {%- set _is_perf = "perf.js" in _script_tag -%}
     {%- set _is_copybutton = "copybutton.js" in _script_tag -%}
     {%- set _is_math_tags = "math_tag_links.js" in _script_tag -%}
-    {%- if (not _is_perf or page_has_images | default(false)) and (not _is_copybutton or page_has_code_blocks | default(false)) and (not _is_math_tags or page_has_math | default(false)) -%}
+    {%- set _is_proof_toggle = "proof_toggle.js" in _script_tag -%}
+    {%- set _is_jquery = "jquery.js" in _script_tag -%}
+    {%- set _has_defer = " defer=" in _script_tag -%}
+    {%- set _has_async = " async=" in _script_tag -%}
+    {%- if (not _is_perf or page_has_images | default(false)) and (not _is_copybutton or page_has_code_blocks | default(false)) and (not _is_math_tags or page_has_math | default(false)) and (not _is_proof_toggle or page_has_proofs | default(false)) -%}
+    {%- if not _is_jquery and not _has_defer and not _has_async -%}
+    {{ _script_tag | replace("<script ", '<script defer="defer" ') }}
+    {%- else -%}
     {{ _script_tag }}
+    {%- endif -%}
     {%- endif -%}
   {%- endfor %}
   <script defer="defer" src="{{ pathto('_static/js/theme.js', 1) }}"></script>
@@ -57,7 +65,8 @@
 {%- set _seo_title = _seo_page.get("title", title | striptags) %}
 {%- set _seo_page_description = seo_page_description | default("", true) %}
 {%- set _seo_description = _seo_page_description if _seo_page_description else _seo_default_description %}
-{%- set _seo_keywords = _seo_page.get("keywords", _seo_default_keywords) %}
+{%- set _seo_page_keywords = seo_page_keywords | default([], true) %}
+{%- set _seo_keywords = _seo_page_keywords if _seo_page_keywords else _seo_page.get("keywords", _seo_default_keywords) %}
 {%- set _seo_repo_url = seo_repo_url | default("https://github.com/AutoLyap/AutoLyap") %}
 {%- set _seo_author = seo_author | default(author, true) | default("AutoLyap contributors", true) %}
 {%- set _seo_in_language = seo_in_language | default("en-US") %}
@@ -127,22 +136,31 @@
 {%- if _seo_twitter_site %}
 <meta name="twitter:site" content="{{ _seo_twitter_site | e }}"/>
 {%- endif %}
+{%- if _og_type == "article" %}
+{%- set _article_section = pagename.split('/')[0] | replace('_', ' ') | replace('-', ' ') | title %}
+<meta property="article:author" content="{{ _seo_author | e }}"/>
+<meta property="article:section" content="{{ _article_section | e }}"/>
+{%- for _keyword in _seo_keywords[:3] %}
+<meta property="article:tag" content="{{ _keyword | e }}"/>
+{%- endfor %}
+{%- endif %}
+{%- set _seo_search_target = _seo_search_url ~ "?q={search_term_string}" %}
 {%- if _seo_baseurl %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "@id": "{{ _seo_baseurl }}/#website",
-  "name": "{{ _seo_site_name | e }}",
-  "url": "{{ _seo_baseurl }}/",
-  "description": "{{ _seo_default_description | e }}",
-  "inLanguage": "{{ _seo_in_language }}",
+  "@id": {{ (_seo_baseurl ~ "/#website") | tojson }},
+  "name": {{ _seo_site_name | tojson }},
+  "url": {{ (_seo_baseurl ~ "/") | tojson }},
+  "description": {{ _seo_default_description | tojson }},
+  "inLanguage": {{ _seo_in_language | tojson }},
   {%- if _seo_org_id %}
-  "publisher": { "@id": "{{ _seo_org_id }}" },
+  "publisher": { "@id": {{ _seo_org_id | tojson }} },
   {%- endif %}
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "{{ _seo_search_url }}?q={search_term_string}",
+    "target": {{ _seo_search_target | tojson }},
     "query-input": "required name=search_term_string"
   }
 }
@@ -152,24 +170,24 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "@id": "{{ _page_url if _page_url else '' }}#webpage",
-  "name": "{{ _seo_title | e }}",
-  "headline": "{{ _seo_title | e }}",
-  "description": "{{ _seo_description | e }}",
-  "keywords": "{{ _seo_keywords | join(', ') | e }}",
-  "url": "{{ _page_url if _page_url else '' }}",
-  "inLanguage": "{{ _seo_in_language }}",
-  "mainEntityOfPage": "{{ _page_url if _page_url else '' }}",
+  "@id": {{ ((_page_url if _page_url else "") ~ "#webpage") | tojson }},
+  "name": {{ _seo_title | tojson }},
+  "headline": {{ _seo_title | tojson }},
+  "description": {{ _seo_description | tojson }},
+  "keywords": {{ (_seo_keywords | join(', ')) | tojson }},
+  "url": {{ (_page_url if _page_url else "") | tojson }},
+  "inLanguage": {{ _seo_in_language | tojson }},
+  "mainEntityOfPage": {{ (_page_url if _page_url else "") | tojson }},
   {%- if _seo_lastmod_iso %}
-  "dateModified": "{{ _seo_lastmod_iso }}",
+  "dateModified": {{ _seo_lastmod_iso | tojson }},
   {%- endif %}
   {%- if _seo_org_id %}
-  "publisher": { "@id": "{{ _seo_org_id }}" },
+  "publisher": { "@id": {{ _seo_org_id | tojson }} },
   {%- endif %}
   {%- if _seo_og_image_url %}
   "primaryImageOfPage": {
     "@type": "ImageObject",
-    "url": "{{ _seo_og_image_url }}",
+    "url": {{ _seo_og_image_url | tojson }},
     "width": {{ _seo_og_image_width }},
     "height": {{ _seo_og_image_height }}
   },
@@ -177,14 +195,14 @@
   "isPartOf": {
     "@type": "WebSite",
     {%- if _seo_baseurl %}
-    "@id": "{{ _seo_baseurl }}/#website",
+    "@id": {{ (_seo_baseurl ~ "/#website") | tojson }},
     {%- endif %}
-    "name": "{{ _seo_site_name | e }}"
+    "name": {{ _seo_site_name | tojson }}
   },
   "about": {
     "@type": "SoftwareSourceCode",
-    "name": "{{ _seo_site_name | e }}",
-    "codeRepository": "{{ _seo_repo_url }}",
+    "name": {{ _seo_site_name | tojson }},
+    "codeRepository": {{ _seo_repo_url | tojson }},
     "programmingLanguage": "Python",
     "license": "https://spdx.org/licenses/MIT.html"
   }
@@ -195,16 +213,16 @@
 {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "@id": "{{ _seo_org_id }}",
-  "name": "{{ _seo_organization_name | e }}",
-  "url": "{{ _seo_org_url }}/",
+  "@id": {{ _seo_org_id | tojson }},
+  "name": {{ _seo_organization_name | tojson }},
+  "url": {{ (_seo_org_url ~ "/") | tojson }},
   "logo": {
     "@type": "ImageObject",
-    "url": "{{ _seo_og_image_url }}",
+    "url": {{ _seo_og_image_url | tojson }},
     "width": {{ _seo_og_image_width }},
     "height": {{ _seo_og_image_height }}
   }{%- if _seo_social_profiles %},
-  "sameAs": [{% for profile in _seo_social_profiles %}"{{ profile | e }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  "sameAs": {{ _seo_social_profiles | tojson }}
   {%- endif %}
 }
 </script>
@@ -219,7 +237,7 @@
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": "{{ _seo_baseurl }}/"
+      "item": {{ (_seo_baseurl ~ "/") | tojson }}
     }
     {%- set _crumb = namespace(pos=2) %}
     {%- for doc in parents %}
@@ -234,8 +252,8 @@
     ,{
       "@type": "ListItem",
       "position": {{ _crumb.pos }},
-      "name": "{{ doc.title | striptags | e }}",
-      "item": "{{ _doc_url }}"
+      "name": {{ (doc.title | striptags) | tojson }},
+      "item": {{ _doc_url | tojson }}
     }
       {%- set _crumb.pos = _crumb.pos + 1 %}
     {%- endfor %}
@@ -243,8 +261,8 @@
     ,{
       "@type": "ListItem",
       "position": {{ _crumb.pos }},
-      "name": "{{ _seo_title | e }}",
-      "item": "{{ _page_url }}"
+      "name": {{ _seo_title | tojson }},
+      "item": {{ _page_url | tojson }}
     }
     {%- endif %}
   ]
@@ -255,13 +273,13 @@
 {
   "@context": "https://schema.org",
   "@type": "SoftwareSourceCode",
-  "@id": "{{ _seo_repo_url }}#source",
-  "name": "{{ _seo_site_name | e }}",
-  "url": "{{ _seo_baseurl }}/",
-  "codeRepository": "{{ _seo_repo_url }}",
+  "@id": {{ (_seo_repo_url ~ "#source") | tojson }},
+  "name": {{ _seo_site_name | tojson }},
+  "url": {{ (_seo_baseurl ~ "/") | tojson }},
+  "codeRepository": {{ _seo_repo_url | tojson }},
   "programmingLanguage": "Python",
   "license": "https://spdx.org/licenses/MIT.html",
-  "version": "{{ release | e }}"
+  "version": {{ release | tojson }}
 }
 </script>
 {% endblock %}

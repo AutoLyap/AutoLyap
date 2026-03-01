@@ -29,13 +29,13 @@ solvers.
 
 If AutoLyap contributes to your research or software, please cite:
 
-- Upadhyaya, Manu; Taylor, Adrien B.; Banert, Sebastian; Giselsson, Pontus (2025). *AutoLyap: A Python package for computer-assisted Lyapunov analyses for first-order methods*. arXiv:2506.24076.
+- Upadhyaya, Manu; Das Gupta, Shuvomoy; Taylor, Adrien B.; Banert, Sebastian; Giselsson, Pontus (2026). *The AutoLyap software suite for computer-assisted Lyapunov analyses of first-order methods*. arXiv:2506.24076.
 
 ```bibtex
-@misc{upadhyaya2025autolyap,
-  author = {Upadhyaya, Manu and Taylor, Adrien B. and Banert, Sebastian and Giselsson, Pontus},
-  title = {{AutoLyap}: {A} {P}ython package for computer-assisted {L}yapunov analyses for first-order methods},
-  year = {2025},
+@misc{upadhyaya2026autolyap,
+  author = {Upadhyaya, Manu and Das Gupta, Shuvomoy and Taylor, Adrien B. and Banert, Sebastian and Giselsson, Pontus},
+  title = {The {AutoLyap} software suite for computer-assisted {L}yapunov analyses of first-order methods},
+  year = {2026},
   archivePrefix = {arXiv},
   eprint = {2506.24076},
   primaryClass = {math.OC},
