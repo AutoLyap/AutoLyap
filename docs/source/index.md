@@ -14,13 +14,13 @@ For installation instructions and first end-to-end workflows, see
 ## Cite this project
 
 If AutoLyap contributes to your research or software, please cite
-{cite}`index-upadhyaya2025autolyap`.
+{cite}`index-upadhyaya2026autolyap`.
 
 ```bibtex
-@misc{upadhyaya2025autolyap,
-  author = {Upadhyaya, Manu and Taylor, Adrien B. and Banert, Sebastian and Giselsson, Pontus},
-  title = {{AutoLyap}: {A} {P}ython package for computer-assisted {L}yapunov analyses for first-order methods},
-  year = {2025},
+@misc{upadhyaya2026autolyap,
+  author = {Upadhyaya, Manu and Das Gupta, Shuvomoy and Taylor, Adrien B. and Banert, Sebastian and Giselsson, Pontus},
+  title = {The {AutoLyap} software suite for computer-assisted {L}yapunov analyses of first-order methods},
+  year = {2026},
   archivePrefix = {arXiv},
   eprint = {2506.24076},
   primaryClass = {math.OC},

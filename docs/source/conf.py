@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -102,6 +103,94 @@ html_context = {
                 "semidefinite programming convergence analysis",
             ],
         },
+        "theory/notation_and_preliminaries": {
+            "description": (
+                "Notation and preliminaries for AutoLyap theory, including "
+                "set-valued operator conventions and subdifferential notation."
+            ),
+            "keywords": [
+                "AutoLyap notation and preliminaries",
+                "set-valued operator notation",
+                "subdifferential conventions",
+            ],
+        },
+        "theory/problem_class": {
+            "description": (
+                "Theory for problem-class modeling in AutoLyap, including "
+                "optimization and inclusion formulations."
+            ),
+            "keywords": [
+                "AutoLyap theory problem class",
+                "optimization and inclusion modeling",
+                "interpolation indices theory",
+            ],
+        },
+        "theory/algorithm_representation": {
+            "description": (
+                "Algorithm-representation theory in AutoLyap, including lifted "
+                "states and linear recursion modeling."
+            ),
+            "keywords": [
+                "AutoLyap algorithm representation",
+                "lifted state recursion",
+                "first-order method modeling",
+            ],
+        },
+        "theory/interpolation_conditions": {
+            "description": (
+                "Interpolation-condition theory in AutoLyap for encoding "
+                "function and operator classes as SDP constraints."
+            ),
+            "keywords": [
+                "AutoLyap interpolation conditions",
+                "function and operator interpolation",
+                "SDP interpolation constraints",
+            ],
+        },
+        "theory/performance_estimation_via_sdps": {
+            "description": (
+                "Performance-estimation theory via semidefinite programs in "
+                "AutoLyap, including Gram-matrix formulations."
+            ),
+            "keywords": [
+                "AutoLyap performance estimation",
+                "Gram matrix SDP formulation",
+                "worst-case analysis SDP",
+            ],
+        },
+        "theory/lyapunov_analyses": {
+            "description": (
+                "Lyapunov-analysis theory in AutoLyap, including certificate "
+                "inequalities and feasibility interpretations."
+            ),
+            "keywords": [
+                "AutoLyap Lyapunov theory",
+                "Lyapunov certificate inequalities",
+                "convergence certificate feasibility",
+            ],
+        },
+        "theory/iteration_independent_analyses": {
+            "description": (
+                "Iteration-independent theory in AutoLyap for certifying "
+                "asymptotic linear and sublinear convergence rates."
+            ),
+            "keywords": [
+                "AutoLyap iteration-independent theory",
+                "asymptotic convergence certification",
+                "linear and sublinear rates",
+            ],
+        },
+        "theory/iteration_dependent_analyses": {
+            "description": (
+                "Iteration-dependent theory in AutoLyap for finite-horizon "
+                "guarantees and chained Lyapunov inequalities."
+            ),
+            "keywords": [
+                "AutoLyap iteration-dependent theory",
+                "finite-horizon guarantees",
+                "chained Lyapunov inequalities",
+            ],
+        },
         "api_reference": {
             "description": (
                 "AutoLyap API reference for algorithms, problem classes, and "
@@ -157,6 +246,61 @@ html_context = {
                 "proximal gradient Lyapunov analysis",
                 "heavy-ball method convergence",
                 "constant Nesterov momentum",
+            ],
+        },
+        "examples/accelerated_proximal_point": {
+            "description": (
+                "Accelerated proximal-point example in AutoLyap with "
+                "iteration-dependent finite-horizon c_K certification."
+            ),
+            "keywords": [
+                "accelerated proximal point AutoLyap",
+                "finite-horizon c_K certificate",
+                "iteration-dependent Lyapunov example",
+            ],
+        },
+        "examples/davis_yin_three_operator": {
+            "description": (
+                "Davis--Yin three-operator splitting example in AutoLyap with "
+                "computer-assisted linear-rate rho certification."
+            ),
+            "keywords": [
+                "Davis Yin AutoLyap example",
+                "three-operator splitting convergence",
+                "rho certification example",
+            ],
+        },
+        "examples/information_theoretic_exact_method": {
+            "description": (
+                "Information-theoretic exact method example in AutoLyap with "
+                "iteration-dependent function-value c_K guarantees."
+            ),
+            "keywords": [
+                "information theoretic exact method AutoLyap",
+                "ITEM convergence analysis",
+                "function-value c_K certificate",
+            ],
+        },
+        "examples/malitsky_tam_frb": {
+            "description": (
+                "Malitsky--Tam forward-reflected-backward example in AutoLyap "
+                "with computer-assisted linear-rate certification."
+            ),
+            "keywords": [
+                "Malitsky Tam FRB AutoLyap",
+                "forward reflected backward analysis",
+                "linear-rate rho certificate",
+            ],
+        },
+        "examples/nesterov_fast_gradient": {
+            "description": (
+                "Nesterov fast-gradient example in AutoLyap with "
+                "iteration-dependent finite-horizon function-value bounds."
+            ),
+            "keywords": [
+                "Nesterov fast gradient AutoLyap",
+                "finite-horizon function-value bound",
+                "iteration-dependent c_K analysis",
             ],
         },
         "examples/proximal_point": {
@@ -271,6 +415,72 @@ html_context = {
                 "SDP convergence analysis",
             ],
         },
+        "examples/douglas_rachford/index": {
+            "description": (
+                "Douglas--Rachford examples in AutoLyap covering cocoercive, "
+                "Lipschitz, and smooth strongly-convex problem settings."
+            ),
+            "keywords": [
+                "Douglas Rachford AutoLyap examples",
+                "operator splitting Lyapunov analysis",
+                "rho certification across settings",
+            ],
+        },
+        "examples/douglas_rachford/cocoercive_plus_strongly_monotone": {
+            "description": (
+                "Douglas--Rachford cocoercive-plus-strongly-monotone example "
+                "in AutoLyap with linear-rate rho certification."
+            ),
+            "keywords": [
+                "Douglas Rachford cocoercive strongly monotone",
+                "AutoLyap operator splitting example",
+                "rho versus lambda analysis",
+            ],
+        },
+        "examples/douglas_rachford/maximally_monotone_lipschitz_plus_strongly_monotone": {
+            "description": (
+                "Douglas--Rachford example for maximally-monotone-Lipschitz "
+                "plus strongly-monotone operators with certified rates."
+            ),
+            "keywords": [
+                "Douglas Rachford maximally monotone Lipschitz",
+                "strongly monotone operator splitting",
+                "AutoLyap linear-rate certificate",
+            ],
+        },
+        "examples/douglas_rachford/maximally_monotone_plus_strongly_monotone_cocoercive": {
+            "description": (
+                "Douglas--Rachford example for maximally-monotone plus "
+                "strongly-monotone-cocoercive operators with rho certification."
+            ),
+            "keywords": [
+                "Douglas Rachford cocoercive operator example",
+                "maximally monotone plus strongly monotone",
+                "AutoLyap rho certification",
+            ],
+        },
+        "examples/douglas_rachford/maximally_monotone_plus_strongly_monotone_lipschitz": {
+            "description": (
+                "Douglas--Rachford example for maximally-monotone plus "
+                "strongly-monotone-Lipschitz operators with certified rates."
+            ),
+            "keywords": [
+                "Douglas Rachford strongly monotone Lipschitz",
+                "operator splitting SDP certificate",
+                "AutoLyap rho versus gamma",
+            ],
+        },
+        "examples/douglas_rachford/smooth_strongly_convex_plus_convex": {
+            "description": (
+                "Douglas--Rachford smooth-strongly-convex-plus-convex example "
+                "in AutoLyap with iteration-independent linear-rate analysis."
+            ),
+            "keywords": [
+                "Douglas Rachford smooth strongly convex plus convex",
+                "AutoLyap iteration-independent example",
+                "linear-rate rho certification",
+            ],
+        },
         "examples/heavy_ball/index": {
             "description": (
                 "Heavy-ball examples in AutoLyap for Lyapunov-based "
@@ -291,6 +501,17 @@ html_context = {
                 "heavy-ball smooth convex",
                 "AutoLyap heavy-ball",
                 "sublinear convergence certificate",
+            ],
+        },
+        "examples/heavy_ball/gradient_dominated_smooth": {
+            "description": (
+                "Heavy-ball gradient-dominated-smooth example in AutoLyap with "
+                "computer-assisted linear function-value rate certification."
+            ),
+            "keywords": [
+                "heavy-ball gradient-dominated smooth",
+                "AutoLyap heavy-ball nonconvex example",
+                "linear function-value convergence",
             ],
         },
         "examples/nesterov_momentum/index": {
@@ -646,14 +867,20 @@ def _is_noindex_docname(docname: str) -> bool:
 
 def _normalize_meta_text(text):
     """Collapse whitespace in free-form text for meta tag usage."""
-    return " ".join(str(text).split())
+    normalized = re.sub(r"<[^>]+>", " ", str(text))
+    # Reduce LaTeX-heavy inline text (common in theory pages) to plain tokens
+    # so meta descriptions and JSON-LD fields remain readable and valid.
+    normalized = re.sub(r"\\([A-Za-z]+)", r"\1", normalized)
+    normalized = normalized.replace("{", "").replace("}", "").replace("$", "")
+    normalized = normalized.replace("\\", " ")
+    return " ".join(normalized.split())
 
 
 def _truncate_meta_description(text, *, max_length=160):
     """Trim text to a sensible meta-description length without mid-word cuts."""
     normalized = _normalize_meta_text(text)
     if len(normalized) <= max_length:
-        return normalized
+        return normalized.rstrip(" ,;:-")
 
     ellipsis = "..."
     if max_length <= len(ellipsis):
@@ -670,13 +897,93 @@ def _truncate_meta_description(text, *, max_length=160):
     return f"{truncated}{ellipsis}"
 
 
+def _is_math_heavy_meta_candidate(text):
+    """Return whether text is likely math-dense and poor as an SEO description."""
+    raw = str(text)
+    if "\\" not in raw and "$" not in raw:
+        return False
+    return len(re.findall(r"\\[A-Za-z]+", raw)) >= 2
+
+
+def _has_math_artifact_tokens(text):
+    """Detect leftover TeX-like tokens that hurt snippet readability."""
+    tokenized = str(text).lower()
+    return any(
+        marker in tokenized
+        for marker in (
+            "mathbb",
+            "mathcal",
+            "operatorname",
+            "left",
+            "right",
+            "infty",
+            "subset",
+            "supset",
+            "cup",
+            "cap",
+        )
+    )
+
+
+def _build_fallback_description(page_title, project_name):
+    """Build a readable fallback description when no paragraph is suitable."""
+    title_text = _normalize_meta_text(page_title)
+    if not title_text:
+        return ""
+    if project_name.lower() in title_text.lower():
+        return _truncate_meta_description(f"{title_text}.")
+    return _truncate_meta_description(f"{title_text} documentation for {project_name}.")
+
+
+def _build_fallback_keywords(pagename, page_title, default_keywords):
+    """Generate page-specific keywords when explicit per-page keywords are absent."""
+    keywords = []
+    seen = set()
+
+    def _push(keyword):
+        if not keyword:
+            return
+        normalized = _normalize_meta_text(keyword).strip(" ,;:-")
+        if not normalized:
+            return
+        key = normalized.lower()
+        if key in seen:
+            return
+        seen.add(key)
+        keywords.append(normalized)
+
+    for keyword in default_keywords:
+        _push(keyword)
+
+    title_text = _normalize_meta_text(page_title)
+    if title_text and title_text.lower() != "autolyap":
+        _push(f"AutoLyap {title_text}")
+
+    parts = [p for p in str(pagename).split("/") if p and p != "index"]
+    if parts:
+        readable_path = _normalize_meta_text(
+            " ".join(re.sub(r"[_-]+", " ", part) for part in parts)
+        )
+        if readable_path:
+            _push(f"AutoLyap {readable_path}")
+
+    return keywords[:10]
+
+
 def _extract_auto_page_description(doctree):
     """Extract a concise page description from the first substantial paragraph."""
     if doctree is None:
         return ""
 
     for paragraph in doctree.findall(nodes.paragraph):
+        raw_text = paragraph.astext()
+        if _is_math_heavy_meta_candidate(raw_text):
+            continue
         candidate = _truncate_meta_description(paragraph.astext())
+        if _has_math_artifact_tokens(candidate):
+            continue
+        if candidate.lower().endswith(("i.e.", "e.g.", "etc.")):
+            continue
         if len(candidate) >= 40:
             return candidate
     return ""
@@ -688,6 +995,7 @@ def _collect_page_feature_flags(doctree):
         "page_has_math": False,
         "page_has_code_blocks": False,
         "page_has_images": False,
+        "page_has_proofs": False,
     }
     if doctree is None:
         return flags
@@ -697,6 +1005,13 @@ def _collect_page_feature_flags(doctree):
     )
     flags["page_has_code_blocks"] = bool(any(doctree.findall(nodes.literal_block)))
     flags["page_has_images"] = bool(any(doctree.findall(nodes.image)))
+    flags["page_has_proofs"] = bool(
+        any(
+            isinstance(container, nodes.container)
+            and "proof" in container.get("classes", [])
+            for container in doctree.findall(nodes.container)
+        )
+    )
     return flags
 
 
@@ -709,7 +1024,7 @@ def _script_filename(script_file):
 
 
 def _filter_optional_script_files(
-    context, *, page_has_math, page_has_code_blocks, page_has_images
+    context, *, page_has_math, page_has_code_blocks, page_has_images, page_has_proofs
 ):
     """Drop optional scripts from pages that do not need them."""
     script_files = context.get("script_files")
@@ -719,6 +1034,7 @@ def _filter_optional_script_files(
     keep_copybutton = bool(page_has_code_blocks)
     keep_math_tag_links = bool(page_has_math)
     keep_perf = bool(page_has_images)
+    keep_proof_toggle = bool(page_has_proofs)
     filtered = []
     for script_file in script_files:
         script_name = _script_filename(script_file)
@@ -727,6 +1043,8 @@ def _filter_optional_script_files(
         if "copybutton.js" in script_name and not keep_copybutton:
             continue
         if "math_tag_links.js" in script_name and not keep_math_tag_links:
+            continue
+        if "proof_toggle.js" in script_name and not keep_proof_toggle:
             continue
         filtered.append(script_file)
 
@@ -747,6 +1065,22 @@ def _inject_seo_page_context(app, pagename, templatename, context, doctree):
         context["seo_page_description"] = _truncate_meta_description(description)
     else:
         context["seo_page_description"] = _extract_auto_page_description(doctree)
+        if not context["seo_page_description"]:
+            context["seo_page_description"] = _build_fallback_description(
+                context.get("title", ""),
+                app.config.project,
+            )
+
+    seo_default_keywords = app.config.html_context.get("seo_default_keywords", [])
+    seo_page_keywords = seo_page.get("keywords")
+    if isinstance(seo_page_keywords, list) and seo_page_keywords:
+        context["seo_page_keywords"] = seo_page_keywords
+    else:
+        context["seo_page_keywords"] = _build_fallback_keywords(
+            pagename,
+            context.get("title", ""),
+            seo_default_keywords,
+        )
 
     feature_flags = _collect_page_feature_flags(doctree)
     context.update(feature_flags)
@@ -755,6 +1089,7 @@ def _inject_seo_page_context(app, pagename, templatename, context, doctree):
         page_has_math=feature_flags["page_has_math"],
         page_has_code_blocks=feature_flags["page_has_code_blocks"],
         page_has_images=feature_flags["page_has_images"],
+        page_has_proofs=feature_flags["page_has_proofs"],
     )
 
     context["seo_is_noindex"] = _is_noindex_docname(pagename)
