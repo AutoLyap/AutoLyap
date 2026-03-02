@@ -141,10 +141,46 @@ body.wy-body-for-nav {
   box-shadow: var(--nord-shadow);
 }
 
+body.autolyap-full-width .wy-nav-content {
+  max-width: none;
+  margin: 0;
+}
+
 .wy-breadcrumbs,
 .wy-breadcrumbs a {
   color: var(--nord-muted);
   font-size: 0.88rem;
+}
+
+.wy-breadcrumbs li.autolyap-breadcrumb-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.wy-breadcrumbs .autolyap-width-toggle {
+  appearance: none;
+  border: 1px solid var(--nord-border);
+  border-radius: 3px;
+  background: #ffffff;
+  color: var(--nord-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  padding: 0.16rem 0.5rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.wy-breadcrumbs .autolyap-width-toggle:hover {
+  background: #f7f9fb;
+  border-color: #cfd6dd;
+  color: #0f1f2f;
+}
+
+.wy-breadcrumbs .autolyap-width-toggle:focus-visible {
+  outline: 2px solid rgba(95, 168, 232, 0.35);
+  outline-offset: 1px;
 }
 
 /* Keep breadcrumb separators between items, but remove the leading slash. */

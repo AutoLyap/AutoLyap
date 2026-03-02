@@ -21,15 +21,8 @@
     {%- set _is_copybutton = "copybutton.js" in _script_tag -%}
     {%- set _is_math_tags = "math_tag_links.js" in _script_tag -%}
     {%- set _is_proof_toggle = "proof_toggle.js" in _script_tag -%}
-    {%- set _is_jquery = "jquery.js" in _script_tag -%}
-    {%- set _has_defer = " defer=" in _script_tag -%}
-    {%- set _has_async = " async=" in _script_tag -%}
     {%- if (not _is_perf or page_has_images | default(false)) and (not _is_copybutton or page_has_code_blocks | default(false)) and (not _is_math_tags or page_has_math | default(false)) and (not _is_proof_toggle or page_has_proofs | default(false)) -%}
-    {%- if not _is_jquery and not _has_defer and not _has_async -%}
-    {{ _script_tag | replace("<script ", '<script defer="defer" ') }}
-    {%- else -%}
     {{ _script_tag }}
-    {%- endif -%}
     {%- endif -%}
   {%- endfor %}
   <script defer="defer" src="{{ pathto('_static/js/theme.js', 1) }}"></script>

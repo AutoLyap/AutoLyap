@@ -13,3 +13,17 @@
     <li class="breadcrumb-item active">{{ _breadcrumb_title }}</li>
   {%- endif %}
 {% endblock %}
+
+{% block breadcrumbs_aside %}
+  <li class="wy-breadcrumbs-aside autolyap-breadcrumb-tools">
+    <button
+      id="autolyap-width-toggle"
+      class="autolyap-width-toggle"
+      type="button"
+      aria-pressed="false"
+      title="Expand content to fill the window width"
+    >
+      Full width
+    </button>
+  </li>
+{% endblock %}
