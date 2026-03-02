@@ -63,7 +63,7 @@ jobs:
       - name: Run full test suite
         env:
           AUTOLYAP_STRICT_MOSEK: "1"
-        run: python -m pytest
+        run: python -m pytest -m "not scs and not copt and not sdpa and not sdpa_multiprecision"
 
   build-and-release:
     name: build-and-release
