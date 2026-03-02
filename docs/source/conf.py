@@ -51,6 +51,7 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_favicon = "_static/favicon.ico"
 html_css_files = ["custom.css"]
+html_show_sphinx = False
 html_baseurl = "https://autolyap.github.io/"
 numfig = True
 math_numfig = True
@@ -1281,6 +1282,7 @@ def setup(app):
     app.connect("build-finished", _write_sitemap_and_robots)
     # Defer non-critical scripts to reduce render-blocking time.
     app.add_js_file("copybutton.js", defer="defer")
+    app.add_js_file("content_width_toggle.js", defer="defer")
     app.add_js_file("perf.js", defer="defer")
     app.add_js_file("proof_toggle.js", defer="defer")
     app.add_js_file("math_tag_links.js", defer="defer")
