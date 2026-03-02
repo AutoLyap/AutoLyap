@@ -8,6 +8,7 @@ from xml.sax.saxutils import escape as xml_escape
 from docutils import nodes
 from sphinx import addnodes
 from sphinx.domains.python._object import PyObject
+
 project = "AutoLyap"
 author = "Manu Upadhyaya"
 copyright = f"{date.today().year}, Manu Upadhyaya"
@@ -1185,8 +1186,96 @@ def _write_sitemap_and_robots(app, exception):
     (outdir / "robots.txt").write_text("\n".join(robots_lines) + "\n", encoding="utf-8")
 
 
+def _patch_bibtex_local_citation_targets():
+    """Prefer same-page bibliography entries when resolving repeated cite keys."""
+    try:
+        import docutils.nodes as docutils_nodes
+        import pybtex.plugin as pybtex_plugin
+        from sphinxcontrib.bibtex.citation_target import parse_citation_targets
+        from sphinxcontrib.bibtex.domain import BibtexDomain, logger as bibtex_logger
+        from sphinxcontrib.bibtex.style.referencing import format_references
+        from sphinxcontrib.bibtex.style.template import SphinxReferenceInfo
+    except Exception:
+        return
+
+    if getattr(BibtexDomain.resolve_xref, "_autolyap_local_first_patch", False):
+        return
+
+    def _resolve_xref_local_first(
+        self,
+        env,
+        fromdocname,
+        builder,
+        typ,
+        target,
+        node,
+        contnode,
+    ):
+        targets = parse_citation_targets(target)
+        keys = {target2.key: target2 for target2 in targets}
+        citations_by_key = {}
+        for citation in self.citations:
+            if citation.key not in keys:
+                continue
+            if self.bibliographies[citation.bibliography_key].list_ != "citation":
+                continue
+
+            previous = citations_by_key.get(citation.key)
+            if previous is None:
+                citations_by_key[citation.key] = citation
+                continue
+
+            prev_local = previous.bibliography_key.docname == fromdocname
+            curr_local = citation.bibliography_key.docname == fromdocname
+            # Prefer local entries; otherwise keep "last one wins" behavior.
+            if curr_local or not prev_local:
+                citations_by_key[citation.key] = citation
+
+        for key in keys:
+            if key not in citations_by_key:
+                bibtex_logger.warning(
+                    'could not find bibtex key "%s"' % key,
+                    location=node,
+                    type="bibtex",
+                    subtype="key_not_found",
+                )
+
+        plaintext = pybtex_plugin.find_plugin("pybtex.backends", "plaintext")()
+        references = [
+            (
+                citation.entry,
+                citation.formatted_entry,
+                SphinxReferenceInfo(
+                    builder=builder,
+                    fromdocname=fromdocname,
+                    todocname=citation.bibliography_key.docname,
+                    citation_id=citation.citation_id,
+                    title=(
+                        citation.tooltip_entry.text.render(plaintext).replace(
+                            "\\url ",
+                            "",
+                        )
+                        if citation.tooltip_entry
+                        else None
+                    ),
+                    pre_text=keys[citation.key].pre,
+                    post_text=keys[citation.key].post,
+                ),
+            )
+            for citation in citations_by_key.values()
+        ]
+        formatted_references = format_references(self.reference_style, typ, references)
+        result_node = docutils_nodes.inline(rawsource=target)
+        result_node += formatted_references.render(self.backend)
+        return result_node
+
+    _resolve_xref_local_first._autolyap_local_first_patch = True
+    BibtexDomain.resolve_xref = _resolve_xref_local_first
+
+
 def setup(app):
     _patch_python_toc_entries()
+    _patch_bibtex_local_citation_targets()
     app.connect("html-page-context", _inject_seo_page_context)
     app.connect("doctree-read", _suppress_member_toc_entries)
     app.connect("build-finished", _write_sitemap_and_robots)
