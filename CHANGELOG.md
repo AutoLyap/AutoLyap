@@ -9,6 +9,8 @@ Curated, user-facing summaries are available in
 
 ## [Unreleased]
 
+## [v0.2.0] - 2026-03-02
+
 ### Added
 
 - Top-level `SolverOptions` API support for explicit backend configuration in
@@ -148,4 +150,5 @@ Curated, user-facing summaries are available in
   should check `status == "feasible"` and inspect `solve_status`.
 - Removed `autolyap.algorithms.deterministic_proxskip` / `ProxSkip`.
 
-[Unreleased]: https://github.com/AutoLyap/AutoLyap/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/AutoLyap/AutoLyap/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/AutoLyap/AutoLyap/compare/v0.1.0...v0.2.0
