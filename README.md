@@ -2,6 +2,11 @@
 
 A Python package for automated Lyapunov-based convergence analyses of first-order optimization and inclusion methods.
 
+[![PyPI version](https://img.shields.io/pypi/v/autolyap?style=flat&logo=pypi&logoColor=white&label=PyPI&labelColor=111111&color=5fa8e8)](https://pypi.org/project/autolyap/)
+[![PyPI downloads](https://img.shields.io/pepy/dt/autolyap?style=flat&label=downloads&labelColor=111111&color=5fa8e8)](https://pepy.tech/projects/autolyap)
+[![GitHub stars](https://img.shields.io/github/stars/AutoLyap/AutoLyap?style=flat&logo=github&logoColor=white&label=stars&labelColor=111111&color=5fa8e8)](https://github.com/AutoLyap/AutoLyap/stargazers)
+[![Paper](https://img.shields.io/badge/paper-arXiv%3A2506.24076-5fa8e8?style=flat&logo=arxiv&logoColor=white&labelColor=111111)](https://arxiv.org/abs/2506.24076)
+
 ---
 
 ## Overview
