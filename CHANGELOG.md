@@ -7,8 +7,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 Curated, user-facing summaries are available in
 [`docs/source/release_notes/`](docs/source/release_notes/).
 
-## [Unreleased]
-
 ## [v0.2.0] - 2026-03-02
 
 ### Added
