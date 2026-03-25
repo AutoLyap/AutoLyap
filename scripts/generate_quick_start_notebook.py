@@ -433,12 +433,12 @@ def _build_notebook() -> dict[str, object]:
                     )
 
                 rho = result["rho"]
-                rho_theory = max(abs(1.0 - gamma * L), abs(1.0 - gamma * mu)) ** 2
+                rho_theory_value = max(abs(1.0 - gamma * L), abs(1.0 - gamma * mu)) ** 2
 
                 print(f"status:       {result['status']}")
                 print(f"solve_status: {result['solve_status']}")
                 print(f"rho (AutoLyap): {rho:.8f}")
-                print(f"rho (theory):   {rho_theory:.8f}")
+                print(f"rho (theory):   {rho_theory_value:.8f}")
                 """
             )
         ),
@@ -581,12 +581,12 @@ def _build_notebook() -> dict[str, object]:
 
                 c_K = result["c_K"]
                 theta_K = algorithm.compute_theta(K, K)
-                c_K_theory = L / (2.0 * theta_K ** 2)
+                c_K_theory_value = L / (2.0 * theta_K ** 2)
 
                 print(f"status:       {result['status']}")
                 print(f"solve_status: {result['solve_status']}")
                 print(f"c_K (AutoLyap): {c_K:.6e}")
-                print(f"c_K (theory):   {c_K_theory:.6e}")
+                print(f"c_K (theory):   {c_K_theory_value:.6e}")
                 """
             )
         ),

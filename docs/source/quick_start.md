@@ -133,9 +133,9 @@ if result["status"] != "feasible":
 rho = result["rho"]
 certificate = result["certificate"]
 
-rho_theory = max(gamma * L - 1.0, 1.0 - gamma * mu) ** 2
+rho_theory_value = max(gamma * L - 1.0, 1.0 - gamma * mu) ** 2
 print(f"rho (AutoLyap): {rho:.8f}")
-print(f"rho (theory):   {rho_theory:.8f}")
+print(f"rho (theory):   {rho_theory_value:.8f}")
 ```
 
 The computed value `rho (AutoLyap)` matches (up to solver numerical
@@ -281,10 +281,10 @@ Q_sequence = certificate["Q_sequence"]  # [Q_0, Q_1, ..., Q_K]
 q_sequence = certificate["q_sequence"]  # [q_0, q_1, ..., q_K] or None
 
 theta_K = algorithm.compute_theta(K, K)
-c_K_theory = L / (2.0 * theta_K ** 2)
+c_K_theory_value = L / (2.0 * theta_K ** 2)
 
 print(f"c_K (AutoLyap): {c_K:.6e}")
-print(f"c_K (theory):   {c_K_theory:.6e}")
+print(f"c_K (theory):   {c_K_theory_value:.6e}")
 ```
 
 The computed value `c_K (AutoLyap)` matches (up to solver numerical
