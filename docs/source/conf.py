@@ -1281,6 +1281,7 @@ def setup(app):
     app.connect("doctree-read", _suppress_member_toc_entries)
     app.connect("build-finished", _write_sitemap_and_robots)
     # Defer non-critical scripts to reduce render-blocking time.
+    app.add_js_file("badge_links.js", defer="defer")
     app.add_js_file("copybutton.js", defer="defer")
     app.add_js_file("content_width_toggle.js", defer="defer")
     app.add_js_file("perf.js", defer="defer")

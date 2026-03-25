@@ -62,311 +62,6 @@ def _build_notebook() -> dict[str, object]:
             )
         ),
         _code_cell("%pip install -q autolyap matplotlib"),
-        _markdown_cell("## Shared Imports And Helpers"),
-        _code_cell(
-            dedent(
-                """\
-                from __future__ import annotations
-
-                import time
-                import warnings
-
-                import matplotlib.pyplot as plt
-                import numpy as np
-                from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter
-
-                from autolyap import SolverOptions
-                from autolyap.algorithms import GradientMethod, OptimizedGradientMethod
-                from autolyap.problemclass import (
-                    InclusionProblem,
-                    SmoothConvex,
-                    SmoothStronglyConvex,
-                )
-                from autolyap.iteration_dependent import IterationDependent
-                from autolyap.iteration_independent import IterationIndependent
-
-                AUTOLYAP_BLUE = "#5fa8e8"
-                THEORY_BLACK = "#000000"
-
-                plt.style.use("seaborn-v0_8-whitegrid")
-                plt.rcParams["figure.dpi"] = 140
-                plt.rcParams["axes.spines.top"] = False
-                plt.rcParams["axes.spines.right"] = False
-                plt.rcParams["axes.facecolor"] = "#f8fafc"
-                plt.rcParams["axes.edgecolor"] = "#3f3f46"
-                plt.rcParams["axes.linewidth"] = 1.5
-                plt.rcParams["grid.color"] = "#d1d5db"
-                plt.rcParams["grid.alpha"] = 1.0
-
-                warnings.filterwarnings(
-                    "ignore",
-                    message="Solution may be inaccurate.*",
-                    category=UserWarning,
-                    module=r"autolyap\\.(iteration_dependent|iteration_independent)",
-                )
-
-
-                def make_solver_options() -> SolverOptions:
-                    return SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
-
-
-                def rho_theory(gamma: float, mu: float, L: float) -> float:
-                    return max(abs(1.0 - L * gamma), abs(1.0 - mu * gamma)) ** 2
-
-
-                def run_gradient_sweep(
-                    mu: float = 1.0,
-                    L: float = 4.0,
-                    point_count: int = 100,
-                    gamma_start: float | None = None,
-                    gamma_end: float | None = None,
-                ) -> dict[str, np.ndarray]:
-                    if gamma_end is None:
-                        gamma_end = 2.0 / L
-                    if gamma_start is None:
-                        gamma_start = gamma_end / point_count
-                    gammas = np.linspace(gamma_start, gamma_end, point_count)
-
-                    solver_options = make_solver_options()
-                    problem = InclusionProblem([SmoothStronglyConvex(mu, L)])
-                    algorithm = GradientMethod(gamma=float(gammas[0]))
-                    P, p, T, t = (
-                        IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
-                            algorithm
-                        )
-                    )
-
-                    rows = {
-                        "gamma": [],
-                        "rho_autolyap": [],
-                        "rho_theory": [],
-                    }
-
-                    start_time = time.time()
-                    for row_id, gamma in enumerate(gammas, start=1):
-                        gamma_float = float(gamma)
-                        algorithm.set_gamma(gamma_float)
-                        rho_theory_value = rho_theory(gamma_float, mu, L)
-
-                        try:
-                            result = (
-                                IterationIndependent.LinearConvergence.bisection_search_rho(
-                                    problem,
-                                    algorithm,
-                                    P,
-                                    T,
-                                    p=p,
-                                    t=t,
-                                    S_equals_T=True,
-                                    s_equals_t=True,
-                                    remove_C3=True,
-                                    solver_options=solver_options,
-                                    verbosity=0,
-                                )
-                            )
-                        except Exception as exc:
-                            rho_autolyap = float("nan")
-                            print(f"[gradient sweep] solver error at gamma={gamma_float:.6f}: {exc}")
-                        else:
-                            if result.get("status") == "feasible":
-                                rho_autolyap = float(result["rho"])
-                            else:
-                                rho_autolyap = float("nan")
-                                print(
-                                    f"[gradient sweep] no certificate at gamma={gamma_float:.6f}."
-                                )
-
-                        rows["gamma"].append(gamma_float)
-                        rows["rho_autolyap"].append(rho_autolyap)
-                        rows["rho_theory"].append(rho_theory_value)
-
-                        if row_id == 1 or row_id % 10 == 0 or row_id == len(gammas):
-                            rho_text = (
-                                f"{rho_autolyap:.6f}"
-                                if np.isfinite(rho_autolyap)
-                                else "nan"
-                            )
-                            print(
-                                f"[gradient sweep] {row_id:>3}/{len(gammas)} "
-                                f"gamma={gamma_float:>8.6f} "
-                                f"rho_autolyap={rho_text:>8} "
-                                f"rho_theory={rho_theory_value:>8.6f}"
-                            )
-
-                    elapsed = time.time() - start_time
-                    print(f"Gradient sweep completed in {elapsed:.1f}s")
-                    return {
-                        key: np.asarray(values, dtype=float) for key, values in rows.items()
-                    }
-
-
-                def c_K_theory(algorithm: OptimizedGradientMethod, K: int) -> float:
-                    theta = algorithm.compute_theta(K, K)
-                    return algorithm.L / (2.0 * theta ** 2)
-
-
-                def run_optimized_gradient_sweep(
-                    L: float = 1.0,
-                    k_min: int = 1,
-                    k_max: int = 100,
-                ) -> dict[str, np.ndarray]:
-                    ks = np.arange(k_min, k_max + 1, dtype=int)
-
-                    solver_options = make_solver_options()
-                    problem = InclusionProblem([SmoothConvex(L)])
-
-                    rows = {
-                        "K": [],
-                        "c_K_autolyap": [],
-                        "c_K_theory": [],
-                    }
-
-                    start_time = time.time()
-                    for row_id, K in enumerate(ks, start=1):
-                        k_int = int(K)
-                        algorithm = OptimizedGradientMethod(L=L, K=k_int)
-                        theory_value = c_K_theory(algorithm, k_int)
-                        Q_0, q_0 = IterationDependent.get_parameters_distance_to_solution(
-                            algorithm,
-                            0,
-                            i=1,
-                            j=1,
-                        )
-                        Q_K, q_K = (
-                            IterationDependent.get_parameters_function_value_suboptimality(
-                                algorithm,
-                                k_int,
-                            )
-                        )
-
-                        try:
-                            result = IterationDependent.search_lyapunov(
-                                problem,
-                                algorithm,
-                                k_int,
-                                Q_0,
-                                Q_K,
-                                q_0=q_0,
-                                q_K=q_K,
-                                solver_options=solver_options,
-                                verbosity=0,
-                            )
-                        except Exception as exc:
-                            c_K_autolyap = float("nan")
-                            print(f"[ogm sweep] solver error at K={k_int}: {exc}")
-                        else:
-                            if result.get("status") == "feasible":
-                                c_K_autolyap = float(result["c_K"])
-                            else:
-                                c_K_autolyap = float("nan")
-                                print(f"[ogm sweep] no certificate at K={k_int}.")
-
-                        rows["K"].append(float(k_int))
-                        rows["c_K_autolyap"].append(c_K_autolyap)
-                        rows["c_K_theory"].append(theory_value)
-
-                        if row_id == 1 or row_id % 10 == 0 or row_id == len(ks):
-                            c_text = (
-                                f"{c_K_autolyap:.6e}"
-                                if np.isfinite(c_K_autolyap)
-                                else "nan"
-                            )
-                            print(
-                                f"[ogm sweep] {row_id:>3}/{len(ks)} "
-                                f"K={k_int:>3} "
-                                f"c_K_autolyap={c_text:>12} "
-                                f"c_K_theory={theory_value:>12.6e}"
-                            )
-
-                    elapsed = time.time() - start_time
-                    print(f"Optimized-gradient sweep completed in {elapsed:.1f}s")
-                    return {
-                        key: np.asarray(values, dtype=float) for key, values in rows.items()
-                    }
-
-
-                def plot_gradient_sweep(rows, L: float = 4.0) -> None:
-                    fig, ax = plt.subplots(figsize=(12, 4.5))
-                    ax.spines["left"].set_color("#3f3f46")
-                    ax.spines["bottom"].set_color("#3f3f46")
-                    ax.spines["left"].set_linewidth(1.5)
-                    ax.spines["bottom"].set_linewidth(1.5)
-                    ax.plot(
-                        rows["gamma"],
-                        rows["rho_theory"],
-                        color=THEORY_BLACK,
-                        linewidth=2.8,
-                        label="Theoretical",
-                    )
-                    ax.scatter(
-                        rows["gamma"],
-                        rows["rho_autolyap"],
-                        color=AUTOLYAP_BLUE,
-                        s=36,
-                        alpha=0.9,
-                        label="AutoLyap",
-                    )
-                    ax.set_xlim(0.0, 2.0 / L)
-                    ax.set_ylim(0.3, 1.0)
-                    ax.set_xlabel(r"$\\gamma$")
-                    ax.set_ylabel(r"$\\rho$", rotation=0, labelpad=18)
-                    ax.set_title("Gradient-method contraction factor vs step size")
-                    ax.legend(
-                        frameon=True,
-                        facecolor="white",
-                        edgecolor="#9ca3af",
-                        framealpha=1.0,
-                        fancybox=True,
-                    )
-                    plt.show()
-
-
-                def plot_optimized_gradient_sweep(rows) -> None:
-                    fig, ax = plt.subplots(figsize=(12, 4.5))
-                    ax.spines["left"].set_color("#3f3f46")
-                    ax.spines["bottom"].set_color("#3f3f46")
-                    ax.spines["left"].set_linewidth(1.5)
-                    ax.spines["bottom"].set_linewidth(1.5)
-                    ax.loglog(
-                        rows["K"],
-                        rows["c_K_theory"],
-                        color=THEORY_BLACK,
-                        linewidth=2.8,
-                        label="Theoretical",
-                    )
-                    ax.scatter(
-                        rows["K"],
-                        rows["c_K_autolyap"],
-                        color=AUTOLYAP_BLUE,
-                        s=36,
-                        alpha=0.9,
-                        label="AutoLyap",
-                    )
-                    ax.set_xlim(0.9, 110.0)
-                    ax.set_xlabel(r"$K$")
-                    ax.set_ylabel(r"$c_{K}$", rotation=0, labelpad=18)
-                    ax.set_title("Optimized-gradient bound vs iteration budget (log-log)")
-                    ax.xaxis.set_major_locator(LogLocator(base=10.0))
-                    ax.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)))
-                    ax.yaxis.set_major_locator(LogLocator(base=10.0))
-                    ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)))
-                    ax.xaxis.set_major_formatter(LogFormatterMathtext(base=10.0))
-                    ax.yaxis.set_major_formatter(LogFormatterMathtext(base=10.0))
-                    ax.xaxis.set_minor_formatter(NullFormatter())
-                    ax.yaxis.set_minor_formatter(NullFormatter())
-                    ax.grid(which="major", color="#9ca3af", linewidth=1.15)
-                    ax.grid(which="minor", color="#9ca3af", linewidth=1.15)
-                    ax.legend(
-                        frameon=True,
-                        facecolor="white",
-                        edgecolor="#9ca3af",
-                        framealpha=1.0,
-                        fancybox=True,
-                    )
-                    plt.show()
-                """
-            )
-        ),
         _markdown_cell(
             dedent(
                 """\
@@ -405,46 +100,62 @@ def _build_notebook() -> dict[str, object]:
         _code_cell(
             dedent(
                 """\
-                mu = 1.0
-                L = 4.0
-                gamma = 0.2
+                from autolyap import SolverOptions
+                from autolyap.algorithms import GradientMethod
+                from autolyap.iteration_independent import IterationIndependent
+                from autolyap.problemclass import InclusionProblem, SmoothStronglyConvex
 
-                problem = InclusionProblem([SmoothStronglyConvex(mu, L)])
-                algorithm = GradientMethod(gamma=gamma)
-                solver_options = make_solver_options()
 
-                P, p, T, t = (
-                    IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
-                        algorithm
-                    )
-                )
+                def run_gradient_method_example(
+                    mu=1.0,
+                    L=4.0,
+                    gamma=0.2,
+                ):
+                    problem = InclusionProblem([SmoothStronglyConvex(mu, L)])
+                    algorithm = GradientMethod(gamma=gamma)
+                    solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
 
-                result = IterationIndependent.LinearConvergence.bisection_search_rho(
-                    problem,
-                    algorithm,
-                    P,
-                    T,
-                    p=p,
-                    t=t,
-                    S_equals_T=True,
-                    s_equals_t=True,
-                    remove_C3=True,
-                    solver_options=solver_options,
-                    verbosity=0,
-                )
-
-                if result["status"] != "feasible":
-                    raise RuntimeError(
-                        "No feasible Lyapunov certificate in the requested rho interval."
+                    P, p, T, t = (
+                        IterationIndependent.LinearConvergence.get_parameters_distance_to_solution(
+                            algorithm
+                        )
                     )
 
-                rho = result["rho"]
-                rho_theory_value = max(abs(1.0 - gamma * L), abs(1.0 - gamma * mu)) ** 2
+                    search_result = IterationIndependent.LinearConvergence.bisection_search_rho(
+                        problem,
+                        algorithm,
+                        P,
+                        T,
+                        p=p,
+                        t=t,
+                        S_equals_T=True,
+                        s_equals_t=True,
+                        remove_C3=True,
+                        solver_options=solver_options,
+                        verbosity=0,
+                    )
 
-                print(f"status:       {result['status']}")
-                print(f"solve_status: {result['solve_status']}")
-                print(f"rho (AutoLyap): {rho:.8f}")
-                print(f"rho (theory):   {rho_theory_value:.8f}")
+                    if search_result["status"] != "feasible":
+                        raise RuntimeError(
+                            "No feasible Lyapunov certificate in the requested rho interval."
+                        )
+
+                    rho_theory = max(abs(1.0 - gamma * L), abs(1.0 - gamma * mu)) ** 2
+                    return {
+                        "status": search_result["status"],
+                        "solve_status": str(search_result["solve_status"]),
+                        "rho": float(search_result["rho"]),
+                        "rho_theory": rho_theory,
+                    }
+
+
+                mu, L, gamma = 1.0, 4.0, 0.2
+                gradient_example = run_gradient_method_example(mu=mu, L=L, gamma=gamma)
+
+                print(f"status:       {gradient_example['status']}")
+                print(f"solve_status: {gradient_example['solve_status']}")
+                print(f"rho (AutoLyap): {gradient_example['rho']:.8f}")
+                print(f"rho (theory):   {gradient_example['rho_theory']:.8f}")
                 """
             )
         ),
@@ -478,17 +189,104 @@ def _build_notebook() -> dict[str, object]:
         _code_cell(
             dedent(
                 """\
-                gamma_start = 2.0 / (100.0 * L)
-                gamma_end = 2.0 / L
+                import time
 
-                gradient_sweep = run_gradient_sweep(
-                    mu=mu,
-                    L=L,
-                    point_count=100,
-                    gamma_start=gamma_start,
-                    gamma_end=gamma_end,
+                import matplotlib.pyplot as plt
+                import numpy as np
+
+                AUTOLYAP_BLUE = "#5fa8e8"
+                THEORY_BLACK = "#000000"
+
+                plt.style.use("seaborn-v0_8-whitegrid")
+                plt.rcParams.update({
+                    "figure.dpi": 140,
+                    "axes.spines.top": False,
+                    "axes.spines.right": False,
+                    "axes.facecolor": "#f8fafc",
+                    "axes.edgecolor": "#3f3f46",
+                    "axes.linewidth": 1.5,
+                    "grid.color": "#d1d5db",
+                    "grid.alpha": 1.0,
+                })
+
+                mu, L = 1.0, 4.0
+                gamma_values = np.linspace(2.0 / (100.0 * L), 2.0 / L, 100)
+                rho_autolyap_values = []
+                rho_theory_values = []
+
+                start_time = time.time()
+                for row_id, gamma in enumerate(gamma_values, start=1):
+                    gamma_float = float(gamma)
+                    try:
+                        example = run_gradient_method_example(mu=mu, L=L, gamma=gamma_float)
+                        rho_autolyap = float(example["rho"])
+                        rho_theory = float(example["rho_theory"])
+                    except Exception as exc:
+                        rho_autolyap = np.nan
+                        rho_theory = max(
+                            abs(1.0 - L * gamma_float),
+                            abs(1.0 - mu * gamma_float),
+                        ) ** 2
+                        print(
+                            f"[gradient sweep] solver error at gamma={gamma_float:.6f}: "
+                            f"{exc}"
+                        )
+
+                    rho_autolyap_values.append(rho_autolyap)
+                    rho_theory_values.append(rho_theory)
+
+                    if row_id == 1 or row_id % 10 == 0 or row_id == len(gamma_values):
+                        rho_text = (
+                            f"{rho_autolyap:.6f}"
+                            if np.isfinite(rho_autolyap)
+                            else "nan"
+                        )
+                        print(
+                            f"[gradient sweep] {row_id:>3}/{len(gamma_values)} "
+                            f"gamma={gamma_float:>8.6f} "
+                            f"rho_autolyap={rho_text:>8} "
+                            f"rho_theory={rho_theory:>8.6f}"
+                        )
+
+                elapsed = time.time() - start_time
+                print(f"Gradient sweep completed in {elapsed:.1f}s")
+
+                rho_autolyap_values = np.asarray(rho_autolyap_values, dtype=float)
+                rho_theory_values = np.asarray(rho_theory_values, dtype=float)
+
+                fig, ax = plt.subplots(figsize=(12, 4.5))
+                ax.spines["left"].set_color("#3f3f46")
+                ax.spines["bottom"].set_color("#3f3f46")
+                ax.spines["left"].set_linewidth(1.5)
+                ax.spines["bottom"].set_linewidth(1.5)
+                ax.plot(
+                    gamma_values,
+                    rho_theory_values,
+                    color=THEORY_BLACK,
+                    linewidth=2.8,
+                    label="Theoretical",
                 )
-                plot_gradient_sweep(gradient_sweep, L=L)
+                ax.scatter(
+                    gamma_values,
+                    rho_autolyap_values,
+                    color=AUTOLYAP_BLUE,
+                    s=36,
+                    alpha=0.9,
+                    label="AutoLyap",
+                )
+                ax.set_xlim(0.0, 2.0 / L)
+                ax.set_ylim(0.3, 1.0)
+                ax.set_xlabel(r"$\\gamma$")
+                ax.set_ylabel(r"$\\rho$", rotation=0, labelpad=18)
+                ax.set_title("Gradient-method contraction factor vs step size")
+                ax.legend(
+                    frameon=True,
+                    facecolor="white",
+                    edgecolor="#9ca3af",
+                    framealpha=1.0,
+                    fancybox=True,
+                )
+                plt.show()
                 """
             )
         ),
@@ -550,49 +348,66 @@ def _build_notebook() -> dict[str, object]:
         _code_cell(
             dedent(
                 """\
-                L = 1.0
-                K = 5
+                from autolyap import SolverOptions
+                from autolyap.algorithms import OptimizedGradientMethod
+                from autolyap.iteration_dependent import IterationDependent
+                from autolyap.problemclass import InclusionProblem, SmoothConvex
 
-                problem = InclusionProblem([SmoothConvex(L)])
-                algorithm = OptimizedGradientMethod(L=L, K=K)
-                solver_options = make_solver_options()
 
-                Q_0, q_0 = IterationDependent.get_parameters_distance_to_solution(
-                    algorithm,
-                    0,
-                    i=1,
-                    j=1,
-                )
-                Q_K, q_K = IterationDependent.get_parameters_function_value_suboptimality(
-                    algorithm,
-                    K,
-                )
+                def run_optimized_gradient_method_example(
+                    L=1.0,
+                    K=5,
+                ):
+                    problem = InclusionProblem([SmoothConvex(L)])
+                    algorithm = OptimizedGradientMethod(L=L, K=K)
+                    solver_options = SolverOptions(backend="cvxpy", cvxpy_solver="CLARABEL")
 
-                result = IterationDependent.search_lyapunov(
-                    problem,
-                    algorithm,
-                    K,
-                    Q_0,
-                    Q_K,
-                    q_0=q_0,
-                    q_K=q_K,
-                    solver_options=solver_options,
-                    verbosity=0,
-                )
-
-                if result["status"] != "feasible":
-                    raise RuntimeError(
-                        "No feasible chained Lyapunov certificate for this setup."
+                    Q_0, q_0 = IterationDependent.get_parameters_distance_to_solution(
+                        algorithm,
+                        0,
+                        i=1,
+                        j=1,
+                    )
+                    Q_K, q_K = IterationDependent.get_parameters_function_value_suboptimality(
+                        algorithm,
+                        K,
                     )
 
-                c_K = result["c_K"]
-                theta_K = algorithm.compute_theta(K, K)
-                c_K_theory_value = L / (2.0 * theta_K ** 2)
+                    theta_K = algorithm.compute_theta(K, K)
+                    c_K_theory = L / (2.0 * theta_K ** 2)
 
-                print(f"status:       {result['status']}")
-                print(f"solve_status: {result['solve_status']}")
-                print(f"c_K (AutoLyap): {c_K:.6e}")
-                print(f"c_K (theory):   {c_K_theory_value:.6e}")
+                    search_result = IterationDependent.search_lyapunov(
+                        problem,
+                        algorithm,
+                        K,
+                        Q_0,
+                        Q_K,
+                        q_0=q_0,
+                        q_K=q_K,
+                        solver_options=solver_options,
+                        verbosity=0,
+                    )
+
+                    if search_result["status"] != "feasible":
+                        raise RuntimeError(
+                            "No feasible chained Lyapunov certificate for this setup."
+                        )
+
+                    return {
+                        "status": search_result["status"],
+                        "solve_status": str(search_result["solve_status"]),
+                        "c_K": float(search_result["c_K"]),
+                        "c_K_theory": c_K_theory,
+                    }
+
+
+                L, K = 1.0, 5
+                ogm_example = run_optimized_gradient_method_example(L=L, K=K)
+
+                print(f"status:       {ogm_example['status']}")
+                print(f"solve_status: {ogm_example['solve_status']}")
+                print(f"c_K (AutoLyap): {ogm_example['c_K']:.6e}")
+                print(f"c_K (theory):   {ogm_example['c_K_theory']:.6e}")
                 """
             )
         ),
@@ -627,12 +442,109 @@ def _build_notebook() -> dict[str, object]:
         _code_cell(
             dedent(
                 """\
-                optimized_gradient_sweep = run_optimized_gradient_sweep(
-                    L=1.0,
-                    k_min=1,
-                    k_max=100,
+                import time
+
+                import matplotlib.pyplot as plt
+                import numpy as np
+                from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter
+
+                AUTOLYAP_BLUE = "#5fa8e8"
+                THEORY_BLACK = "#000000"
+
+                plt.style.use("seaborn-v0_8-whitegrid")
+                plt.rcParams.update({
+                    "figure.dpi": 140,
+                    "axes.spines.top": False,
+                    "axes.spines.right": False,
+                    "axes.facecolor": "#f8fafc",
+                    "axes.edgecolor": "#3f3f46",
+                    "axes.linewidth": 1.5,
+                    "grid.color": "#d1d5db",
+                    "grid.alpha": 1.0,
+                })
+
+                L = 1.0
+                K_values = np.arange(1, 101, dtype=int)
+                c_K_autolyap_values = []
+                c_K_theory_values = []
+
+                start_time = time.time()
+                for row_id, K in enumerate(K_values, start=1):
+                    k_int = int(K)
+                    try:
+                        example = run_optimized_gradient_method_example(L=L, K=k_int)
+                        c_K_autolyap = float(example["c_K"])
+                        c_K_theory = float(example["c_K_theory"])
+                    except Exception as exc:
+                        c_K_autolyap = np.nan
+                        theta_K = OptimizedGradientMethod(L=L, K=k_int).compute_theta(k_int, k_int)
+                        c_K_theory = L / (2.0 * theta_K ** 2)
+                        print(f"[ogm sweep] solver error at K={k_int}: {exc}")
+
+                    c_K_autolyap_values.append(c_K_autolyap)
+                    c_K_theory_values.append(c_K_theory)
+
+                    if row_id == 1 or row_id % 10 == 0 or row_id == len(K_values):
+                        c_text = (
+                            f"{c_K_autolyap:.6e}"
+                            if np.isfinite(c_K_autolyap)
+                            else "nan"
+                        )
+                        print(
+                            f"[ogm sweep] {row_id:>3}/{len(K_values)} "
+                            f"K={k_int:>3} "
+                            f"c_K_autolyap={c_text:>12} "
+                            f"c_K_theory={c_K_theory:>12.6e}"
+                        )
+
+                elapsed = time.time() - start_time
+                print(f"Optimized-gradient sweep completed in {elapsed:.1f}s")
+
+                c_K_autolyap_values = np.asarray(c_K_autolyap_values, dtype=float)
+                c_K_theory_values = np.asarray(c_K_theory_values, dtype=float)
+
+                fig, ax = plt.subplots(figsize=(12, 4.5))
+                ax.spines["left"].set_color("#3f3f46")
+                ax.spines["bottom"].set_color("#3f3f46")
+                ax.spines["left"].set_linewidth(1.5)
+                ax.spines["bottom"].set_linewidth(1.5)
+                ax.loglog(
+                    K_values,
+                    c_K_theory_values,
+                    color=THEORY_BLACK,
+                    linewidth=2.8,
+                    label="Theoretical",
                 )
-                plot_optimized_gradient_sweep(optimized_gradient_sweep)
+                ax.scatter(
+                    K_values,
+                    c_K_autolyap_values,
+                    color=AUTOLYAP_BLUE,
+                    s=36,
+                    alpha=0.9,
+                    label="AutoLyap",
+                )
+                ax.set_xlim(0.9, float(K_values[-1]) + 10.0)
+                ax.set_xlabel(r"$K$")
+                ax.set_ylabel(r"$c_{K}$", rotation=0, labelpad=18)
+                ax.set_title("Optimized-gradient bound vs iteration budget (log-log)")
+                ax.xaxis.set_major_locator(LogLocator(base=10.0))
+                ax.xaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)))
+                ax.yaxis.set_major_locator(LogLocator(base=10.0))
+                ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)))
+                ax.xaxis.set_major_formatter(LogFormatterMathtext(base=10.0))
+                ax.yaxis.set_major_formatter(LogFormatterMathtext(base=10.0))
+                ax.xaxis.set_minor_formatter(NullFormatter())
+                ax.yaxis.set_minor_formatter(NullFormatter())
+                ax.grid(which="major", color="#9ca3af", linewidth=1.15)
+                ax.grid(which="minor", color="#9ca3af", linewidth=1.15)
+                ax.legend(
+                    frameon=True,
+                    facecolor="white",
+                    edgecolor="#9ca3af",
+                    framealpha=1.0,
+                    fancybox=True,
+                )
+                plt.show()
                 """
             )
         ),
