@@ -32,7 +32,7 @@ computational efficiency, we use
            &\p{u_{i}}_{i\in\IndexOp} \in \prod_{i\in\IndexOp}G_{i}\p{y}, \\
            &\sum_{i=1}^{m} u_{i} = 0, \\
            &\hat{\bu} = \p{u_{1},\ldots,u_{m-1}}, \\
-           &\bFcn=\p{\bfcn_{i}\p{y}}_{i\in\IndexFunc}
+           &\bFcn=\p{f_{i}\p{y}}_{i\in\IndexFunc}
        \end{aligned}
        },\end{aligned}
 
