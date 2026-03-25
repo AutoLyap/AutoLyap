@@ -114,6 +114,19 @@ make -C docs deps
 - Uses: `python scripts/sync_citation_version.py --check`.
 - Exits non-zero if versions differ.
 
+### `make sync-notebooks`
+
+- Regenerates repository-managed notebooks from their generator scripts.
+- Current scope: `notebooks/quick_start_colab.ipynb`.
+- Uses: `python scripts/generate_quick_start_notebook.py`.
+
+### `make check-notebooks`
+
+- Verifies generated notebooks are up to date without modifying files.
+- Current scope: `notebooks/quick_start_colab.ipynb`.
+- Uses: `python scripts/generate_quick_start_notebook.py --check`.
+- Exits non-zero if a notebook needs regeneration.
+
 ## Script entry points
 
 ### `bash scripts/check_local_ci.sh`
@@ -146,6 +159,17 @@ Options:
   - `--check`: validate only, no file changes.
   - `--version-file <PATH>`: alternate `VERSION` file.
   - `--citation-file <PATH>`: alternate `CITATION.cff`.
+
+### `python scripts/generate_quick_start_notebook.py`
+
+- Generates the Colab-ready quick-start notebook:
+  `notebooks/quick_start_colab.ipynb`.
+- Source of truth: `scripts/generate_quick_start_notebook.py`.
+- Intended for notebook updates after editing the generator logic or notebook
+  content.
+- Options:
+  - `--check`: validate only, no file changes; exits non-zero if the notebook is
+    out of date.
 
 ## Docs plot/data generation scripts
 

@@ -29,6 +29,8 @@ jobs:
           cache: pip
       - name: Validate CITATION.cff version matches VERSION
         run: python scripts/sync_citation_version.py --check
+      - name: Validate quick-start notebook is up to date
+        run: python scripts/generate_quick_start_notebook.py --check
       - name: Install lint dependencies
         run: |
           python -m pip install --upgrade pip

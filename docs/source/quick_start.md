@@ -8,6 +8,10 @@ This page provides two end-to-end examples:
 Both examples follow the same modeling pattern and differ mainly in the
 Lyapunov construction and target metric.
 
+**Google Colab**
+
+[![Open in Colab](https://img.shields.io/badge/Open_in-Colab-5fa8e8?style=flat&logo=googlecolab&logoColor=white&labelColor=111111)](https://colab.research.google.com/github/AutoLyap/AutoLyap/blob/main/notebooks/quick_start_colab.ipynb)
+
 ## Setup
 
 For a high-level overview and navigation links, see {doc}`Home <index>`.
