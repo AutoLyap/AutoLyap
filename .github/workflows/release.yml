@@ -19,8 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -71,8 +71,8 @@ jobs:
     needs: verify
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -95,7 +95,7 @@ jobs:
           python -m build
           python -m twine check dist/*
       - name: Upload release distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: release-dist
           path: dist/*
@@ -121,7 +121,7 @@ jobs:
       url: https://pypi.org/p/autolyap
     steps:
       - name: Download built distributions
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: release-dist
           path: dist
@@ -137,8 +137,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -164,7 +164,7 @@ jobs:
             exit 1
           fi
       - name: Checkout docs site repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: AutoLyap/AutoLyap.github.io
           token: ${{ secrets.AUTOLYAP_GH_PAGES_TOKEN }}
