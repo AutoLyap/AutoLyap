@@ -1,4 +1,4 @@
-.PHONY: check check-mosek check-clarabel check-scs check-copt check-sdpa check-sdpa-multiprecision docs sync-citation check-citation
+.PHONY: check check-mosek check-clarabel check-scs check-copt check-sdpa check-sdpa-multiprecision docs sync-citation check-citation sync-notebooks check-notebooks
 
 DOCS_PYTHON := $(CURDIR)/.venv-docs/bin/python
 
@@ -35,3 +35,9 @@ sync-citation:
 
 check-citation:
 	@python scripts/sync_citation_version.py --check
+
+sync-notebooks:
+	@python scripts/generate_quick_start_notebook.py
+
+check-notebooks:
+	@python scripts/generate_quick_start_notebook.py --check
