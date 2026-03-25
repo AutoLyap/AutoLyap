@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -36,9 +36,10 @@ jobs:
           make -C docs dirhtml
           touch docs/build/dirhtml/.nojekyll
       - name: Upload docs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docs-dirhtml
+          include-hidden-files: true
           path: docs/build/dirhtml/
           if-no-files-found: error
 
@@ -50,7 +51,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Download built docs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: docs-dirhtml
           path: built-docs
@@ -66,7 +67,7 @@ jobs:
             exit 1
           fi
       - name: Checkout docs site repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: AutoLyap/AutoLyap.github.io
           token: ${{ secrets.AUTOLYAP_GH_PAGES_TOKEN }}
