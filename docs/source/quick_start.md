@@ -14,8 +14,6 @@ Lyapunov construction and target metric.
 
 ## Setup
 
-For a high-level overview and navigation links, see {doc}`Home <index>`.
-
 Install AutoLyap:
 
 ```bash
