@@ -48,8 +48,6 @@ def _build_notebook() -> dict[str, object]:
 
                 1. Iteration-independent analysis with a bisection search on `rho`.
                 2. Iteration-dependent analysis with chained Lyapunov inequalities.
-
-                For theoretical foundations, see [Theory](https://autolyap.github.io/theory.html).
                 """
             )
         ),
@@ -71,6 +69,7 @@ def _build_notebook() -> dict[str, object]:
                 from __future__ import annotations
 
                 import time
+                import warnings
 
                 import matplotlib.pyplot as plt
                 import numpy as np
@@ -98,6 +97,13 @@ def _build_notebook() -> dict[str, object]:
                 plt.rcParams["axes.linewidth"] = 1.5
                 plt.rcParams["grid.color"] = "#d1d5db"
                 plt.rcParams["grid.alpha"] = 1.0
+
+                warnings.filterwarnings(
+                    "ignore",
+                    message="Solution may be inaccurate.*",
+                    category=UserWarning,
+                    module=r"autolyap\\.(iteration_dependent|iteration_independent)",
+                )
 
 
                 def make_solver_options() -> SolverOptions:
@@ -635,6 +641,7 @@ def _build_notebook() -> dict[str, object]:
                 """\
                 ## Next
                 
+                - For theoretical foundations, see [Theory](https://autolyap.github.io/theory.html).
                 - More worked examples: <https://autolyap.github.io/examples.html>
                 - API reference: <https://autolyap.github.io/api_reference.html>
                 """

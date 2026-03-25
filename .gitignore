@@ -16,6 +16,7 @@ docs/build/
 env/
 venv/
 .venv/
+.venv-quick-start/
 .venv-mosek/
 .env
 
