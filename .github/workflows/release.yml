@@ -121,7 +121,7 @@ jobs:
       url: https://pypi.org/p/autolyap
     steps:
       - name: Download built distributions
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: release-dist
           path: dist

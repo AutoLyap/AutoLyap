@@ -51,7 +51,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Download built docs
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: docs-dirhtml
           path: built-docs
