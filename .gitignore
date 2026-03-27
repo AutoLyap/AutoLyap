@@ -16,6 +16,8 @@ docs/build/
 env/
 venv/
 .venv/
+.venv-docs/
+.venv-gradient-method/
 .venv-quick-start/
 .venv-mosek/
 .env

@@ -96,9 +96,9 @@ make -C docs deps
 ### `make docs`
 
 - Builds documentation via `make -C docs dirhtml`.
-- If `.venv-docs/bin/python` exists, `make docs` uses it automatically.
-- Otherwise it uses the default `python`, which requires docs dependencies
-  (install with `make -C docs deps`).
+- Uses `python` from your current shell environment, or `python3` if `python`
+  is unavailable.
+- Install docs dependencies first with `make -C docs deps`.
 - Output: `docs/build/dirhtml/`.
 - Inspect: `docs/build/dirhtml/index.html`.
 
