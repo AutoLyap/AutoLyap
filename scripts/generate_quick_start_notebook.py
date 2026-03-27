@@ -90,7 +90,7 @@ def _build_notebook() -> dict[str, object]:
                 $\\rho \\in [0,1)$ with the smallest value among those it certifies such that
 
                 $$
-                \\|x^k - x^\\star\\|^2 \\in \\mathcal{O}(\\rho^k) \\quad \\textup{ as } \\quad k\\to\\infty,
+                \\|x^k - x^\\star\\|^2 \\in \\mathcal{O}(\\rho^k) \\quad \\text{ as } \\quad k\\to\\infty,
                 $$
 
                 where $x^\\star \\in \\operatorname{Argmin}_{x \\in \\mathcal{H}} f(x)$.
@@ -152,7 +152,7 @@ def _build_notebook() -> dict[str, object]:
                 [Polyak (1963)](https://doi.org/10.1016/0041-5553(63)90382-3), is
 
                 $$
-                \\|x^k - x^\\star\\|^2 \\in \\mathcal{O}(\\rho^k) \\quad \\textup{ as } \\quad k\\to\\infty, \\qquad
+                \\|x^k - x^\\star\\|^2 \\in \\mathcal{O}(\\rho^k) \\quad \\text{ as } \\quad k\\to\\infty, \\qquad
                 \\rho = \\max\\{|1-\\gamma L|,\\;|1-\\gamma\\mu|\\}^2,
                 $$
 
@@ -162,7 +162,7 @@ def _build_notebook() -> dict[str, object]:
 
                 $$
                 \\|x^k - x^\\star\\| \\in \\mathcal{O}\\!\\left(\\max\\{|1-\\gamma L|,\\;|1-\\gamma\\mu|\\}^k\\right)
-                \\quad \\textup{ as } \\quad k\\to\\infty.
+                \\quad \\text{ as } \\quad k\\to\\infty.
                 $$
                 """
             )
@@ -189,7 +189,7 @@ def _build_notebook() -> dict[str, object]:
                 $K \\in \\mathbb{N}$, the optimized gradient method updates as
 
                 $$
-                (\\forall k \\in \\llbracket 0, K-1 \\rrbracket)\\quad
+                (\\forall k =  0, \\ldots, K-1 )\\quad
                 \\left[
                 \\begin{aligned}
                     y^{k+1} &= x^k - \\frac{1}{L}\\nabla f(x^k), \\\\
@@ -205,7 +205,7 @@ def _build_notebook() -> dict[str, object]:
                 \\begin{cases}
                     1, & \\text{if } k = 0, \\\\
                     \\dfrac{1 + \\sqrt{1 + 4\\theta_{k-1}^2}}{2},
-                    & \\text{if } k \\in \\llbracket 1, K-1 \\rrbracket, \\\\
+                    & \\text{if } k = 1, \\ldots, K-1, \\\\
                     \\dfrac{1 + \\sqrt{1 + 8\\theta_{k-1}^2}}{2},
                     & \\text{if } k = K.
                 \\end{cases}
@@ -290,10 +290,10 @@ def _build_notebook() -> dict[str, object]:
 
                 $$
                 f(x^K) - f(x^\\star) \\in \\mathcal{O}\\!\\left(\\frac{1}{\\theta_K^2}\\right)
-                \\quad \\textup{ as } \\quad K\\to\\infty,
+                \\quad \\text{ as } \\quad K\\to\\infty,
                 \\qquad
                 f(x^K) - f(x^\\star) \\in \\mathcal{O}\\!\\left(\\frac{1}{K^2}\\right)
-                \\quad \\textup{ as } \\quad K\\to\\infty.
+                \\quad \\text{ as } \\quad K\\to\\infty.
                 $$
                 """
             )
