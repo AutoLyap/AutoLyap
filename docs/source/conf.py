@@ -643,7 +643,18 @@ html_context = {
             "keywords": [
                 "AutoLyap release notes",
                 "AutoLyap changelog",
-                "AutoLyap v0.2.0",
+                "AutoLyap v0.2.1",
+            ],
+        },
+        "release_notes/v0_2_1": {
+            "description": (
+                "AutoLyap v0.2.1 development notes for the next patch release "
+                "after v0.2.0."
+            ),
+            "keywords": [
+                "AutoLyap v0.2.1",
+                "AutoLyap patch release",
+                "AutoLyap development notes",
             ],
         },
         "release_notes/v0_2_0": {

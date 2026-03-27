@@ -46,3 +46,7 @@ If AutoLyap contributes to your research or software, please cite:
   primaryClass = {math.OC},
 }
 ```
+
+## License
+
+AutoLyap is licensed under the GNU General Public License v3.0 only. See [LICENSE](LICENSE).

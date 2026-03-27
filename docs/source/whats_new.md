@@ -1,6 +1,7 @@
 # What's new
 
-This section provides curated, user-facing release notes for each published version.
+This section provides curated, user-facing release notes for published versions
+and the current development line.
 
 For the complete chronological record of all notable changes, see
 [`CHANGELOG.md`](https://github.com/AutoLyap/AutoLyap/blob/main/CHANGELOG.md).
@@ -8,5 +9,6 @@ For the complete chronological record of all notable changes, see
 ```{toctree}
 :maxdepth: 1
 
+release_notes/v0_2_1
 release_notes/v0_2_0
 ```
