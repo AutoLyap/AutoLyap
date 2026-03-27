@@ -1,6 +1,6 @@
 # Minimal makefile for Sphinx documentation
 
-PYTHON ?= python
+PYTHON ?= $(shell if command -v python >/dev/null 2>&1; then echo python; elif command -v python3 >/dev/null 2>&1; then echo python3; else echo python; fi)
 SPHINXOPTS =
 SPHINXBUILD = $(PYTHON) -m sphinx
 SOURCEDIR = source
