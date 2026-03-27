@@ -7,6 +7,17 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 Curated, user-facing summaries are available in
 [`docs/source/release_notes/`](docs/source/release_notes/).
 
+## [Unreleased]
+
+### Added
+
+- Added `notebooks/quick_start_colab.ipynb`.
+- Added `notebooks/gradient_method.ipynb`.
+
+### Changed
+
+- Normalized asymptotic notation across the quick start and example docs.
+
 ## [v0.2.0] - 2026-03-02
 
 ### Added

@@ -24,7 +24,8 @@ setup(
         "Documentation": "https://autolyap.github.io/",
         "Source": "https://github.com/AutoLyap/AutoLyap",
     },
-    license="MIT",
+    license="GPL-3.0-only",
+    license_files=("LICENSE",),
     python_requires=">=3.9",
     packages=find_packages(include=["autolyap", "autolyap.*"]),
     install_requires=requirements,
@@ -50,6 +51,7 @@ setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Operating System :: OS Independent",
     ],
