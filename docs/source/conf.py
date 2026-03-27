@@ -648,13 +648,13 @@ html_context = {
         },
         "release_notes/v0_2_1": {
             "description": (
-                "AutoLyap v0.2.1 development notes for the next patch release "
-                "after v0.2.0."
+                "AutoLyap v0.2.1 release notes covering notebooks and "
+                "documentation consistency updates."
             ),
             "keywords": [
                 "AutoLyap v0.2.1",
                 "AutoLyap patch release",
-                "AutoLyap development notes",
+                "AutoLyap release notes",
             ],
         },
         "release_notes/v0_2_0": {
