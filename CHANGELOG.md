@@ -7,16 +7,30 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 Curated, user-facing summaries are available in
 [`docs/source/release_notes/`](docs/source/release_notes/).
 
-## [Unreleased]
+## [v0.2.1] - 2026-03-27
 
 ### Added
 
-- Added `notebooks/quick_start_colab.ipynb`.
-- Added `notebooks/gradient_method.ipynb`.
+- Added synchronized `notebooks/quick_start_colab.ipynb` and
+  `notebooks/gradient_method.ipynb` walkthrough notebooks.
+- Added `scripts/generate_quick_start_notebook.py` with `make sync-notebooks`
+  and `make check-notebooks` to keep the quick-start notebook aligned with the
+  docs.
+- Added `COPYRIGHT` and a manual docs-publish workflow for release/support
+  tooling.
 
 ### Changed
 
-- Normalized asymptotic notation across the quick start and example docs.
+- Refreshed quick-start examples, the Colab notebook content, and badge links
+  across the README/docs.
+- Normalized asymptotic notation and tightened small consistency issues across
+  the quick start, theory notes, and example pages.
+
+### Fixed
+
+- Fixed quick-start notebook helper shadowing in generated examples.
+- Fixed the `v0.2.0` changelog heading and a Lyapunov-notation typo in the
+  docs.
 
 ## [v0.2.0] - 2026-03-02
 
@@ -159,5 +173,6 @@ Curated, user-facing summaries are available in
   should check `status == "feasible"` and inspect `solve_status`.
 - Removed `autolyap.algorithms.deterministic_proxskip` / `ProxSkip`.
 
-[Unreleased]: https://github.com/AutoLyap/AutoLyap/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/AutoLyap/AutoLyap/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/AutoLyap/AutoLyap/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/AutoLyap/AutoLyap/compare/v0.1.0...v0.2.0
