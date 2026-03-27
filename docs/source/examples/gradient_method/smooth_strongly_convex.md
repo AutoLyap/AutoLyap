@@ -24,7 +24,7 @@ In this example, we search for the smallest contraction factor
 
 ```{eval-rst}
 .. math::
-   \|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad k\to\infty,
+   \|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
 ```
 
 where
@@ -110,14 +110,15 @@ tolerances) the theoretical rate expression for gradient methods
 {cite}`Polyak1963GradientUSSR`:
 
 ```{math}
-\|x^k - x^\star\|^2 = O(\rho^k), \qquad
+\|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty, \qquad
 \rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2.
 ```
 
 Equivalently,
 
 ```{math}
-\|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).
+\|x^k - x^\star\| \in \mathcal{O}\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right)
+\quad \textup{ as } \quad k\to\infty.
 ```
 
 Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 2/L` gives

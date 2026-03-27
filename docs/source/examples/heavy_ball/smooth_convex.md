@@ -25,7 +25,7 @@ In this example, we search for a feasible Lyapunov certificate with
 
 ```{eval-rst}
 .. math::
-   f(x^k) - f(x^\star) = o\!\left(\frac{1}{k}\right) \quad \textup{ as } \quad k\to\infty,
+   f(x^k) - f(x^\star) \in o\!\left(\frac{1}{k}\right) \quad \textup{ as } \quad k\to\infty,
 ```
 
 where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
@@ -111,7 +111,8 @@ What to inspect in `result`:
 When the certificate is feasible, the certified function-value convergence is
 
 ```{math}
-f(x^k) - f(x^\star) = o\!\left(\frac{1}{k}\right),
+f(x^k) - f(x^\star) \in o\!\left(\frac{1}{k}\right)
+\quad \textup{ as } \quad k\to\infty,
 ```
 
 where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.

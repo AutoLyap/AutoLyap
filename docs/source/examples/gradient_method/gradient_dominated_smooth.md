@@ -25,7 +25,7 @@ In this example, we search for the smallest contraction factor
 
 ```{eval-rst}
 .. math::
-   f(x^k) - f(x^\star) = O(\rho^k) \quad \textup{ as } \quad k\to\infty,
+   f(x^k) - f(x^\star) \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
 ```
 
 where
