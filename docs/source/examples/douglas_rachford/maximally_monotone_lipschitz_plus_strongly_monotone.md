@@ -35,7 +35,7 @@ In this example, we search for the smallest contraction factor
 
 ```{eval-rst}
 .. math::
-   \|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad  k\to\infty,
+   \|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad  k\to\infty,
 ```
 
 where
@@ -178,7 +178,7 @@ the theoretical rate expression in
 {cite}`ryu2020operatorsplittingperformance{Theorem 4.3}`, i.e.,
 
 ```{math}
-\|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad  k\to\infty,
+\|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad  k\to\infty,
 ```
 
 where

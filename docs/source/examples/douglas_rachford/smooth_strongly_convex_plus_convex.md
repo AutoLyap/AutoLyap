@@ -42,7 +42,7 @@ In this example, we fix {math}`\mu=1`, {math}`L=2`, {math}`\lambda=1`, sweep
 
 ```{eval-rst}
 .. math::
-   \|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad  k\to\infty,
+   \|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad  k\to\infty,
 ```
 
 where

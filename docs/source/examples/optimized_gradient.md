@@ -135,7 +135,11 @@ c_K = \frac{L}{2\theta_K^2}.
 In particular,
 
 ```{math}
-f(x^K) - f(x^\star) = O\!\left(\frac{1}{\theta_K^2}\right) = O\!\left(\frac{1}{K^2}\right).
+f(x^K) - f(x^\star) \in \mathcal{O}\!\left(\frac{1}{\theta_K^2}\right)
+\quad \textup{ as } \quad K\to\infty,
+\qquad
+f(x^K) - f(x^\star) \in \mathcal{O}\!\left(\frac{1}{K^2}\right)
+\quad \textup{ as } \quad K\to\infty.
 ```
 
 Sweeping over {math}`K \in \llbracket 1, 100\rrbracket` gives the log-log plot

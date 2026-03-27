@@ -27,7 +27,7 @@ The analysis goal is to search for the smallest contraction factor provable via
 AutoLyap:
 
 ```{math}
-\|x^k - x^\star\|^2 = O(\rho^k) \quad \textup{ as } \quad k\to\infty,
+\|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
 ```
 
 where
@@ -230,7 +230,7 @@ tolerances) the closed-form theoretical rate expression in {cite}`taylor2018prox
 Theorem 2.1, i.e.,
 
 ```{math}
-\|x^k - x^\star\|^2 = O(\rho^k), \qquad
+\|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty, \qquad
 \rho = \max\{|1-\gamma L|,\;|1-\gamma\mu|\}^2,
 ```
 
@@ -239,7 +239,8 @@ where {math}`x^\star \in \Argmin_{x \in \calH} \bigl(f(x)+g(x)\bigr)`.
 Equivalently,
 
 ```{math}
-\|x^k - x^\star\| = O\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right).
+\|x^k - x^\star\| \in \mathcal{O}\!\left(\max\{|1-\gamma L|,\;|1-\gamma\mu|\}^k\right)
+\quad \textup{ as } \quad k\to\infty.
 ```
 
 Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 2/L` gives
