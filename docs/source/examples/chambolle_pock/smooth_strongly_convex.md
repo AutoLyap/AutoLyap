@@ -8,13 +8,13 @@ In the identity-operator case, the Chambolle--Pock method
 {cite}`chambolle2011firstorderprimal` solves
 
 ```{math}
-\minimize_{y\in\calH}\; f_1(y)+f_2(y)
+\minimize_{x\in\calH}\; f_1(x)+f_2(x)
 ```
 
 via the inclusion
 
 ```{math}
-\text{find } y\in\calH\;\text{such that}\; 0\in\partial f_1(y)+\partial f_2(y),
+\text{find } x\in\calH\;\text{such that}\; 0\in\partial f_1(x)+\partial f_2(x),
 ```
 
 with iterations
@@ -37,7 +37,7 @@ In this example, we search for the smallest contraction factor
 
 ```{eval-rst}
 .. math::
-   \|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
+   \|x^{k+1} - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
 ```
 
 where

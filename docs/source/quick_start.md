@@ -131,7 +131,7 @@ if result["status"] != "feasible":
 rho = result["rho"]
 certificate = result["certificate"]
 
-rho_theory_value = max(gamma * L - 1.0, 1.0 - gamma * mu) ** 2
+rho_theory_value = max(abs(1.0 - gamma * L), abs(1.0 - gamma * mu)) ** 2
 print(f"rho (AutoLyap): {rho:.8f}")
 print(f"rho (theory):   {rho_theory_value:.8f}")
 ```
@@ -154,9 +154,9 @@ Equivalently,
 \quad \textup{ as } \quad k\to\infty.
 ```
 
-Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 2/L` gives
-the plot below, with the theoretical rate in black and AutoLyap certificates
-as blue dots.
+Sweeping over 100 values of {math}`\gamma` up to {math}`2/L` gives the plot
+below, with the endpoint included as the limiting {math}`\rho=1` reference,
+the theoretical rate in black, and AutoLyap certificates as blue dots.
 
 ```{image} _static/gradient_method_rho_vs_gamma.svg
 :alt: Gradient-method rho versus gamma with theoretical line and AutoLyap points.

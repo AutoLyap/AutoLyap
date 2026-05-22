@@ -7,13 +7,13 @@ In the identity-operator case, the Chambolle--Pock method
 {cite}`chambolle2011firstorderprimal` solves
 
 ```{math}
-\minimize_{y\in\calH}\; f_1(y)+f_2(y)
+\minimize_{x\in\calH}\; f_1(x)+f_2(x)
 ```
 
 by solving the inclusion
 
 ```{math}
-\text{find } y\in\calH\;\text{such that}\; 0\in\partial f_1(y)+\partial f_2(y),
+\text{find } x\in\calH\;\text{such that}\; 0\in\partial f_1(x)+\partial f_2(x),
 ```
 
 with iterations

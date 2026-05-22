@@ -25,7 +25,7 @@ For {math}`\gamma = 1/L`, the classical bound in {cite}`nesterov1983fast` is
 
 ```{math}
 f(x^K)-f(x^\star)\le\frac{L}{2\lambda_K^2}\|x^0-x^\star\|^2
-\le\frac{2L}{(K+2)^2}\|x^0-x^\star\|^2.
+\le\frac{2L}{(K+2)^2}\|x^0-x^\star\|^2,
 ```
 
 where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
@@ -60,7 +60,7 @@ solver_options = SolverOptions(backend="mosek_fusion")
 # Nesterov fast gradient method
 nfgm = NesterovFastGradientMethod(gamma=1.0 / L)
 
-# Use j=2 to target f(x^k)-f(x^\star) (j=1 corresponds to y^k).
+# Use j=2 to select x^k; j=1 corresponds to y^k.
 Q_0_nf, q_0_nf = IterationDependent.get_parameters_distance_to_solution(
     nfgm, 0, i=1, j=2
 )

@@ -44,14 +44,14 @@ smallest contraction factor {math}`\rho\in[0,1)` provable using AutoLyap such th
 
 ```{eval-rst}
 .. math::
-   \|x^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
+   \|v^k - x^\star\|^2 \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
 ```
 
 where
 
 ```{eval-rst}
 .. math::
-   x^\star \in \Argmin_{x \in \calH} f_1(x)+f_2(x)+f_3(x).
+   x^\star \in \Argmin_{x \in \calH} f_1(x) + f_2(x) + f_3(x).
 ```
 
 ## Model the problem in AutoLyap and search for the smallest rho
@@ -142,7 +142,7 @@ What to inspect in `result`:
 For {math}`\lambda=1` and {math}`\gamma=1/L_2`, we compare against:
 
 ```{math}
-\rho_{\text{DY}} = 1 - \frac{\mu_2}{L_2\left(1+L_1/L_2\right)^2},
+\rho_{\text{DY}} = 1 - \frac{\mu_2}{L_2\left(1+L_1/L_2\right)^2}.
 ```
 
 This is the specialization of
@@ -154,10 +154,10 @@ This is the specialization of
 - identifications {math}`L_B=L_1`, {math}`\mu_C=\mu_2`, and
   {math}`\gamma=1/L_2`.
 
-and
+We also compare against:
 
 ```{math}
-\rho_{\text{PG}} = 1 - \min\!\left\{\frac{\mu_2}{L_2},\;\frac{1}{1+L_1/L_2}\right\},
+\rho_{\text{PG}} = 1 - \min\!\left\{\frac{\mu_2}{L_2},\;\frac{1}{1+L_1/L_2}\right\}.
 ```
 
 This matches the non-adaptive TOS specialization of

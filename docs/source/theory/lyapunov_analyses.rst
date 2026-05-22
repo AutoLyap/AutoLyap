@@ -45,7 +45,7 @@ The three subpages below are organized as follows. Page
 SDP primitive. Pages :doc:`5.2 </theory/iteration_independent_analyses>` and
 :doc:`5.3 </theory/iteration_dependent_analyses>` then build on that
 primitive. The actual Lyapunov analyses, together with their corresponding
-convergence conclusions, are presented in pages
+convergence conclusions, are presented on pages
 :doc:`5.2 </theory/iteration_independent_analyses>` and
 :doc:`5.3 </theory/iteration_dependent_analyses>`.
 

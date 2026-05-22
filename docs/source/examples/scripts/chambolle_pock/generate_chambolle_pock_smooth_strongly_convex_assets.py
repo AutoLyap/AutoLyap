@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Chambolle--Pock (smooth + strongly convex) sweep data and an SVG plot.
+"""Generate Chambolle-Pock (smooth + strongly convex) sweep data and an SVG plot.
 
 Usage:
     python docs/source/examples/scripts/chambolle_pock/generate_chambolle_pock_smooth_strongly_convex_assets.py
@@ -71,7 +71,7 @@ PLOT_COLOR_LABEL = r"$\rho$"
 PLOT_Y_LABEL_ROTATION_DEG = 0.0
 PLOT_SHOW_GRID = True
 PLOT_TITLE = (
-    "Certified Chambolle--Pock linear rates "
+    "Certified Chambolle-Pock linear rates "
     "(smooth + strongly convex)"
 )
 PLOT_DESCRIPTION = (
@@ -86,7 +86,7 @@ def _build_parser() -> argparse.ArgumentParser:
     default_output = Path(__file__).resolve().parents[3]
     parser = argparse.ArgumentParser(
         description=(
-            "Generate Chambolle--Pock (smooth + strongly convex) sweep data and SVG plot assets."
+            "Generate Chambolle-Pock (smooth + strongly convex) sweep data and SVG plot assets."
         )
     )
     parser.add_argument(
@@ -314,7 +314,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         data_path = args.output_dir / DATA_REL
         print(f"Loaded {len(rows)} feasible points from {data_path}")
     else:
-        print("Running Chambolle--Pock smooth-strongly-convex sweep...")
+        print("Running Chambolle-Pock smooth-strongly-convex sweep...")
         rows, errors = _run_scan(
             taus,
             thetas,

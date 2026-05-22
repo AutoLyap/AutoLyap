@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="940" viewBox="0 0 960 940" role="img" aria-label="Chambolle-Pock rho over tau equals sigma and theta">
-  <title>Certified Chambolle--Pock linear rates (smooth + strongly convex)</title>
+  <title>Certified Chambolle-Pock linear rates (smooth + strongly convex)</title>
   <desc>Rho over feasible Chambolle-Pock (tau=sigma, theta) pairs for smooth, strongly convex objectives.</desc>
   <rect x="0" y="0" width="960" height="940" fill="#ffffff"/>
   <rect x="96.000" y="24.000" width="832.000" height="726.000" fill="#f8fafc"/>

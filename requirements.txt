@@ -1,2 +1,2 @@
 numpy
-cvxpy>=1.6
+cvxpy>=1.6,<1.9

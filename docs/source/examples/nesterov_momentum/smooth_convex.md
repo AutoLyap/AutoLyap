@@ -12,7 +12,7 @@ where {math}`f : \calH \to \reals` is convex and {math}`L`-smooth with
 {math}`L>0`.
 
 For initial points {math}`x^{-1}, x^0 \in \calH`, momentum
-{math}`\delta \in \reals`, and step size {math}`\gamma \in \reals_{++}`, the gradient method with constant Nesterov-momentum is
+{math}`\delta \in \reals`, and step size {math}`\gamma \in \reals_{++}`, the gradient method with constant Nesterov momentum is
 
 ```{math}
 (\forall k \in \naturals)\quad
@@ -29,10 +29,10 @@ In this example, we search for a feasible Lyapunov certificate with
 
 ```{eval-rst}
 .. math::
-   f(x^k) - f(x^\star) \in o\!\left(\frac{1}{k}\right) \quad \textup{ as } \quad k\to\infty,
+   f(y^k) - f(y^\star) \in o\!\left(\frac{1}{k}\right) \quad \textup{ as } \quad k\to\infty,
 ```
 
-where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
+where {math}`y^\star \in \Argmin_{x \in \calH} f(x)`.
 
 ## Model the problem in AutoLyap and certify sublinear convergence
 
@@ -115,16 +115,16 @@ What to inspect in `result`:
 When the certificate is feasible, the certified function-value convergence is
 
 ```{math}
-f(x^k) - f(x^\star) \in o\!\left(\frac{1}{k}\right)
+f(y^k) - f(y^\star) \in o\!\left(\frac{1}{k}\right)
 \quad \textup{ as } \quad k\to\infty,
 ```
 
-where {math}`x^\star \in \Argmin_{x \in \calH} f(x)`.
+where {math}`y^\star \in \Argmin_{x \in \calH} f(x)`.
 
 Equivalently,
 
 ```{math}
-\lim_{k \to \infty} k\bigl(f(x^k)-f(x^\star)\bigr)=0.
+\lim_{k \to \infty} k\bigl(f(y^k)-f(y^\star)\bigr)=0.
 ```
 
 Sweeping over multiple values of {math}`\gamma \in (0,4)` and

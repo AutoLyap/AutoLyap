@@ -151,7 +151,7 @@ Then the theoretical bound is
 \|x^k - x^\star\|^2 \in \mathcal{O}(\rho_{\mathrm{MT}}^k) \quad \textup{ as } \quad k\to\infty,
 ```
 
-where {math}`x^\star \in \zer(G_1+G_2)`.
+where {math}`x^\star \in \zer(G_1 + G_2)`.
 
 Sweeping over 100 values of {math}`\gamma` on {math}`(0,1]` gives the plot
 below, with the Theorem 2.9-derived expression (on

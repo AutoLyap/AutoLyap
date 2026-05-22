@@ -177,13 +177,13 @@ In particular, we obtain:
   is summable, converges to zero, and, e.g.,
 
   .. math::
-    \min_{i\in \llbracket 0,k \rrbracket } \mathcal{R}\p{T,t,i} \in \mathcal{O}\p{1/k} \quad \textup{ as } \quad  k\to\infty.
+    \min_{i\in \llbracket 0,k \rrbracket } \mathcal{R}\p{T,t,i} \in \mathcal{O}\p{1/k} \quad \textup{ as } \quad k\to\infty.
 
   If the optional requirement :ref:`(C4) <eq:c4>` holds, we obtain the
   stronger last-iterate convergence result
 
   .. math::
-    \mathcal{R}\p{T,t,k} \in o\p{1/k} \quad \textup{ as } \quad  k\to\infty.
+    \mathcal{R}\p{T,t,k} \in o\p{1/k} \quad \textup{ as } \quad k\to\infty.
 
 The user-chosen :math:`\p{P,p,T,t}` fixes the particular Lyapunov and
 residual expressions :math:`\mathcal{V}\p{P,p,\cdot}` and
@@ -303,7 +303,7 @@ existence of such :math:`\p{Q,q,S,s}`.
       .. _eq:iteration_independent_lyapunov:condition:s:
 
       .. math::
-         :no-wrap:
+         :nowrap:
 
          \begin{align}
                  & \textbf{for each}\ \textup{cond} \in\set{\href{#eq-c1}{\textup{C1}},\href{#eq-c2}{\textup{C2}},\href{#eq-c3}{\textup{C3}},\href{#eq-c4}{\textup{C4}}} \notag \\
@@ -327,7 +327,7 @@ existence of such :math:`\p{Q,q,S,s}`.
                  &\qquad
                  \left(
                  \begin{array}{@{}c@{}}
-                     \forall i \in\IndexFunc \\
+                     \forall i \in\IndexOp \\
                      \forall o \in \mathcal{O}^{\textup{op}}_{i} \\
                      \forall \p{ \p{j_{1},k_{1}}, \ldots, \p{j_{n_{i,o}},k_{n_{i,o}} }}\in\mathcal{J}_{i,o}^{0,\PEPMaxIter_{\textup{cond}}}
                  \end{array}
@@ -641,7 +641,7 @@ existence of such :math:`\p{Q,q,S,s}`.
               & \quad
               \left(
               \begin{array}{@{}c@{}}
-                  \forall i \in\IndexFunc \\
+                  \forall i \in\IndexOp \\
                   \forall o \in \mathcal{O}^{\textup{op}}_{i} \\
                   \forall \p{ \p{j_{1},k_{1}}, \ldots, \p{j_{n_{i,o}},k_{n_{i,o}} }}\in\mathcal{J}_{i,o}^{0,\PEPMaxIter_{\textup{cond}}}
               \end{array}
@@ -731,7 +731,7 @@ existence of such :math:`\p{Q,q,S,s}`.
 
    where :eq:`eq:iteration_independent_lyapunov:w_c2_mat`
    and :eq:`eq:iteration_independent_lyapunov:w_c2`
-   are used in the last equality. Therefore, using the
+   are used in the last equality. Therefore, using
    :eq:`eq:iteration_independent_lyapunov:obj_c2`
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`
@@ -754,7 +754,7 @@ existence of such :math:`\p{Q,q,S,s}`.
 
    where :eq:`eq:iteration_independent_lyapunov:w_c3_mat`
    and :eq:`eq:iteration_independent_lyapunov:w_c3`
-   are used in the last equality. Therefore, using the
+   are used in the last equality. Therefore, using
    :eq:`eq:iteration_independent_lyapunov:obj_c3`
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`
@@ -780,7 +780,7 @@ existence of such :math:`\p{Q,q,S,s}`.
 
    where :eq:`eq:iteration_independent_lyapunov:w_c4_mat`
    and :eq:`eq:iteration_independent_lyapunov:w_c4`
-   are used in the last equality. Therefore, using the
+   are used in the last equality. Therefore, using
    :eq:`eq:iteration_independent_lyapunov:obj_c4`
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`

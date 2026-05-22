@@ -13,7 +13,7 @@ dominated and {math}`L`-smooth with {math}`0<\mu_{\textup{gd}}\le L`.
 
 For initial points {math}`x^{-1}, x^0 \in \calH`, momentum
 {math}`\delta \in \reals`, and step size {math}`\gamma \in \reals_{++}`,
-the gradient method with constant Nesterov-momentum is
+the gradient method with constant Nesterov momentum is
 
 ```{math}
 (\forall k \in \naturals)\quad
@@ -30,14 +30,14 @@ In this example, we search for the smallest contraction factor
 
 ```{eval-rst}
 .. math::
-   f(x^k) - f(x^\star) \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
+   f(y^k) - f(y^\star) \in \mathcal{O}(\rho^k) \quad \textup{ as } \quad k\to\infty,
 ```
 
 where
 
 ```{eval-rst}
 .. math::
-   x^\star \in \Argmin_{x \in \calH} f(x).
+   y^\star \in \Argmin_{x \in \calH} f(x).
 ```
 
 ## Model the problem in AutoLyap and search for the smallest rho

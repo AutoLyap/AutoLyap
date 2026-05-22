@@ -193,12 +193,12 @@ linearly with :math:`K`.
 
       .. _eq:iteration_dependent_lyapunov:condition:q:
 
-      .. _eq:iteration_dependent_lyapunov:condition:a_k:
+      .. _eq:iteration_dependent_lyapunov:condition:c_K:
 
       .. _eq:iteration_dependent_lyapunov:condition:func-ineq:
 
       .. math::
-         :no-wrap:
+         :nowrap:
 
          \begin{align}
                      &\textbf{for each}\ k \in \llbracket 0, K-1 \rrbracket \notag \\
@@ -222,7 +222,7 @@ linearly with :math:`K`.
                      &\quad
                      \left(
                      \begin{array}{@{}c@{}}
-                         \forall i \in\IndexFunc \\
+                         \forall i \in\IndexOp \\
                          \forall o \in \mathcal{O}^{\textup{op}}_{i} \\
                          \forall \p{ \p{j_{1},k_{1}}, \ldots, \p{j_{n_{i,o}},k_{n_{i,o}} }}\in\mathcal{J}_{i,o}^{k,k+1}
                      \end{array}
@@ -423,7 +423,7 @@ linearly with :math:`K`.
               & \quad
               \left(
               \begin{array}{@{}c@{}}
-                  \forall i \in\IndexFunc \\
+                  \forall i \in\IndexOp \\
                   \forall o \in \mathcal{O}^{\textup{op}}_{i} \\
                   \forall \p{ \p{j_{1},k_{1}}, \ldots, \p{j_{n_{i,o}},k_{n_{i,o}} }}\in\mathcal{J}_{i,o}^{k,k+1}
               \end{array}
@@ -450,8 +450,7 @@ linearly with :math:`K`.
               \p{\bFcn^{k+1},\bFcn^{\star}} &= \theta_{1}\p{\bFcn^{k},\bFcn^{k+1},\bFcn^{\star}},
           \end{aligned}
 
-   where we have used
-   in :eq:`eq:iteration_dependent_lyapunov:theta0_mat`,
+   where we have used :eq:`eq:iteration_dependent_lyapunov:theta0_mat`,
    :eq:`eq:iteration_dependent_lyapunov:theta0_vec`,
    :eq:`eq:iteration_dependent_lyapunov:theta1_mat`, and
    :eq:`eq:iteration_dependent_lyapunov:theta1_vec`, respectively.
@@ -462,10 +461,10 @@ linearly with :math:`K`.
    :eq:`eq:iteration_dependent_lyapunov:chain:v`.
    Note that
 
-   .. _eq:iteration_independent_lyapunov:obj_0:
+   .. _eq:iteration_dependent_lyapunov:obj_0:
 
    .. math::
-      :label: eq:iteration_independent_lyapunov:obj_0
+      :label: eq:iteration_dependent_lyapunov:obj_0
 
       \begin{aligned}
               &\mathcal{V}\p{Q_1,q_1,1} - c_K\mathcal{V}\p{Q_0,q_0,0} \notag\\
@@ -476,8 +475,8 @@ linearly with :math:`K`.
 
    where :eq:`eq:iteration_dependent_lyapunov:w_0_mat`
    and :eq:`eq:iteration_dependent_lyapunov:w_0_vec`
-   is used in the last equality. Therefore, using the
-   :eq:`eq:iteration_independent_lyapunov:obj_0`
+   are used in the last equality. Therefore, using
+   :eq:`eq:iteration_dependent_lyapunov:obj_0`
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`
    gives that :ref:`(5.51) <eq:iteration_dependent_lyapunov:condition>`,
@@ -486,10 +485,10 @@ linearly with :math:`K`.
 
    For :math:`k\in \llbracket1,K-1\rrbracket`, note that
 
-   .. _eq:iteration_independent_lyapunov:obj_k:
+   .. _eq:iteration_dependent_lyapunov:obj_k:
 
    .. math::
-      :label: eq:iteration_independent_lyapunov:obj_k
+      :label: eq:iteration_dependent_lyapunov:obj_k
 
       \begin{aligned}
               &\mathcal{V}\p{Q_{k+1},q_{k+1},k+1} - \mathcal{V}\p{Q_k,q_k,k} \notag \\
@@ -502,8 +501,8 @@ linearly with :math:`K`.
 
    where :eq:`eq:iteration_dependent_lyapunov:w_k_mat`
    and :eq:`eq:iteration_dependent_lyapunov:w_k_vec`
-   is used in the last equality. Therefore, using the
-   :eq:`eq:iteration_independent_lyapunov:obj_k`
+   are used in the last equality. Therefore, using
+   :eq:`eq:iteration_dependent_lyapunov:obj_k`
    as the objective function in :ref:`(PEP) <eq:pep>`,
    :ref:`Theorem 5.1.1 (Performance estimation via SDP) <thm:pep_leq_zero>`
    gives that :ref:`(5.51) <eq:iteration_dependent_lyapunov:condition>`,
@@ -514,7 +513,7 @@ linearly with :math:`K`.
    :math:`\p{\p{Q_{k},q_{k}}}_{k=1}^{K-1}` and :math:`c_K` free, as
    in :ref:`(5.51f) <eq:iteration_dependent_lyapunov:condition:q_mat>`,
    :ref:`(5.51g) <eq:iteration_dependent_lyapunov:condition:q>`, and
-   :ref:`(5.51h) <eq:iteration_dependent_lyapunov:condition:a_k>`. :math:`\square`
+   :ref:`(5.51h) <eq:iteration_dependent_lyapunov:condition:c_K>`. :math:`\square`
 
 .. rubric:: References
 
