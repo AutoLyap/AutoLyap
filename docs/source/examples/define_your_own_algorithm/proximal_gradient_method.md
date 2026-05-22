@@ -14,7 +14,7 @@ where {math}`f` is {math}`L`-smooth and {math}`\mu`-strongly convex with
 {math}`0<\mu<L`, and {math}`g` is proper, lower semicontinuous, and convex.
 
 For an initial point {math}`x^0 \in \calH` and step size
-{math}`\gamma \in \reals_{++}` with {math}`0 < \gamma \le 2/L`, the proximal
+{math}`\gamma \in \reals_{++}` with {math}`0 < \gamma < 2/L`, the proximal
 gradient method is given by
 
 ```{math}
@@ -60,7 +60,7 @@ with two functional components and no operator component:
   ```{math}
   g:\calH \to \mathbb{R}\cup\{+\infty\}
   ```
-  is proper, lower semicontinuous, convex, and
+  is proper, lower semicontinuous, and convex, with subdifferential
   ```{math}
   \partial g:\calH \rightrightarrows \calH.
   ```
@@ -178,9 +178,9 @@ def validate_parameters(mu: float, L: float, gamma: float) -> None:
         )
 
     gamma_max = 2.0 / L
-    if not (0.0 < gamma <= gamma_max):
+    if not (0.0 < gamma < gamma_max):
         raise ValueError(
-            f"Invalid parameters: require 0 < gamma <= 2/L. Got gamma={gamma}, 2/L={gamma_max}."
+            f"Invalid parameters: require 0 < gamma < 2/L. Got gamma={gamma}, 2/L={gamma_max}."
         )
 
 
@@ -243,7 +243,7 @@ Equivalently,
 \quad \textup{ as } \quad k\to\infty.
 ```
 
-Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma \le 2/L` gives
+Sweeping over 100 values of {math}`\gamma` on {math}`0 < \gamma < 2/L` gives
 the plot below, with the theoretical rate in black and AutoLyap certificates
 as blue dots.
 

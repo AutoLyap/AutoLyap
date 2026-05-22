@@ -6,8 +6,8 @@ algorithm representation in :eq:`eq:linear_system_with_nonlinearity`
 and the inclusion problem in :eq:`eq:the_problem_inclusion`.
 This primitive is used in
 :doc:`5.2. Iteration-independent analyses </theory/iteration_independent_analyses>`
-and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`,
-to formulate the search for a Lyapunov analysis as solving an SDP.
+and :doc:`5.3. Iteration-dependent analyses </theory/iteration_dependent_analyses>`
+to formulate the search for a Lyapunov analysis as an SDP.
 This page can be skipped on a first reading.
 
 For readers interested in the technical details, we first introduce the
@@ -32,7 +32,7 @@ For each
    \PEPMinIter,\PEPMaxIter\in\llbracket0,K\rrbracket, \qquad
    \PEPMinIter\leq\PEPMaxIter,
 
-we define the the matrices
+we define the matrices
 
 .. math::
 
@@ -221,7 +221,7 @@ as
    \begin{split}
        \Bigp{
            \begin{array}{@{}c@{}}
-               \forall i \in\llbracket1,m\rrbracket\\
+               \forall i \in\IndexFunc\\
                \forall j \in\llbracket1,\NumEval_{i}\rrbracket\\
                \forall k \in \llbracket\PEPMinIter,\PEPMaxIter\rrbracket
            \end{array}
@@ -234,7 +234,7 @@ as
            0_{1 \times \p{ \p{\p{\PEPMaxIter-k} }\NumEvalFunc +  \NumFunc + \sum_{r=\kappa\p{i}+1}^{\NumFunc}\NumEval_{\kappa^{-1}\p{r}} }}^{\top}
        \end{bmatrix}^{\top},
        \\
-       \p{\forall i \in\llbracket1,m\rrbracket}
+       \p{\forall i \in\IndexFunc}
        \quad
        F_{\p{i,\star,\star}}^{\PEPMinIter, \PEPMaxIter} & = 
        \begin{bmatrix}
@@ -284,12 +284,12 @@ and consider the optimization problem
               & & & \p{u^{\star}_{i}}_{i\in\IndexOp} \in \prod_{i\in\IndexOp}G_{i}\p{y^{\star}}, \\ \nonumber
               & & & \sum_{i=1}^{m} u^{\star}_{i} = 0,\\ \nonumber
               & & & \hat{\bu}^{\star}=\p{u^{\star}_{1},\ldots,u^{\star}_{m-1}}, \\\nonumber
-              & & & \bFcn^{\star} =\p{\bfcn_{i}\p{y^{\star}}}_{i\in\IndexFunc}\in\reals^{\NumFunc }, \\ \nonumber
+              & & & \bFcn^{\star} =\p{f_{i}\p{y^{\star}}}_{i\in\IndexFunc}\in\reals^{\NumFunc }, \\ \nonumber
               & & & \p{f_{i}}_{i\in\IndexFunc} \in \prod_{i\in\IndexFunc} \mathcal{F}_{i}, \\ \nonumber
               & & & \p{G_i}_{i\in\IndexOp} \in \prod_{i\in\IndexOp} \mathcal{G}_i, 
           \end{aligned}
 
-where everything except
+where all quantities except
 
 .. math::
 
@@ -369,7 +369,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
                  &
                  \left(
                  \begin{array}{@{}c@{}}
-                     \forall i \in\IndexFunc \\
+                     \forall i \in\IndexOp \\
                      \forall o \in \mathcal{O}^{\textup{op}}_{i} \\
                      \forall \p{ \p{j_{1},k_{1}}, \ldots, \p{j_{n_{i,o}},k_{n_{i,o}} }}\in\mathcal{J}_{i,o}^{\PEPMinIter,\PEPMaxIter}
                  \end{array}
@@ -521,7 +521,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
                P_{\p{i,j_{1}}}U_{k_{1}}^{\PEPMinIter, \PEPMaxIter} \\
                \vdots \\
                P_{\p{i,j_{n_{i,o}}}}U_{k_{n_{i,o}}}^{\PEPMinIter, \PEPMaxIter}
-            \end{bmatrix}.
+            \end{bmatrix}
             }_{
             \in \reals^{2 n_{i,o} \times \p{n + \p{\PEPMaxIter-\PEPMinIter+1}\NumEval + m} }
             }
@@ -571,7 +571,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
                  &
                  \left(
                  \begin{array}{@{}c@{}}
-                     \forall i \in\IndexFunc \\
+                     \forall i \in\IndexOp \\
                      \forall o \in \mathcal{O}^{\textup{op}}_{i} \\
                      \forall \p{ \p{j_{1},k_{1}}, \ldots, \p{j_{n_{i,o}},k_{n_{i,o}} }}\in\mathcal{J}_{i,o}^{\PEPMinIter,\PEPMaxIter}
                  \end{array}
@@ -602,7 +602,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
           \end{cases}\end{aligned}
 
    for :math:`\hat{\bu}^{\star}` as defined in
-   :eq:`eq:solution` and :math:`N` given in
+   :eq:`eq:solution` and :math:`\SumToZeroMat` given in
    :eq:`eq:sumtozeromat`.
    Moreover, back substitution gives
 
@@ -615,7 +615,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
           %\bx^{\PEPMinIter+3} &= \p{A_{\PEPMinIter+2} \kron \Id} \bx^{\PEPMinIter+2} + \p{B_{\PEPMinIter+2} \kron \Id} \bu^{\PEPMinIter+2} \\
           %            &= \p{A_{\PEPMinIter+2}A_{\PEPMinIter+1}A_{\PEPMinIter} \kron \Id} \bx^{\PEPMinIter} + \p{A_{\PEPMinIter+2}A_{\PEPMinIter+1}B_{\PEPMinIter} \kron \Id} \bu^{\PEPMinIter} + \p{A_{\PEPMinIter+2}B_{\PEPMinIter+1} \kron \Id} \bu^{\PEPMinIter+1} + \p{B_{\PEPMinIter+2} \kron \Id} \bu^{\PEPMinIter+2} \\
           \p{\forall k \in \llbracket\PEPMinIter+2,\PEPMaxIter+1\rrbracket} \quad \bx^{k} {}={}& \p{A_{k-1}\cdots A_{\PEPMinIter}\kron \Id} \bx^{\PEPMinIter}  \\
-          &{} + \sum_{i=\PEPMinIter}^ {k-2}\p{A_{k-1}\cdots A_{i+1}B_{i} \kron \Id} \bu^{i} \\
+          &{} + \sum_{i=\PEPMinIter}^{k-2}\p{A_{k-1}\cdots A_{i+1}B_{i} \kron \Id} \bu^{i} \\
           &{} + \p{B_{k-1} \kron \Id} \bu^{k-1}.\end{aligned}
 
    Thus, the constraints of :ref:`(PEP) <eq:pep>` can equivalently be
@@ -648,7 +648,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
              & y^{\star} \in \calH,\\
              & \p{u^{\star}_{i}}_{i\in\IndexFunc} \in \prod_{i\in\IndexFunc}\partial f_{i}\p{y^{\star}}, \\
              & \p{u^{\star}_{i}}_{i\in\IndexOp} \in \prod_{i\in\IndexOp}G_{i}\p{y^{\star}}, \\
-             & \bFcn^{\star} =\p{\bfcn_{i}\p{y^{\star}}}_{i\in\IndexFunc}\in\reals^{\NumFunc },\\
+             & \bFcn^{\star} =\p{f_{i}\p{y^{\star}}}_{i\in\IndexFunc}\in\reals^{\NumFunc },\\
              & \p{f_{i}}_{i\in\IndexFunc} \in \prod_{i\in\IndexFunc} \mathcal{F}_{i}, \\
              & \p{G_i}_{i\in\IndexOp} \in \prod_{i\in\IndexOp} \mathcal{G}_i, \end{aligned}
 
@@ -692,7 +692,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
    :eq:`eq:f_mats`. Using
    :ref:`Assumption 4.1 (Interpolation conditions) <ass:interpolation>`,
    we get the following relaxation
-   (equivalent representation if the interpolation conditions for
+   (an equivalent representation if the interpolation conditions for
    :math:`\p{\mathcal{F}_{i}}_{i\in\IndexFunc}` and
    :math:`\p{\mathcal{G}_{i}}_{i\in\IndexOp}` are tight) of
    :eq:`eq:pep_constraints_1`:
@@ -834,7 +834,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
          .. _eq:pep_relaxed:interpolation_func-ineq:
 
          .. math::
-            :no-wrap:
+            :nowrap:
 
             \begin{align}
                 & \underset{}{\text{maximize}} & & \trace\p{\PEPObjMat G} + \PEPObjVec^{\top}\bm{\chi} \notag \\
@@ -864,7 +864,7 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
             \end{align}
 
    is a relaxation of :eq:`eq:pep_rewritten`, and
-   therefore, has optimal value greater or equal
+   therefore has optimal value greater than or equal
    to the optimal value of :ref:`(PEP) <eq:pep>`.
 
    We will make use of the following fact: If :math:`\dim\calH\geq k`,
@@ -875,8 +875,8 @@ In particular, :ref:`(D-PEP) <eq:dpep>` in :ref:`Theorem 5.1.1 (Performance esti
    Cholesky decomposition of positive semidefinite matrices. The general
    case is a straightforward extension. This fact implies that if
    :math:`\dim \calH \geq n + \p{\PEPMaxIter-\PEPMinIter+1}\NumEval + m`,
-   then :ref:`(5.21) <eq:pep_relaxed>` has optimal value equal
-   to :eq:`eq:pep_rewritten`. Note
+   then :ref:`(5.21) <eq:pep_relaxed>` has optimal value equal to that of
+   :eq:`eq:pep_rewritten`. Note
    that :ref:`(5.21) <eq:pep_relaxed>` is a convex semidefinite
    program.
 

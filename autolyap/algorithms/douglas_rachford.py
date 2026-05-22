@@ -52,7 +52,7 @@ class DouglasRachford(Algorithm):
             \frac{x^k-v^k}{\gamma},\;
             \frac{2v^k-x^k-w^k}{\gamma}
             \right), \\
-            \by^k &= \left(x^k,\; 2v^k-x^k\right).
+            \by^k &= \left(v^k,\; w^k\right).
         \end{aligned}
 
     With this representation, the system matrices are

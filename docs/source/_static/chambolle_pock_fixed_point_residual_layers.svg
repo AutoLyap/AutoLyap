@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="944" viewBox="0 0 960 944" role="img" aria-label="Chambolle-Pock fixed-point residual feasible regions">
-  <title>Chambolle--Pock fixed-point residual summability regions</title>
+  <title>Chambolle-Pock fixed-point residual summability regions</title>
   <desc>Feasible regions in the (tau=sigma, theta) plane for several history/overlap settings (h, alpha).</desc>
   <rect x="0" y="0" width="960" height="944" fill="#ffffff"/>
   <rect x="96.000" y="24.000" width="832.000" height="832.000" fill="#f8fafc"/>

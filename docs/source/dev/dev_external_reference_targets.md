@@ -8,6 +8,14 @@ docstrings, so links still resolve when intersphinx inventories are unavailable.
 ```
 
 ```{eval-rst}
+.. py:class:: numpy.integer
+```
+
+```{eval-rst}
+.. py:class:: numpy.floating
+```
+
+```{eval-rst}
 .. py:class:: abc.ABC
 ```
 

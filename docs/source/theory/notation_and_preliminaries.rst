@@ -49,7 +49,7 @@ identity mapping :math:`x \mapsto x` on :math:`\calH` by :math:`\Id`.
 
             \dom f = \{x\in\calH \mid f(x) < + \infty\}
 
-         is called the *effective domain* of :math:`f,`
+         is called the *effective domain* of :math:`f`,
 
    (ii)  *lower semicontinuous* if
 
@@ -139,7 +139,7 @@ for each :math:`x\in\calH`.
 
          \partial f \p{x} = \set{\nabla f(x)}
 
-      for each :math:`x\in\calH`.
+      at that point.
 
 (ii)  If :math:`f` is proper and convex, the Fréchet subdifferential
       becomes the *convex subdifferential*, i.e.,

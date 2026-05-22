@@ -8,8 +8,6 @@ formulate the Lyapunov search as a semidefinite program (SDP).
 
    .. _ass:interpolation:
 
-   .. _ass:interplotation:
-
    **Assumption 4.1 (Interpolation conditions).**
 
    Consider
@@ -88,7 +86,7 @@ formulate the Lyapunov search as a semidefinite program (SDP).
                            \p{\forall (j,k)\in\p{\llbracket 1,\NumEval_{i} \rrbracket \times \llbracket\PEPMinIter,\PEPMaxIter\rrbracket } \cup \set{ \p{\star,\star} } } \quad
                            \left[
                            \begin{aligned}
-                               f_{i}\p{y_{i,j}^{l}} = F_{i,j}^{k}, \\    
+                               f_{i}\p{y_{i,j}^{k}} = F_{i,j}^{k}, \\
                                u_{i,j}^{k} \in \partial f_{i} \p{y_{i,j}^{k} }.
                            \end{aligned}
                            \right.

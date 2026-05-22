@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Chambolle--Pock layered sweep data and an SVG plot asset.
+"""Generate Chambolle-Pock layered sweep data and an SVG plot asset.
 
 Usage:
     python docs/source/examples/scripts/chambolle_pock/generate_chambolle_pock_assets.py
@@ -107,7 +107,7 @@ PLOT_WIDTH_PX = 960
 # Keep inner plot width and height equal given renderer margins:
 # plot_width = width - (96 + 32), plot_height = height - (24 + 88).
 PLOT_HEIGHT_PX = 944
-PLOT_TITLE = "Chambolle--Pock fixed-point residual summability regions"
+PLOT_TITLE = "Chambolle-Pock fixed-point residual summability regions"
 PLOT_DESCRIPTION = (
     "Feasible regions in the (tau=sigma, theta) plane for several history/overlap "
     "settings (h, alpha)."
@@ -120,7 +120,7 @@ MARKER_RADIUS_PX = 2.9
 def _build_parser() -> argparse.ArgumentParser:
     default_output = Path(__file__).resolve().parents[3]
     parser = argparse.ArgumentParser(
-        description="Generate Chambolle--Pock layered sweep data and SVG plot assets."
+        description="Generate Chambolle-Pock layered sweep data and SVG plot assets."
     )
     parser.add_argument(
         "--output-dir",

@@ -2,7 +2,7 @@ Algorithm representation
 ========================
 
 We consider first-order algorithms that solve
-:eq:`eq:the_problem_inclusion` that can be
+:eq:`eq:the_problem_inclusion` and can be
 represented as a discrete-time linear time‐varying system in state-space
 form in feedback interconnection with the potentially nonlinear and
 set-valued operators :math:`(\partial f_{i})_{i\in\IndexFunc}` and
@@ -33,7 +33,7 @@ notation:
 (vi)  :math:`\NumEval = \NumEvalFunc + \NumEvalOp` denotes the combined
       total number of evaluations per iteration.
 
-Since we consider algorithms that allow for multiple evaluation of
+Since we consider algorithms that allow for multiple evaluations of
 :math:`(\partial f_{i})_{i\in\IndexFunc}` and
 :math:`(G_{i})_{i\in\IndexOp}` per iteration, we define
 :math:`\bfcn_{i}:\calH^{\NumEval_{i}}\to\p{\reals\cup\{\pm\infty\}}^{\NumEval_{i}}`

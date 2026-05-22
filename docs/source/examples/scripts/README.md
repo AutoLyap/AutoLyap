@@ -29,5 +29,5 @@ docs/source/examples/scripts/
 ```
 
 Each method folder contains one or more `generate_*_assets.py` entry points.
-Run scripts from repository root; each script defaults to `--output-dir docs/source`
-and supports `--reuse-data` for SVG-only refresh.
+Run scripts from repository root; each script defaults to `--output-dir docs/source`.
+Most sweep generators support `--reuse-data` for SVG-only refresh.

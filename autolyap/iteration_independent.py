@@ -1008,7 +1008,7 @@ class _SublinearConvergence:
         .. math::
             \begin{aligned}
             \mathcal{V}(P,p,k) &= 0,\\
-            \mathcal{R}(T,t,k) &= \|x^{k+\tau+1} - x^{k+\tau}\|^2.
+            \mathcal{R}(T,t,k) &= \|\bx^{k+\tau+1} - \bx^{k+\tau}\|^2.
             \end{aligned}
 
         **Matrix construction**

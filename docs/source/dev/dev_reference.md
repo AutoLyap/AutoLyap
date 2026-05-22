@@ -47,7 +47,7 @@ dev_external_reference_targets
 | Layer | Core modules | What it owns |
 | --- | --- | --- |
 | Problem definitions | {py:mod}`autolyap.problemclass` | Interpolation conditions, index semantics, and component validation. |
-| Algorithm lifting | {py:mod}`autolyap.algorithms` | Conversion of updates into lifted matrix objects (`X`, `Y`, `U`, `P`, `F`, `E`, `W`). |
+| Algorithm lifting | `autolyap.algorithms` | Conversion of updates into lifted matrix objects (`X`, `Y`, `U`, `P`, `F`, `E`, `W`). |
 | Analysis assembly | {py:mod}`autolyap.iteration_independent`, {py:mod}`autolyap.iteration_dependent` | Construction and solving of SDP certificates from problem and algorithm structure. |
 | Backend normalization | {py:mod}`autolyap.solver_options` | One-pass normalization of solver options before backend-specific calls. |
 | Shared utilities | {py:mod}`autolyap.utils` | Validation helpers, matrix helpers, and backend protocol types. |
@@ -56,7 +56,7 @@ dev_external_reference_targets
 
 | Task | Primary entry point | Keep in mind |
 | --- | --- | --- |
-| Add a new algorithm | {py:class}`autolyap.algorithms.algorithm.Algorithm` | Implement required matrix/projection accessors consistently. |
+| Add a new algorithm | {py:class}`autolyap.algorithms.algorithm.Algorithm` | Implement `get_ABCD` consistently; the base class derives lifted matrix/projection accessors. |
 | Add a new interpolation condition | {py:meth}`autolyap.problemclass.base._InterpolationCondition.get_data` | Follow the existing {py:mod}`autolyap.problemclass` condition hierarchy. |
 | Add or modify analysis workflows | {py:mod}`autolyap.iteration_independent`, {py:mod}`autolyap.iteration_dependent` | Preserve solver-backend parity across supported backends. |
 | Add validation or backend typing logic | {py:mod}`autolyap.utils.validation`, {py:mod}`autolyap.utils.backend_types` | Keep shared checks centralized; avoid per-module duplication. |
