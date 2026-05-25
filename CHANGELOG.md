@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -6,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Curated, user-facing summaries are available in
 [`docs/source/release_notes/`](docs/source/release_notes/).
+
+## Unreleased
+
+### Added
+
+- Added REUSE-compliant license metadata and SPDX notices across source,
+  documentation, generated assets, notebooks, and project configuration files.
 
 ## [v0.2.1] - 2026-03-27
 

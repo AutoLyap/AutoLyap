@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 """Generate ITEM sweep data and a publication-style SVG plot asset.
 
 Usage:

@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 # Developer Commands (Internal)
 
 This file documents developer-facing commands implemented in this repository.
@@ -32,6 +35,12 @@ For documentation builds, install docs dependencies:
 
 ```bash
 make -C docs deps
+```
+
+For REUSE license metadata checks, install:
+
+```bash
+python -m pip install reuse
 ```
 
 ## Project-level Make targets
@@ -84,6 +93,15 @@ make -C docs deps
 - Runs SDPA multiprecision-marked convergence tests via:
   `python -m pytest tests/convergence/test_convergence_cvxpy_*.py -m "sdpa_multiprecision"`.
 - Intended for optional CVXPY+SDPA multiprecision validation.
+- Not part of the default `make check` suite.
+
+### `make check-reuse`
+
+- Runs REUSE license metadata validation via `reuse lint`.
+- Requires the `reuse` Python package.
+- Checks that tracked files have copyright and license information through
+  inline SPDX headers or `REUSE.toml`, and that required license texts are
+  present under `LICENSES/`.
 - Not part of the default `make check` suite.
 
 ### `make check-scs`

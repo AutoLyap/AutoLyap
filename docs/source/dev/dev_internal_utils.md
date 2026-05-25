@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 # Internal utility modules
 
 These helpers are shared across algorithms, problem classes, and analysis/solver modules.

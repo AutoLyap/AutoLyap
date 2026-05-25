@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 # External reference targets
 
 This page defines local Python-domain targets for common external types used in

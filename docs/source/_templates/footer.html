@@ -1,11 +1,14 @@
 {% extends "!footer.html" %}
 
+{# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors #}
+{# SPDX-License-Identifier: GPL-3.0-only #}
+
 {% block contentinfo %}
   <p>
   {%- if show_copyright %}
     {%- set copyright_year = copyright.split(',')[0] | trim %}
     &#169; Copyright {{ copyright_year }},
-    <a href="https://manuupadhyaya.github.io/">Manu Upadhyaya</a>.
+    AutoLyap contributors.
   {%- endif %}
 
   {%- if build_id and build_url %}

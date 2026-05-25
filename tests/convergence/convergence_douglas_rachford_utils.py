@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 """Shared helper formulas and solve wrappers for Douglas-Rachford convergence tests."""
 
 import numpy as np

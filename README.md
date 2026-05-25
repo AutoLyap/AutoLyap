@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 # AutoLyap
 
 A Python package for automated Lyapunov-based convergence analyses of first-order optimization and inclusion methods.
@@ -28,6 +31,7 @@ solvers.
 - Developer commands (internal): [`DEVELOPER_COMMANDS.md`](DEVELOPER_COMMANDS.md)
 - Changelog: [`CHANGELOG.md`](CHANGELOG.md)
 - Release process (maintainers): [`RELEASING.md`](RELEASING.md)
+- Copyright notice: [`COPYRIGHT`](COPYRIGHT)
 - License: [`LICENSE`](LICENSE)
 
 ## Cite this project
@@ -47,6 +51,14 @@ If AutoLyap contributes to your research or software, please cite:
 }
 ```
 
+## Contributors
+
+- [Manu Upadhyaya](https://manuupadhyaya.github.io/): Creator and maintainer.
+- [Shuvomoy Das Gupta](https://shuvomoy.github.io/): Creator; maintainer of [AutoLyap.jl](https://github.com/AutoLyap/AutoLyap.jl) (Julia version of AutoLyap).
+- [Adrien B. Taylor](https://adrientaylor.github.io/): Creator.
+- [Sebastian Banert](https://github.com/sbanert): Creator.
+- [Pontus Giselsson](https://portal.research.lu.se/en/persons/pontus-giselsson/): Creator.
+
 ## License
 
-AutoLyap is licensed under the GNU General Public License v3.0 only. See [LICENSE](LICENSE).
+AutoLyap is licensed under the GNU General Public License v3.0 only. See [LICENSE](LICENSE) and [COPYRIGHT](COPYRIGHT).

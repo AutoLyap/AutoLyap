@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 """Shared CVXPY/MOSEK test helpers for backend and convergence test modules."""
 
 from importlib import metadata as importlib_metadata

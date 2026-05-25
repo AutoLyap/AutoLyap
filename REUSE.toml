@@ -1,0 +1,16 @@
+version = 1
+SPDX-PackageName = "AutoLyap"
+SPDX-PackageSupplier = "AutoLyap contributors"
+SPDX-PackageDownloadLocation = "https://github.com/AutoLyap/AutoLyap"
+
+[[annotations]]
+path = [".github/workflows/**.yml", ".gitignore", "CITATION.cff", "COPYRIGHT", "MANIFEST.in", "Makefile", "REUSE.toml", "VERSION", "docs/Makefile", "docs/requirements.txt", "pytest.ini", "requirements.txt", "scripts/check_local_ci.sh"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025-2026 AutoLyap contributors"
+SPDX-License-Identifier = "GPL-3.0-only"
+
+[[annotations]]
+path = ["docs/source/_static/**.css", "docs/source/_static/**.js", "docs/source/_static/**.svg", "docs/source/_static/**.png", "docs/source/_static/**.ico", "docs/source/data/**.csv", "docs/source/data/**/**.csv", "docs/source/references.bib", "notebooks/**.ipynb", "paper_data/**/**.tex"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025-2026 AutoLyap contributors"
+SPDX-License-Identifier = "GPL-3.0-only"

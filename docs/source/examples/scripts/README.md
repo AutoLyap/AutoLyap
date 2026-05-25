@@ -2,6 +2,9 @@
 orphan: true
 ---
 
+<!-- SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 # Example Asset Scripts
 
 This directory contains developer scripts that generate documentation assets

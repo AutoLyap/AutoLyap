@@ -2,6 +2,9 @@
 tocdepth: 1
 ---
 
+<!-- SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 ```{include} ../../README.md
 :end-before: "## Documentation"
 ```
@@ -35,6 +38,14 @@ If AutoLyap contributes to your research or software, please cite
 ## Other computer-assisted methodologies
 
 [PEPit](https://pepit.readthedocs.io) is a computer-assisted performance estimation framework that targets worst-case analyses of first-order methods through SDP formulations. AutoLyap is complementary: it focuses on Lyapunov analyses and automates the corresponding SDP formulations. In practice, PEPit is a strong choice for tight bounds, while AutoLyap is tailored to Lyapunov-based proofs and scalable analysis patterns.
+
+## Contributors
+
+- [Manu Upadhyaya](https://manuupadhyaya.github.io/): Creator and maintainer.
+- [Shuvomoy Das Gupta](https://shuvomoy.github.io/): Creator; maintainer of [AutoLyap.jl](https://github.com/AutoLyap/AutoLyap.jl) (Julia version of AutoLyap).
+- [Adrien B. Taylor](https://adrientaylor.github.io/): Creator.
+- [Sebastian Banert](https://github.com/sbanert): Creator.
+- [Pontus Giselsson](https://portal.research.lu.se/en/persons/pontus-giselsson/): Creator.
 
 ```{toctree}
 :maxdepth: 1

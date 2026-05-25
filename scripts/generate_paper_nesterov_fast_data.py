@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 """Generate paper data tables for the Nesterov-fast plot.
 Outputs are written under:
   github/paper_data/nesterov_fast_gradient_method/

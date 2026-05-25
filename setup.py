@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 from pathlib import Path
 from setuptools import setup, find_packages
 
@@ -25,7 +28,12 @@ setup(
         "Source": "https://github.com/AutoLyap/AutoLyap",
     },
     license="GPL-3.0-only",
-    license_files=("LICENSE",),
+    license_files=(
+        "LICENSE",
+        "COPYRIGHT",
+        "LICENSES/GPL-3.0-only.txt",
+        "REUSE.toml",
+    ),
     python_requires=">=3.9",
     packages=find_packages(include=["autolyap", "autolyap.*"]),
     install_requires=requirements,

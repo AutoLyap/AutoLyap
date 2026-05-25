@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 """Shared helpers for docs plotting scripts.
 
 These utilities are intentionally generic so they can be reused by future

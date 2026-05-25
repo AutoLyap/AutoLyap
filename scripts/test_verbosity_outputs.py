@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 """Run and sanity-check verbosity output for AutoLyap Lyapunov solvers."""
 
 from __future__ import annotations
