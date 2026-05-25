@@ -1,5 +1,8 @@
 {% extends "!breadcrumbs.html" %}
 
+{# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors #}
+{# SPDX-License-Identifier: GPL-3.0-only #}
+
 {% block breadcrumbs %}
   {%- set top_level_pages = ["index", "quick_start", "examples", "api_reference", "contributing"] %}
   {%- if pagename not in top_level_pages %}

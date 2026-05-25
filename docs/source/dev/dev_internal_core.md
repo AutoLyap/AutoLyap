@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 # Internal analysis and solver modules
 
 This page focuses on internals that support analysis assembly and solver execution.

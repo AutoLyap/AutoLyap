@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 """Generate linear Chambolle--Pock paper data by direct solves on the paper grid.
 
 This script computes the smallest certifiable linear contraction factor rho at each

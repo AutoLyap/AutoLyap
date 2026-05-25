@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
+# SPDX-License-Identifier: GPL-3.0-only
+
 import os
 import re
 import sys
@@ -10,8 +13,8 @@ from sphinx import addnodes
 from sphinx.domains.python._object import PyObject
 
 project = "AutoLyap"
-author = "Manu Upadhyaya"
-copyright = f"{date.today().year}, Manu Upadhyaya"
+author = "AutoLyap contributors"
+copyright = f"{date.today().year}, AutoLyap contributors"
 
 root = Path(__file__).resolve().parents[2]
 release = (root / "VERSION").read_text(encoding="utf-8").strip()

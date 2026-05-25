@@ -1,4 +1,4 @@
-.PHONY: check check-mosek check-clarabel check-scs check-copt check-sdpa check-sdpa-multiprecision docs sync-citation check-citation sync-notebooks check-notebooks
+.PHONY: check check-mosek check-clarabel check-scs check-copt check-sdpa check-sdpa-multiprecision check-reuse docs sync-citation check-citation sync-notebooks check-notebooks
 
 check:
 	@bash scripts/check_local_ci.sh
@@ -20,6 +20,9 @@ check-sdpa:
 
 check-sdpa-multiprecision:
 	@python -m pytest tests/convergence/test_convergence_cvxpy_*.py -m "sdpa_multiprecision"
+
+check-reuse:
+	@reuse lint
 
 docs:
 	@$(MAKE) -C docs dirhtml

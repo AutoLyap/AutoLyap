@@ -1,2 +1,6 @@
 include VERSION
 include requirements.txt
+include COPYRIGHT
+include LICENSE
+include LICENSES/GPL-3.0-only.txt
+include REUSE.toml
