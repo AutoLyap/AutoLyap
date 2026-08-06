@@ -21,4 +21,5 @@ examples/information_theoretic_exact_method
 examples/malitsky_tam_frb
 examples/optimized_gradient
 examples/proximal_point
+examples/triple_momentum
 ```

@@ -1,0 +1,47 @@
+{# Keep the RTD search-page layout while loading its index without blocking. #}
+{# SPDX-FileCopyrightText: 2026 AutoLyap contributors #}
+{# SPDX-License-Identifier: GPL-3.0-only #}
+{%- extends "layout.html" %}
+{% set title = _('Search') %}
+{% set display_vcs_links = False %}
+
+{%- block scripts %}
+  {{ super() }}
+  <script defer="defer" src="{{ pathto('_static/searchtools.js', 1) }}"></script>
+  <script defer="defer" src="{{ pathto('_static/language_data.js', 1) }}"></script>
+{%- endblock %}
+
+{% block extrahead %}
+  <script defer="defer" src="{{ pathto('searchindex.js', 1) }}"></script>
+  {{ super() }}
+{% endblock %}
+
+{% block body %}
+  <noscript>
+  <div id="fallback" class="admonition warning">
+    <p class="last">
+      {% trans trimmed %}Please activate JavaScript to enable the search
+      functionality.{% endtrans %}
+    </p>
+  </div>
+  </noscript>
+
+  {% if search_performed %}
+    <h2>{{ _('Search Results') }}</h2>
+    {% if not search_results %}
+      <p>{{ _('Your search did not match any documents. Please make sure that all words are spelled correctly and you\'ve selected enough categories.') }}</p>
+    {% endif %}
+  {% endif %}
+  <div id="search-results">
+  {% if search_results %}
+    <ul>
+    {% for href, caption, context in search_results %}
+      <li>
+        <a href="{{ pathto(href) }}">{{ caption }}</a>
+        <p class="context">{{ context|e }}</p>
+      </li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  </div>
+{% endblock %}
