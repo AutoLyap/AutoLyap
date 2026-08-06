@@ -1,6 +1,17 @@
 name: docs
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/docs.yml"
+      - "autolyap/**"
+      - "docs/**"
+      - "scripts/audit_docs_seo.py"
+      - "scripts/audit_docs_performance.py"
+      - "setup.py"
+      - "CITATION.cff"
+      - "README.md"
+      - "VERSION"
   workflow_dispatch:
 
 permissions:
@@ -21,6 +32,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
@@ -31,9 +44,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r docs/requirements.txt
-      - name: Build docs
+      - name: Build and audit docs strictly
         run: |
-          make -C docs dirhtml
+          make -C docs dirhtml SPHINXOPTS="-W --keep-going"
+          make -C docs seo-check
+          make -C docs performance-check
           touch docs/build/dirhtml/.nojekyll
       - name: Upload docs artifact
         uses: actions/upload-artifact@v6

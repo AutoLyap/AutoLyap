@@ -1,7 +1,7 @@
 /* Prevent FOIT without changing typography choices from the RTD theme. */
 @font-face {
-  font-family: "Lato";
-  src: url("css/fonts/lato-normal.woff2") format("woff2"),
+  font-family: "AutoLyap Lato Subset";
+  src: url("fonts/autolyap-lato-normal.woff2") format("woff2"),
        url("css/fonts/lato-normal.woff") format("woff");
   font-weight: 400;
   font-style: normal;
@@ -9,8 +9,8 @@
 }
 
 @font-face {
-  font-family: "Lato";
-  src: url("css/fonts/lato-bold.woff2") format("woff2"),
+  font-family: "AutoLyap Lato Subset";
+  src: url("fonts/autolyap-lato-bold.woff2") format("woff2"),
        url("css/fonts/lato-bold.woff") format("woff");
   font-weight: 700;
   font-style: normal;
@@ -18,8 +18,8 @@
 }
 
 @font-face {
-  font-family: "Lato";
-  src: url("css/fonts/lato-bold-italic.woff2") format("woff2"),
+  font-family: "AutoLyap Lato Subset";
+  src: url("fonts/autolyap-lato-bold-italic.woff2") format("woff2"),
        url("css/fonts/lato-bold-italic.woff") format("woff");
   font-weight: 700;
   font-style: italic;
@@ -27,8 +27,8 @@
 }
 
 @font-face {
-  font-family: "Lato";
-  src: url("css/fonts/lato-normal-italic.woff2") format("woff2"),
+  font-family: "AutoLyap Lato Subset";
+  src: url("fonts/autolyap-lato-normal-italic.woff2") format("woff2"),
        url("css/fonts/lato-normal-italic.woff") format("woff");
   font-weight: 400;
   font-style: italic;
@@ -42,6 +42,25 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+}
+
+@font-face {
+  font-family: "FontAwesome";
+  src: url("fonts/autolyap-fontawesome.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+/* Reserve image aspect ratios while retaining the existing responsive size. */
+.rst-content img[width][height] {
+  height: auto;
+}
+
+/* Let live badges keep their natural width if their dynamic text changes. */
+.rst-content img[src^="https://img.shields.io/"][width][height] {
+  width: auto;
+  height: 20px;
 }
 
 @font-face {
@@ -74,8 +93,33 @@
 body.wy-body-for-nav {
   background: var(--nord-bg);
   color: var(--nord-text);
-  font-family: "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  font-family: "AutoLyap Lato Subset", "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
   line-height: 1.58;
+}
+
+.btn,
+input[type="button"],
+input[type="color"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="datetime"],
+input[type="email"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="reset"],
+input[type="search"],
+input[type="submit"],
+input[type="tel"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+input[type="week"],
+textarea,
+.wy-side-nav-search > div.switch-menus > div.language-switch select,
+.wy-side-nav-search > div.switch-menus > div.version-switch select,
+.rst-versions {
+  font-family: "AutoLyap Lato Subset", "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
 }
 
 .wy-nav-side {
@@ -214,7 +258,7 @@ body.autolyap-full-width .wy-nav-content {
 .rst-content h5,
 .rst-content h6 {
   color: #0f1f2f;
-  font-family: "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  font-family: "AutoLyap Lato Subset", "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
   letter-spacing: 0.003em;
   font-weight: 600;
   line-height: 1.3;
@@ -574,20 +618,20 @@ html.writer-html5 .rst-content div.citation-list > div.citation > p {
 mjx-container[display="true"] mjx-mtd.mjx-label,
 mjx-container[display="true"] mjx-tag,
 mjx-container[display="true"] .mjx-tag {
-  font-family: "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
+  font-family: "AutoLyap Lato Subset", "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
   font-style: normal !important;
   font-weight: 400 !important;
 }
 
 .rst-content #eq-c1 mjx-container[display="true"] mjx-mtd.mjx-label *,
 .rst-content #eq-c1 mjx-container[display="true"] mjx-tag * {
-  font-family: "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
+  font-family: "AutoLyap Lato Subset", "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
   font-style: normal !important;
   font-weight: 400 !important;
 }
 
 .rst-content mjx-tag.plain-math-tag {
-  font-family: "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
+  font-family: "AutoLyap Lato Subset", "Lato", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif !important;
   font-style: normal !important;
   font-weight: 400 !important;
   font-size: 0.95rem !important;

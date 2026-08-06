@@ -3,9 +3,14 @@
 
 import os
 import re
+import shutil
+import subprocess
 import sys
 from datetime import date, datetime, timezone
+from functools import lru_cache
+from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import unquote, urljoin, urlparse
 from xml.sax.saxutils import escape as xml_escape
 
 from docutils import nodes
@@ -19,6 +24,12 @@ copyright = f"{date.today().year}, AutoLyap contributors"
 root = Path(__file__).resolve().parents[2]
 release = (root / "VERSION").read_text(encoding="utf-8").strip()
 version = release
+
+seo_baseurl = "https://autolyap.github.io"
+seo_repo_url = "https://github.com/AutoLyap/AutoLyap"
+seo_pypi_url = "https://pypi.org/project/autolyap/"
+seo_license_url = "https://spdx.org/licenses/GPL-3.0-only.html"
+seo_paper_url = "https://doi.org/10.48550/arXiv.2506.24076"
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -52,10 +63,9 @@ exclude_patterns = ["release_notes/_template.md"]
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
-html_favicon = "_static/favicon.ico"
 html_css_files = ["custom.css"]
 html_show_sphinx = False
-html_baseurl = "https://autolyap.github.io/"
+html_baseurl = f"{seo_baseurl}/"
 numfig = True
 math_numfig = True
 numfig_secnum_depth = 1
@@ -74,6 +84,7 @@ html_context = {
     ],
     "seo_pages": {
         "index": {
+            "title": "AutoLyap: Automated Lyapunov Analysis for Optimization",
             "description": (
                 "AutoLyap is a Python package for computer-assisted Lyapunov "
                 "analyses of first-order optimization and inclusion methods."
@@ -86,6 +97,7 @@ html_context = {
             ],
         },
         "quick_start": {
+            "title": "AutoLyap Quick Start: Certify Optimization Convergence",
             "description": (
                 "Quick start guide for AutoLyap with iteration-independent and "
                 "iteration-dependent Lyapunov analysis workflows."
@@ -98,6 +110,7 @@ html_context = {
             ],
         },
         "theory": {
+            "title": "Lyapunov Analysis Theory for First-Order Methods",
             "description": (
                 "Mathematical background for AutoLyap, including Lyapunov "
                 "certificate modeling and SDP-based verification."
@@ -197,6 +210,7 @@ html_context = {
             ],
         },
         "api_reference": {
+            "title": "AutoLyap Python API Reference for Optimization Analysis",
             "description": (
                 "AutoLyap API reference for algorithms, problem classes, and "
                 "Lyapunov analysis helpers."
@@ -208,6 +222,7 @@ html_context = {
             ],
         },
         "algorithms": {
+            "title": "First-Order Optimization Algorithms in AutoLyap",
             "description": (
                 "Overview of algorithm abstractions and concrete first-order "
                 "methods supported in AutoLyap."
@@ -241,9 +256,10 @@ html_context = {
             ],
         },
         "examples": {
+            "title": "Optimization Convergence Examples with AutoLyap",
             "description": (
-                "AutoLyap examples for proximal point, proximal gradient, and "
-                "momentum-based method analyses."
+                "Worked AutoLyap examples for gradient, proximal, splitting, "
+                "and momentum methods with computer-assisted convergence rates."
             ),
             "keywords": [
                 "AutoLyap examples",
@@ -266,7 +282,7 @@ html_context = {
         },
         "examples/davis_yin_three_operator": {
             "description": (
-                "Davis--Yin three-operator splitting example in AutoLyap with "
+                "Davis–Yin three-operator splitting example in AutoLyap with "
                 "computer-assisted linear-rate rho certification."
             ),
             "keywords": [
@@ -287,8 +303,9 @@ html_context = {
             ],
         },
         "examples/malitsky_tam_frb": {
+            "title": "Malitsky–Tam FRB Convergence Rate",
             "description": (
-                "Malitsky--Tam forward-reflected-backward example in AutoLyap "
+                "Malitsky–Tam forward-reflected-backward example in AutoLyap "
                 "with computer-assisted linear-rate certification."
             ),
             "keywords": [
@@ -319,6 +336,50 @@ html_context = {
                 "first-order method convergence proof",
             ],
         },
+        "examples/triple_momentum": {
+            "title": "Triple-Momentum Method: Convergence Rate with AutoLyap",
+            "description": (
+                "Certify the triple-momentum method's linear rate for smooth "
+                "strongly convex optimization using AutoLyap Lyapunov analysis "
+                "and the MOSEK Fusion backend."
+            ),
+            "keywords": [
+                "triple momentum method",
+                "triple momentum AutoLyap",
+                "autolyap.algorithms.TripleMomentum",
+                "TMM convergence rate",
+                "smooth strongly convex optimization",
+                "Lyapunov convergence certificate",
+                "linear convergence factor rho",
+                "iteration-independent analysis",
+                "MOSEK Fusion",
+                "Van Scoy Freeman Lynch",
+            ],
+            "schema_type": ["TechArticle", "LearningResource"],
+            "learning_resource_type": "worked example",
+            "proficiency_level": "Expert",
+            "educational_level": "Advanced",
+            "dependencies": "Python, AutoLyap, and optional MOSEK Fusion",
+            "teaches": [
+                "Model the triple-momentum method in AutoLyap",
+                "Search for a certified linear convergence factor rho",
+                "Compare the theoretical rate with MOSEK certificates",
+            ],
+            "citation": {
+                "@type": "ScholarlyArticle",
+                "name": (
+                    "The fastest known globally convergent first-order method "
+                    "for minimizing strongly convex functions"
+                ),
+                "identifier": "https://doi.org/10.1109/LCSYS.2017.2722406",
+                "url": "https://doi.org/10.1109/LCSYS.2017.2722406",
+                "author": [
+                    {"@type": "Person", "name": "Bryan Van Scoy"},
+                    {"@type": "Person", "name": "Randy A. Freeman"},
+                    {"@type": "Person", "name": "Kevin M. Lynch"},
+                ],
+            },
+        },
         "examples/gradient_method/index": {
             "description": (
                 "Gradient-method examples in AutoLyap for Lyapunov-based "
@@ -342,6 +403,7 @@ html_context = {
             ],
         },
         "examples/gradient_method/gradient_dominated_smooth": {
+            "title": "Gradient Method: Smooth Gradient-Dominated Rate",
             "description": (
                 "Gradient-method gradient-dominated smooth example in AutoLyap "
                 "with certified linear function-value rates."
@@ -366,7 +428,7 @@ html_context = {
         },
         "examples/chambolle_pock/index": {
             "description": (
-                "Chambolle--Pock examples in AutoLyap for Lyapunov-based "
+                "Chambolle–Pock examples in AutoLyap for Lyapunov-based "
                 "analysis under multiple problem settings."
             ),
             "keywords": [
@@ -377,7 +439,7 @@ html_context = {
         },
         "examples/chambolle_pock/convex_fixed_point_residual": {
             "description": (
-                "Chambolle--Pock convex example in AutoLyap with "
+                "Chambolle–Pock convex example in AutoLyap with "
                 "fixed-point-residual summability certification and layered "
                 "(h, alpha) regions."
             ),
@@ -388,8 +450,9 @@ html_context = {
             ],
         },
         "examples/chambolle_pock/smooth_strongly_convex": {
+            "title": "Chambolle–Pock: Smooth Strongly Convex Rate",
             "description": (
-                "Chambolle--Pock smooth strongly-convex example in AutoLyap "
+                "Chambolle–Pock smooth strongly-convex example in AutoLyap "
                 "with iteration-independent linear-rate certification."
             ),
             "keywords": [
@@ -422,7 +485,7 @@ html_context = {
         },
         "examples/douglas_rachford/index": {
             "description": (
-                "Douglas--Rachford examples in AutoLyap covering cocoercive, "
+                "Douglas–Rachford examples in AutoLyap covering cocoercive, "
                 "Lipschitz, and smooth strongly-convex problem settings."
             ),
             "keywords": [
@@ -432,8 +495,9 @@ html_context = {
             ],
         },
         "examples/douglas_rachford/cocoercive_plus_strongly_monotone": {
+            "title": "Douglas–Rachford: Cocoercive + Strongly Monotone",
             "description": (
-                "Douglas--Rachford cocoercive-plus-strongly-monotone example "
+                "Douglas–Rachford cocoercive-plus-strongly-monotone example "
                 "in AutoLyap with linear-rate rho certification."
             ),
             "keywords": [
@@ -443,8 +507,9 @@ html_context = {
             ],
         },
         "examples/douglas_rachford/maximally_monotone_lipschitz_plus_strongly_monotone": {
+            "title": "Douglas–Rachford: Lipschitz + Strongly Monotone",
             "description": (
-                "Douglas--Rachford example for maximally-monotone-Lipschitz "
+                "Douglas–Rachford example for maximally-monotone-Lipschitz "
                 "plus strongly-monotone operators with certified rates."
             ),
             "keywords": [
@@ -454,8 +519,9 @@ html_context = {
             ],
         },
         "examples/douglas_rachford/maximally_monotone_plus_strongly_monotone_cocoercive": {
+            "title": "Douglas–Rachford: Strongly Monotone/Cocoercive",
             "description": (
-                "Douglas--Rachford example for maximally-monotone plus "
+                "Douglas–Rachford example for maximally-monotone plus "
                 "strongly-monotone-cocoercive operators with rho certification."
             ),
             "keywords": [
@@ -465,8 +531,9 @@ html_context = {
             ],
         },
         "examples/douglas_rachford/maximally_monotone_plus_strongly_monotone_lipschitz": {
+            "title": "Douglas–Rachford: Strongly Monotone/Lipschitz",
             "description": (
-                "Douglas--Rachford example for maximally-monotone plus "
+                "Douglas–Rachford example for maximally-monotone plus "
                 "strongly-monotone-Lipschitz operators with certified rates."
             ),
             "keywords": [
@@ -476,8 +543,9 @@ html_context = {
             ],
         },
         "examples/douglas_rachford/smooth_strongly_convex_plus_convex": {
+            "title": "Douglas–Rachford: Smooth Strongly Convex + Convex",
             "description": (
-                "Douglas--Rachford smooth-strongly-convex-plus-convex example "
+                "Douglas–Rachford smooth-strongly-convex-plus-convex example "
                 "in AutoLyap with iteration-independent linear-rate analysis."
             ),
             "keywords": [
@@ -509,6 +577,7 @@ html_context = {
             ],
         },
         "examples/heavy_ball/gradient_dominated_smooth": {
+            "title": "Heavy-Ball: Smooth Gradient-Dominated Rate",
             "description": (
                 "Heavy-ball gradient-dominated-smooth example in AutoLyap with "
                 "computer-assisted linear function-value rate certification."
@@ -520,6 +589,7 @@ html_context = {
             ],
         },
         "examples/nesterov_momentum/index": {
+            "title": "Constant Nesterov Momentum Examples",
             "description": (
                 "Constant Nesterov momentum examples in AutoLyap for "
                 "Lyapunov-based convergence analysis under different "
@@ -532,6 +602,7 @@ html_context = {
             ],
         },
         "examples/nesterov_momentum/smooth_convex": {
+            "title": "Constant Nesterov Momentum: Smooth Convex",
             "description": (
                 "Constant Nesterov momentum smooth-convex example in AutoLyap "
                 "with certified sublinear function-value convergence."
@@ -543,6 +614,7 @@ html_context = {
             ],
         },
         "examples/nesterov_momentum/gradient_dominated_smooth": {
+            "title": "Constant Nesterov Momentum: Gradient-Dominated",
             "description": (
                 "Constant Nesterov momentum gradient-dominated smooth example "
                 "in AutoLyap with certified linear rates."
@@ -554,6 +626,7 @@ html_context = {
             ],
         },
         "function_classes": {
+            "title": "Convex and Smooth Function Classes | AutoLyap",
             "description": (
                 "Function interpolation classes in AutoLyap for modeling convex, "
                 "smooth, and strongly convex objectives."
@@ -565,6 +638,7 @@ html_context = {
             ],
         },
         "operator_classes": {
+            "title": "Monotone Operator Classes | AutoLyap",
             "description": (
                 "Operator interpolation classes in AutoLyap for monotone, "
                 "Lipschitz, and cocoercive operator models."
@@ -576,6 +650,7 @@ html_context = {
             ],
         },
         "problem_class": {
+            "title": "Optimization Problem Classes in AutoLyap",
             "description": (
                 "Problem class definitions in AutoLyap for constructing "
                 "optimization and inclusion formulations."
@@ -587,6 +662,7 @@ html_context = {
             ],
         },
         "iteration_independent_analysis": {
+            "title": "Iteration-Independent Lyapunov Analysis | AutoLyap",
             "description": (
                 "Iteration-independent Lyapunov analysis tools in AutoLyap for "
                 "linear and sublinear convergence certification."
@@ -598,6 +674,7 @@ html_context = {
             ],
         },
         "iteration_dependent_analysis": {
+            "title": "Iteration-Dependent Lyapunov Analysis | AutoLyap",
             "description": (
                 "Iteration-dependent Lyapunov analysis tools in AutoLyap for "
                 "finite-horizon and chained-inequality certification."
@@ -609,6 +686,7 @@ html_context = {
             ],
         },
         "lyapunov_analyses": {
+            "title": "Lyapunov Convergence Analysis API | AutoLyap",
             "description": (
                 "Lyapunov analysis entry points in AutoLyap for constructing and "
                 "verifying convergence certificates."
@@ -620,6 +698,7 @@ html_context = {
             ],
         },
         "solver_backends": {
+            "title": "MOSEK Fusion and CVXPY Solver Backends | AutoLyap",
             "description": (
                 "Solver backend options in AutoLyap, including MOSEK Fusion and "
                 "CVXPY-based workflows."
@@ -641,8 +720,134 @@ html_context = {
                 "testing and documentation workflow",
             ],
         },
+        "contributing/getting_started": {
+            "title": "Get Started Contributing to AutoLyap",
+            "description": (
+                "Set up an AutoLyap development environment, install test and "
+                "documentation dependencies, and verify a local checkout."
+            ),
+            "keywords": [
+                "AutoLyap contributor setup",
+                "AutoLyap development environment",
+                "install AutoLyap from source",
+            ],
+        },
+        "contributing/development_workflow": {
+            "title": "AutoLyap Development and Testing Workflow",
+            "description": (
+                "Follow the AutoLyap development workflow for branches, tests, "
+                "documentation builds, formatting, and pre-commit validation."
+            ),
+            "keywords": [
+                "AutoLyap development workflow",
+                "AutoLyap testing guide",
+                "AutoLyap documentation build",
+            ],
+        },
+        "contributing/pull_request_process": {
+            "title": "AutoLyap Pull Request Process",
+            "description": (
+                "Prepare, validate, and submit an AutoLyap pull request with the "
+                "project's review checklist and contribution requirements."
+            ),
+            "keywords": [
+                "AutoLyap pull request",
+                "AutoLyap contribution checklist",
+                "contribute code to AutoLyap",
+            ],
+        },
+        "dev/dev_reference": {
+            "title": "AutoLyap Developer API and Internals Reference",
+            "description": (
+                "Developer reference for AutoLyap internals, including analysis "
+                "assembly, solver execution, algorithms, and problem classes."
+            ),
+            "keywords": [
+                "AutoLyap developer reference",
+                "AutoLyap internal API",
+                "AutoLyap architecture",
+            ],
+        },
+        "dev/dev_internal_algorithms": {
+            "title": "AutoLyap Internal Algorithm Modules",
+            "description": (
+                "Internal AutoLyap algorithm APIs for contributors implementing "
+                "or modifying first-order optimization methods."
+            ),
+            "keywords": [
+                "AutoLyap algorithm internals",
+                "internal optimization algorithm API",
+                "AutoLyap contributor reference",
+            ],
+        },
+        "dev/dev_internal_core": {
+            "title": "AutoLyap Internal Analysis and Solver Modules",
+            "description": (
+                "Internal AutoLyap APIs for Lyapunov analysis assembly, solver "
+                "backends, diagnostics, and certificate execution."
+            ),
+            "keywords": [
+                "AutoLyap analysis internals",
+                "AutoLyap solver internals",
+                "Lyapunov certificate implementation",
+            ],
+        },
+        "dev/dev_internal_problemclass": {
+            "title": "AutoLyap Internal Problem-Class Modules",
+            "description": (
+                "Internal AutoLyap problem-class APIs for function, operator, "
+                "inclusion-problem, and interpolation-index implementations."
+            ),
+            "keywords": [
+                "AutoLyap problem class internals",
+                "interpolation index implementation",
+                "operator class internal API",
+            ],
+        },
+        "dev/dev_internal_utils": {
+            "title": "AutoLyap Internal Utility Modules",
+            "description": (
+                "Internal AutoLyap utility APIs shared by algorithm, problem "
+                "class, analysis, validation, and solver modules."
+            ),
+            "keywords": [
+                "AutoLyap utility internals",
+                "AutoLyap validation helpers",
+                "AutoLyap backend types",
+            ],
+        },
+        "dev/dev_external_reference_targets": {
+            "title": "AutoLyap External Reference Targets",
+            "description": (
+                "Internal cross-reference targets used to resolve external Python "
+                "types while building the AutoLyap documentation."
+            ),
+            "keywords": [
+                "AutoLyap external reference targets",
+                "Sphinx Python cross references",
+                "AutoLyap documentation internals",
+            ],
+            "noindex": True,
+        },
+        "examples/scripts/README": {
+            "title": "AutoLyap Example Asset Scripts",
+            "description": (
+                "Developer catalog of scripts that regenerate AutoLyap example "
+                "datasets and plots for the documentation."
+            ),
+            "keywords": [
+                "AutoLyap example scripts",
+                "AutoLyap documentation assets",
+                "regenerate AutoLyap plots",
+            ],
+            "noindex": True,
+        },
         "whats_new": {
-            "description": "Release highlights and feature updates for AutoLyap.",
+            "title": "AutoLyap Release Notes and New Features",
+            "description": (
+                "Explore AutoLyap release highlights, new analysis features, "
+                "documentation updates, and changes across package versions."
+            ),
             "keywords": [
                 "AutoLyap release notes",
                 "AutoLyap changelog",
@@ -672,15 +877,25 @@ html_context = {
             ],
         },
     },
-    "seo_repo_url": "https://github.com/AutoLyap/AutoLyap",
-    "seo_baseurl": "https://autolyap.github.io",
+    "seo_repo_url": seo_repo_url,
+    "seo_baseurl": seo_baseurl,
+    "seo_pypi_url": seo_pypi_url,
+    "seo_license_url": seo_license_url,
+    "seo_paper_url": seo_paper_url,
     "seo_author": author,
+    "seo_contributors": [
+        {"@type": "Person", "name": "Manu Upadhyaya"},
+        {"@type": "Person", "name": "Shuvomoy Das Gupta"},
+        {"@type": "Person", "name": "Adrien B. Taylor"},
+        {"@type": "Person", "name": "Sebastian Banert"},
+        {"@type": "Person", "name": "Pontus Giselsson"},
+    ],
     "seo_in_language": "en-US",
     "seo_organization_name": project,
-    "seo_organization_url": "https://autolyap.github.io",
+    "seo_organization_url": seo_baseurl,
     "seo_social_profiles": [
-        "https://github.com/AutoLyap/AutoLyap",
-        "https://manuupadhyaya.github.io/",
+        "https://github.com/AutoLyap",
+        seo_pypi_url,
     ],
     "seo_og_image_path": "/_static/favicon-master.png",
     "seo_og_image_width": 512,
@@ -695,10 +910,10 @@ mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 # MathJax macros aligned with Paper/ver_5/commands.tex and Paper/ver_5/preamble.tex.
 mathjax3_config = {
     "loader": {
-        "load": ["[tex]/html"],
+        "load": [],
     },
     "tex": {
-        "packages": {"[+]": ["html"]},
+        "packages": {"[+]": []},
         "macros": {
             "abs": [r"\left\lvert #1 \right\rvert", 1],
             "Bignorm": [r"\left\lVert #1 \right\rVert", 1],
@@ -791,8 +1006,8 @@ mathjax3_config = {
             "llbracket": r"\lbrack\!\lbrack",
             "rrbracket": r"\rbrack\!\rbrack",
             "underbracket": [r"\underbrace{#1}", 1],
-        }
-    }
+        },
+    },
 }
 
 
@@ -851,10 +1066,6 @@ def _docname_url_path(app, docname):
     if docname == app.config.root_doc:
         return "/"
 
-    builder_name = str(getattr(app.builder, "name", "")).strip().lower()
-    if builder_name == "dirhtml":
-        return f"/{docname}/"
-
     try:
         target_uri = str(app.builder.get_target_uri(docname)).strip()
     except Exception:
@@ -870,15 +1081,22 @@ def _docname_page_url(app, docname, baseurl):
     return f"{baseurl}{_docname_url_path(app, docname)}"
 
 
-def _is_noindex_docname(docname: str) -> bool:
+def _is_noindex_docname(docname: str, seo_pages=None) -> bool:
     """Return whether a generated HTML page should be excluded from indexing."""
     noindex_pages = {"search", "genindex", "py-modindex", "modindex"}
-    return (
+    generated_noindex = (
         docname in noindex_pages
         or "genindex" in docname
         or docname.startswith("_modules/")
         or docname.startswith("_sources/")
     )
+    if generated_noindex:
+        return True
+
+    if not isinstance(seo_pages, dict):
+        return False
+    page_config = seo_pages.get(docname, {})
+    return isinstance(page_config, dict) and bool(page_config.get("noindex"))
 
 
 def _normalize_meta_text(text):
@@ -968,9 +1186,6 @@ def _build_fallback_keywords(pagename, page_title, default_keywords):
         seen.add(key)
         keywords.append(normalized)
 
-    for keyword in default_keywords:
-        _push(keyword)
-
     title_text = _normalize_meta_text(page_title)
     if title_text and title_text.lower() != "autolyap":
         _push(f"AutoLyap {title_text}")
@@ -982,6 +1197,9 @@ def _build_fallback_keywords(pagename, page_title, default_keywords):
         )
         if readable_path:
             _push(f"AutoLyap {readable_path}")
+
+    for keyword in default_keywords:
+        _push(keyword)
 
     return keywords[:10]
 
@@ -1012,6 +1230,8 @@ def _collect_page_feature_flags(doctree):
         "page_has_code_blocks": False,
         "page_has_images": False,
         "page_has_proofs": False,
+        "page_needs_math_html": False,
+        "page_needs_math_tag_links": False,
     }
     if doctree is None:
         return flags
@@ -1028,6 +1248,29 @@ def _collect_page_feature_flags(doctree):
             for container in doctree.findall(nodes.container)
         )
     )
+    math_nodes = [
+        *doctree.findall(nodes.math),
+        *doctree.findall(nodes.math_block),
+    ]
+    math_source = "\n".join(str(node.rawsource) for node in math_nodes)
+    flags["page_needs_math_html"] = bool(
+        re.search(r"\\(?:href|class|cssId|style)\b", math_source)
+    )
+    flags["page_needs_math_tag_links"] = bool(
+        r"\tag{" in math_source
+        or any(
+            str(css_class).startswith("eq-align-")
+            for element in doctree.findall()
+            if isinstance(element, nodes.Element)
+            for css_class in element.get("classes", [])
+        )
+        or any(
+            str(element_id) in {"eq-c1", "eq-c2", "eq-c3", "eq-c4"}
+            for element in doctree.findall()
+            if isinstance(element, nodes.Element)
+            for element_id in element.get("ids", [])
+        )
+    )
     return flags
 
 
@@ -1040,7 +1283,7 @@ def _script_filename(script_file):
 
 
 def _filter_optional_script_files(
-    context, *, page_has_math, page_has_code_blocks, page_has_images, page_has_proofs
+    context, *, page_has_code_blocks, page_has_proofs, page_needs_math_tag_links
 ):
     """Drop optional scripts from pages that do not need them."""
     script_files = context.get("script_files")
@@ -1048,14 +1291,11 @@ def _filter_optional_script_files(
         return
 
     keep_copybutton = bool(page_has_code_blocks)
-    keep_math_tag_links = bool(page_has_math)
-    keep_perf = bool(page_has_images)
+    keep_math_tag_links = bool(page_needs_math_tag_links)
     keep_proof_toggle = bool(page_has_proofs)
     filtered = []
     for script_file in script_files:
         script_name = _script_filename(script_file)
-        if "perf.js" in script_name and not keep_perf:
-            continue
         if "copybutton.js" in script_name and not keep_copybutton:
             continue
         if "math_tag_links.js" in script_name and not keep_math_tag_links:
@@ -1067,10 +1307,493 @@ def _filter_optional_script_files(
     context["script_files"] = filtered
 
 
+def _filter_optional_css_files(context, *, page_has_code_blocks):
+    """Drop syntax-highlighting CSS from pages without literal blocks."""
+    css_files = context.get("css_files")
+    if not css_files or page_has_code_blocks:
+        return
+    context["css_files"] = [
+        css_file
+        for css_file in css_files
+        if "pygments.css" not in _script_filename(css_file)
+    ]
+
+
+_HTML_IMAGE_RE = re.compile(r"<img\b[^>]*?/?>", flags=re.IGNORECASE)
+_BADGE_LINK_RE = re.compile(
+    r"<a\b[^>]*>\s*<img\b[^>]*\bsrc=[\"']https://img\.shields\.io/[^>]*?/?>\s*</a>",
+    flags=re.IGNORECASE,
+)
+_SHIELDS_IMAGE_DIMENSIONS = {
+    "PyPI version": (97, 20),
+    "PyPI downloads": (104, 20),
+    "GitHub stars": (77, 20),
+    "Paper": (169, 20),
+    "Open in Colab": (111, 20),
+}
+
+
+def _html_attribute(tag, name):
+    """Return an HTML attribute value from a generated element string."""
+    match = re.search(
+        rf"\b{re.escape(name)}\s*=\s*([\"'])(.*?)\1",
+        tag,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    return match.group(2) if match else ""
+
+
+def _append_html_attribute(tag, name, value):
+    """Add an attribute to a generated HTML tag unless it already exists."""
+    if re.search(rf"\b{re.escape(name)}\s*=", tag, flags=re.IGNORECASE):
+        return tag
+    if tag.endswith("/>"):
+        return f'{tag[:-2].rstrip()} {name}="{value}" />'
+    return f'{tag[:-1].rstrip()} {name}="{value}">'
+
+
+@lru_cache(maxsize=None)
+def _svg_intrinsic_dimensions(path_string):
+    """Read integer intrinsic dimensions from one of the generated plot SVGs."""
+    path = Path(path_string)
+    if not path.is_file():
+        return None
+    header = path.read_text(encoding="utf-8")[:2048]
+    svg_tag = re.search(r"<svg\b[^>]*>", header, flags=re.IGNORECASE)
+    if svg_tag is None:
+        return None
+    width = _html_attribute(svg_tag.group(0), "width")
+    height = _html_attribute(svg_tag.group(0), "height")
+    if not width.isdigit() or not height.isdigit():
+        return None
+    return int(width), int(height)
+
+
+def _optimize_content_image_markup(app, context):
+    """Emit image sizing and loading hints before the browser discovers images."""
+    body = context.get("body")
+    if not body:
+        return
+
+    static_dir = Path(app.srcdir) / "_static"
+    badge_index = 0
+
+    def _enhance_image(match):
+        nonlocal badge_index
+        tag = match.group(0)
+        source = _html_attribute(tag, "src")
+        alt = _html_attribute(tag, "alt")
+        parsed_source = urlparse(source)
+        is_badge = parsed_source.netloc == "img.shields.io"
+
+        dimensions = _SHIELDS_IMAGE_DIMENSIONS.get(alt) if is_badge else None
+        if dimensions is None and parsed_source.path.lower().endswith(".svg"):
+            source_name = Path(unquote(parsed_source.path)).name
+            dimensions = _svg_intrinsic_dimensions(str(static_dir / source_name))
+        if dimensions is not None:
+            tag = _append_html_attribute(tag, "width", dimensions[0])
+            tag = _append_html_attribute(tag, "height", dimensions[1])
+
+        tag = _append_html_attribute(tag, "decoding", "async")
+        if is_badge:
+            tag = _append_html_attribute(tag, "loading", "eager")
+            if badge_index == 0:
+                tag = _append_html_attribute(tag, "fetchpriority", "high")
+            badge_index += 1
+        else:
+            tag = _append_html_attribute(tag, "loading", "lazy")
+            tag = _append_html_attribute(tag, "fetchpriority", "low")
+        return tag
+
+    optimized_body = _HTML_IMAGE_RE.sub(_enhance_image, str(body))
+
+    def _enhance_badge_link(match):
+        markup = match.group(0)
+        opening_tag_end = markup.find(">") + 1
+        opening_tag = markup[:opening_tag_end]
+        opening_tag = _append_html_attribute(opening_tag, "target", "_blank")
+        opening_tag = _append_html_attribute(opening_tag, "rel", "noopener noreferrer")
+        return f"{opening_tag}{markup[opening_tag_end:]}"
+
+    context["body"] = _BADGE_LINK_RE.sub(_enhance_badge_link, optimized_body)
+
+
+def _font_subset_codepoints(outdir):
+    """Collect visible current-site characters for exact, rebuildable subsets."""
+
+    class _VisibleTextParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.characters = set()
+            self._hidden_depth = 0
+
+        def handle_starttag(self, tag, attrs):
+            if tag in {"script", "style"}:
+                self._hidden_depth += 1
+
+        def handle_endtag(self, tag):
+            if tag in {"script", "style"} and self._hidden_depth:
+                self._hidden_depth -= 1
+
+        def handle_data(self, data):
+            if not self._hidden_depth:
+                self.characters.update(ord(character) for character in data)
+
+    codepoints = set(range(0x20, 0x7F))
+    codepoints.add(0x00A0)
+    for html_path in Path(outdir).rglob("*.html"):
+        parser = _VisibleTextParser()
+        parser.feed(html_path.read_text("utf-8"))
+        codepoints.update(parser.characters)
+    return {codepoint for codepoint in codepoints if not 0xE000 <= codepoint <= 0xF8FF}
+
+
+def _fontawesome_subset_codepoints(outdir):
+    """Collect FontAwesome glyphs used by markup and RTD structural controls."""
+    codepoints = {
+        0xF019,  # download link
+        0xF02D,  # Read the Docs version book
+        0xF057,  # validation error
+        0xF058,  # validation success
+        0xF06A,  # admonition/validation notice
+        0xF08E,  # external-link marker
+        0xF0A8,  # previous page
+        0xF0A9,  # next page
+        0xF0C1,  # heading permalink
+        0xF0C9,  # mobile navigation
+        0xF0D7,  # dropdown caret
+        0xF147,  # expanded navigation branch
+        0xF196,  # collapsed navigation branch
+    }
+    for html_path in Path(outdir).rglob("*.html"):
+        codepoints.update(
+            ord(character)
+            for character in html_path.read_text("utf-8")
+            if 0xF000 <= ord(character) <= 0xF8FF
+        )
+    return codepoints
+
+
+def _built_image_dimensions(path):
+    """Return intrinsic dimensions for SVG and PNG build assets."""
+    if path.suffix.lower() == ".svg":
+        return _svg_intrinsic_dimensions(str(path))
+    if path.suffix.lower() == ".png" and path.is_file():
+        header = path.read_bytes()[:24]
+        if header[:8] == b"\x89PNG\r\n\x1a\n" and len(header) == 24:
+            return int.from_bytes(header[16:20], "big"), int.from_bytes(
+                header[20:24], "big"
+            )
+    return None
+
+
+def _finalize_generated_markup(outdir):
+    """Cover generated index/search markup that bypasses document doctrees."""
+    external_script_re = re.compile(
+        r"<script\b(?=[^>]*\bsrc=)[^>]*>", flags=re.IGNORECASE
+    )
+    navigation_bootstrap_re = re.compile(
+        r"<script>\s*jQuery\(function \(\) \{\s*"
+        r"SphinxRtdTheme\.Navigation\.enable\((true|false)\);\s*"
+        r"\}\);\s*</script>",
+        flags=re.IGNORECASE,
+    )
+
+    for html_path in Path(outdir).rglob("*.html"):
+        markup = html_path.read_text("utf-8")
+
+        def _defer_script(match):
+            tag = match.group(0)
+            if re.search(r"\b(?:defer|async)\b", tag, flags=re.IGNORECASE):
+                return tag
+            return _append_html_attribute(tag, "defer", "defer")
+
+        markup = external_script_re.sub(_defer_script, markup)
+        markup = navigation_bootstrap_re.sub(
+            (
+                '<script>document.addEventListener("DOMContentLoaded",function(){'
+                r"SphinxRtdTheme.Navigation.enable(\1);"
+                "},{once:true});</script>"
+            ),
+            markup,
+        )
+
+        def _complete_image(match):
+            tag = match.group(0)
+            source = _html_attribute(tag, "src")
+            css_class = _html_attribute(tag, "class")
+            parsed_source = urlparse(source)
+            if not parsed_source.netloc:
+                asset_path = (html_path.parent / unquote(parsed_source.path)).resolve()
+                try:
+                    asset_path.relative_to(Path(outdir).resolve())
+                except ValueError:
+                    asset_path = None
+                if asset_path is not None:
+                    dimensions = _built_image_dimensions(asset_path)
+                    if dimensions is not None:
+                        tag = _append_html_attribute(tag, "width", dimensions[0])
+                        tag = _append_html_attribute(tag, "height", dimensions[1])
+            if "toggler" in css_class.split():
+                tag = _append_html_attribute(tag, "loading", "eager")
+                tag = _append_html_attribute(tag, "decoding", "sync")
+            else:
+                tag = _append_html_attribute(tag, "loading", "lazy")
+                tag = _append_html_attribute(tag, "decoding", "async")
+            return tag
+
+        markup = _HTML_IMAGE_RE.sub(_complete_image, markup)
+        html_path.write_text(markup, encoding="utf-8")
+
+
+def _subset_font(source, destination, codepoints):
+    """Create a deterministic WOFF2 subset while retaining outlines and hinting."""
+    unicodes = ",".join(f"U+{codepoint:04X}" for codepoint in sorted(codepoints))
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "fontTools.subset",
+            str(source),
+            f"--output-file={destination}",
+            "--flavor=woff2",
+            f"--unicodes={unicodes}",
+            "--ignore-missing-unicodes",
+            "--layout-features=*",
+            "--glyph-names",
+            "--symbol-cmap",
+            "--legacy-cmap",
+            "--notdef-glyph",
+            "--notdef-outline",
+            "--recommended-glyphs",
+            "--name-IDs=*",
+            "--name-legacy",
+            "--name-languages=*",
+            "--retain-gids",
+            "--drop-tables+=FFTM",
+            "--no-recalc-timestamp",
+        ],
+        check=True,
+    )
+
+
+def _write_performance_assets(app, exception):
+    """Generate lean font assets and remove unused duplicate build artifacts."""
+    if exception is not None or app.builder.format != "html":
+        return
+
+    import sphinx_rtd_theme
+
+    outdir = Path(app.outdir)
+    _finalize_generated_markup(outdir)
+    theme_font_dir = (
+        Path(sphinx_rtd_theme.__file__).resolve().parent / "static/css/fonts"
+    )
+    output_font_dir = outdir / "_static/fonts"
+
+    # The theme also copies legacy font bundles here; no generated CSS references them.
+    shutil.rmtree(output_font_dir / "Lato", ignore_errors=True)
+    shutil.rmtree(output_font_dir / "RobotoSlab", ignore_errors=True)
+    output_font_dir.mkdir(parents=True, exist_ok=True)
+
+    text_codepoints = _font_subset_codepoints(outdir)
+    for source_name, output_name in {
+        "lato-normal.woff2": "autolyap-lato-normal.woff2",
+        "lato-bold.woff2": "autolyap-lato-bold.woff2",
+        "lato-normal-italic.woff2": "autolyap-lato-normal-italic.woff2",
+        "lato-bold-italic.woff2": "autolyap-lato-bold-italic.woff2",
+    }.items():
+        _subset_font(
+            theme_font_dir / source_name,
+            output_font_dir / output_name,
+            text_codepoints,
+        )
+    _subset_font(
+        theme_font_dir / "fontawesome-webfont.woff2",
+        output_font_dir / "autolyap-fontawesome.woff2",
+        _fontawesome_subset_codepoints(outdir),
+    )
+
+    # Image directives already copied these SVGs to _images; the static copies are unused.
+    static_dir = outdir / "_static"
+    image_dir = outdir / "_images"
+    for static_svg in static_dir.glob("*.svg"):
+        if (image_dir / static_svg.name).is_file():
+            static_svg.unlink()
+
+
+def _remove_duplicate_viewport_metatag(context):
+    """Let the Read the Docs theme emit the page's single viewport tag."""
+    metatags = context.get("metatags")
+    if not metatags:
+        return
+    cleaned = re.sub(
+        r'<meta\b(?=[^>]*\bname=["\']viewport["\'])[^>]*?/?>',
+        "",
+        str(metatags),
+        flags=re.IGNORECASE,
+    )
+    context["metatags"] = type(metatags)(cleaned)
+
+
+def _as_utc_iso(value):
+    """Normalize an ISO datetime string to a UTC ``Z`` representation."""
+    try:
+        parsed = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
+    except ValueError:
+        return ""
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return (
+        parsed.astimezone(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+@lru_cache(maxsize=None)
+def _git_source_dates(source_path_string):
+    """Return first and latest Git timestamps for one documentation source."""
+    source_path = Path(source_path_string).resolve()
+    history = []
+    try:
+        relative_path = source_path.relative_to(root)
+        result = subprocess.run(
+            [
+                "git",
+                "log",
+                "--follow",
+                "--format=%cI",
+                "--",
+                relative_path.as_posix(),
+            ],
+            cwd=root,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            history = [
+                normalized
+                for line in result.stdout.splitlines()
+                if (normalized := _as_utc_iso(line))
+            ]
+    except (OSError, subprocess.SubprocessError, ValueError):
+        history = []
+
+    if history:
+        return history[-1], history[0]
+
+    try:
+        timestamp = datetime.fromtimestamp(source_path.stat().st_mtime, tz=timezone.utc)
+    except OSError:
+        return "", ""
+    fallback = timestamp.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return fallback, fallback
+
+
+def _document_source_dates(app, docname):
+    """Return first-published and latest Git dates for a document source."""
+    try:
+        source_path = Path(app.env.doc2path(docname))
+    except Exception:
+        return "", ""
+    return _git_source_dates(str(source_path))
+
+
+_COLLECTION_DOCNAMES = {
+    "algorithms",
+    "api_reference",
+    "contributing",
+    "dev/dev_reference",
+    "examples",
+    "examples/chambolle_pock/index",
+    "examples/define_your_own_algorithm/index",
+    "examples/douglas_rachford/index",
+    "examples/gradient_method/index",
+    "examples/heavy_ball/index",
+    "examples/nesterov_momentum/index",
+    "theory",
+    "whats_new",
+}
+
+_API_REFERENCE_DOCNAMES = {
+    "base_algorithms",
+    "concrete_algorithms",
+    "function_classes",
+    "iteration_dependent_analysis",
+    "iteration_independent_analysis",
+    "lyapunov_analyses",
+    "operator_classes",
+    "problem_class",
+    "solver_backends",
+}
+
+
+def _infer_schema_type(pagename, root_doc, seo_page):
+    """Choose the most specific Schema.org type supported by a page."""
+    configured_type = seo_page.get("schema_type")
+    if configured_type:
+        return configured_type
+    if pagename == root_doc:
+        return "WebPage"
+    if pagename in _COLLECTION_DOCNAMES:
+        return "CollectionPage"
+    if pagename in _API_REFERENCE_DOCNAMES or pagename.startswith("dev/dev_internal_"):
+        return "APIReference"
+    return "TechArticle"
+
+
+def _learning_resource_defaults(pagename, schema_type):
+    """Return conservative educational metadata for documentation categories."""
+    schema_types = schema_type if isinstance(schema_type, list) else [schema_type]
+    if "CollectionPage" in schema_types or "WebPage" in schema_types:
+        return "", "", ""
+    if pagename.startswith("examples/"):
+        return "worked example", "Advanced", "Expert"
+    if pagename.startswith("theory/"):
+        return "technical reference", "Advanced", "Expert"
+    if pagename.startswith("contributing/") or pagename == "quick_start":
+        return "guide", "Beginner", "Beginner"
+    if "APIReference" in schema_types:
+        return "API reference", "Intermediate", "Intermediate"
+    if pagename.startswith("release_notes/"):
+        return "release notes", "Intermediate", "Intermediate"
+    return "technical documentation", "Intermediate", "Intermediate"
+
+
+def _build_breadcrumb_items(context, page_url, baseurl, pagename, root_doc):
+    """Build absolute structured breadcrumbs from Sphinx's relative parents."""
+    if not page_url or pagename == root_doc:
+        return []
+
+    home_url = f"{baseurl}/"
+    items = [{"name": "Home", "url": home_url}]
+    seen_urls = {home_url}
+    for parent in context.get("parents", []):
+        link = parent.get("link", "") if hasattr(parent, "get") else ""
+        title = parent.get("title", "") if hasattr(parent, "get") else ""
+        parent_url = urljoin(page_url, str(link))
+        parent_title = _normalize_meta_text(title)
+        if not parent_url or not parent_title or parent_url in seen_urls:
+            continue
+        seen_urls.add(parent_url)
+        items.append({"name": parent_title, "url": parent_url})
+
+    current_title = _normalize_meta_text(context.get("title", ""))
+    if current_title and page_url not in seen_urls:
+        items.append({"name": current_title, "url": page_url})
+    return items
+
+
 def _inject_seo_page_context(app, pagename, templatename, context, doctree):
     """Expose normalized URL and indexability flags to templates."""
     if app.builder.format != "html":
         return
+
+    _remove_duplicate_viewport_metatag(context)
 
     seo_pages = app.config.html_context.get("seo_pages", {})
     seo_page = seo_pages.get(pagename, {}) if isinstance(seo_pages, dict) else {}
@@ -1098,38 +1821,69 @@ def _inject_seo_page_context(app, pagename, templatename, context, doctree):
             seo_default_keywords,
         )
 
+    schema_type = _infer_schema_type(pagename, app.config.root_doc, seo_page)
+    resource_type, educational_level, proficiency_level = _learning_resource_defaults(
+        pagename, schema_type
+    )
+    context["seo_schema_type"] = schema_type
+    context["seo_learning_resource_type"] = seo_page.get(
+        "learning_resource_type", resource_type
+    )
+    context["seo_educational_level"] = seo_page.get(
+        "educational_level", educational_level
+    )
+    context["seo_proficiency_level"] = seo_page.get(
+        "proficiency_level", proficiency_level
+    )
+    context["seo_dependencies"] = seo_page.get("dependencies", "")
+    context["seo_teaches"] = seo_page.get("teaches", [])
+    context["seo_citation"] = seo_page.get("citation", {})
+    context["seo_word_count"] = (
+        len(re.findall(r"\b[\w'-]+\b", doctree.astext())) if doctree is not None else 0
+    )
+
     feature_flags = _collect_page_feature_flags(doctree)
+    if pagename.startswith("_modules/") and pagename != "_modules/index":
+        # View-code pages are generated outside a source doctree but still need
+        # syntax highlighting and copy controls.
+        feature_flags["page_has_code_blocks"] = True
     context.update(feature_flags)
     _filter_optional_script_files(
         context,
-        page_has_math=feature_flags["page_has_math"],
         page_has_code_blocks=feature_flags["page_has_code_blocks"],
-        page_has_images=feature_flags["page_has_images"],
         page_has_proofs=feature_flags["page_has_proofs"],
+        page_needs_math_tag_links=feature_flags["page_needs_math_tag_links"],
     )
-
-    context["seo_is_noindex"] = _is_noindex_docname(pagename)
-    try:
-        source_path = Path(app.env.doc2path(pagename, base=None))
-        modified_at = datetime.fromtimestamp(
-            source_path.stat().st_mtime,
-            tz=timezone.utc,
-        )
-    except Exception:
-        modified_at = datetime.now(tz=timezone.utc)
-
-    context["seo_lastmod_iso"] = (
-        modified_at.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    _filter_optional_css_files(
+        context,
+        page_has_code_blocks=feature_flags["page_has_code_blocks"],
     )
+    _optimize_content_image_markup(app, context)
+
+    is_noindex = _is_noindex_docname(pagename, seo_pages)
+    context["seo_is_noindex"] = is_noindex
+    published_iso, modified_iso = _document_source_dates(app, pagename)
+    context["seo_published_iso"] = published_iso
+    context["seo_lastmod_iso"] = modified_iso
 
     baseurl = _normalized_baseurl(app)
     if not baseurl:
         return
 
     page_url = _docname_page_url(app, pagename, baseurl)
-    context["seo_search_url"] = _docname_page_url(app, "search", baseurl)
     context["pageurl"] = page_url
     context["seo_page_url"] = page_url
+    context["seo_breadcrumb_items"] = (
+        []
+        if is_noindex
+        else _build_breadcrumb_items(
+            context,
+            page_url,
+            baseurl,
+            pagename,
+            app.config.root_doc,
+        )
+    )
 
 
 def _write_sitemap_and_robots(app, exception):
@@ -1143,59 +1897,32 @@ def _write_sitemap_and_robots(app, exception):
 
     env = app.builder.env
     outdir = Path(app.builder.outdir)
+    seo_pages = app.config.html_context.get("seo_pages", {})
     sitemap_lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ]
 
     for docname in sorted(env.found_docs):
-        if _is_noindex_docname(docname):
+        if _is_noindex_docname(docname, seo_pages):
             continue
         loc = _docname_page_url(app, docname, baseurl)
-        if docname == app.config.root_doc:
-            priority = "1.0"
-        else:
-            priority = "0.8"
-
-        source_path = Path(env.doc2path(docname, base=None))
-        try:
-            lastmod = (
-                datetime.fromtimestamp(source_path.stat().st_mtime, tz=timezone.utc)
-                .replace(microsecond=0)
-                .isoformat()
-                .replace("+00:00", "Z")
-            )
-        except OSError:
-            lastmod = (
-                datetime.now(tz=timezone.utc)
-                .replace(microsecond=0)
-                .isoformat()
-                .replace("+00:00", "Z")
-            )
-
-        sitemap_lines.extend(
-            [
-                "  <url>",
-                f"    <loc>{xml_escape(loc)}</loc>",
-                f"    <lastmod>{lastmod}</lastmod>",
-                "    <changefreq>weekly</changefreq>",
-                f"    <priority>{priority}</priority>",
-                "  </url>",
-            ]
-        )
+        _, lastmod = _document_source_dates(app, docname)
+        sitemap_entry = ["  <url>", f"    <loc>{xml_escape(loc)}</loc>"]
+        if lastmod:
+            sitemap_entry.append(f"    <lastmod>{lastmod}</lastmod>")
+        sitemap_entry.append("  </url>")
+        sitemap_lines.extend(sitemap_entry)
 
     sitemap_lines.append("</urlset>")
-    (outdir / "sitemap.xml").write_text("\n".join(sitemap_lines) + "\n", encoding="utf-8")
+    (outdir / "sitemap.xml").write_text(
+        "\n".join(sitemap_lines) + "\n", encoding="utf-8"
+    )
 
     robots_lines = [
         "User-agent: *",
         "Allow: /",
-        f"Disallow: {_docname_url_path(app, 'search')}",
-        f"Disallow: {_docname_url_path(app, 'genindex')}",
-        f"Disallow: {_docname_url_path(app, 'py-modindex')}",
-        f"Disallow: {_docname_url_path(app, 'modindex')}",
         "Disallow: /_sources/",
-        "Disallow: /_modules/",
         f"Sitemap: {baseurl}/sitemap.xml",
     ]
     (outdir / "robots.txt").write_text("\n".join(robots_lines) + "\n", encoding="utf-8")
@@ -1294,13 +2021,13 @@ def setup(app):
     app.connect("html-page-context", _inject_seo_page_context)
     app.connect("doctree-read", _suppress_member_toc_entries)
     app.connect("build-finished", _write_sitemap_and_robots)
+    app.connect("build-finished", _write_performance_assets)
     # Defer non-critical scripts to reduce render-blocking time.
-    app.add_js_file("badge_links.js", defer="defer")
     app.add_js_file("copybutton.js", defer="defer")
     app.add_js_file("content_width_toggle.js", defer="defer")
-    app.add_js_file("perf.js", defer="defer")
     app.add_js_file("proof_toggle.js", defer="defer")
     app.add_js_file("math_tag_links.js", defer="defer")
+
 
 source_suffix = {
     ".rst": "restructuredtext",

@@ -20,13 +20,13 @@
 {%- if not embedded %}
   {%- for scriptfile in script_files %}
     {%- set _script_tag = js_tag(scriptfile) -%}
-    {%- set _is_perf = "perf.js" in _script_tag -%}
-    {%- set _is_copybutton = "copybutton.js" in _script_tag -%}
-    {%- set _is_math_tags = "math_tag_links.js" in _script_tag -%}
-    {%- set _is_proof_toggle = "proof_toggle.js" in _script_tag -%}
-    {%- if (not _is_perf or page_has_images | default(false)) and (not _is_copybutton or page_has_code_blocks | default(false)) and (not _is_math_tags or page_has_math | default(false)) and (not _is_proof_toggle or page_has_proofs | default(false)) -%}
-    {{ _script_tag }}
+    {%- if " src=" in _script_tag and " defer=" not in _script_tag and " async=" not in _script_tag -%}
+      {%- set _script_tag = _script_tag | replace("<script ", "<script defer=\"defer\" ", 1) -%}
     {%- endif -%}
+    {%- if "mathjax@3.2.2" in _script_tag and page_needs_math_html | default(false) %}
+    <script>window.MathJax.loader.load.push("[tex]/html");window.MathJax.tex.packages["[+]"]=["html"];</script>
+    {%- endif %}
+    {{ _script_tag }}
   {%- endfor %}
   <script defer="defer" src="{{ pathto('_static/js/theme.js', 1) }}"></script>
 
@@ -44,6 +44,9 @@
 
 {% block extrahead %}
 {{ super() }}
+<link rel="preload" href="{{ pathto('_static/fonts/autolyap-lato-normal.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
+<link rel="preload" href="{{ pathto('_static/fonts/autolyap-lato-bold.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
+<link rel="preload" href="{{ pathto('_static/fonts/autolyap-fontawesome.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
 {%- if page_has_math | default(false) %}
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
@@ -64,7 +67,11 @@
 {%- set _seo_page_keywords = seo_page_keywords | default([], true) %}
 {%- set _seo_keywords = _seo_page_keywords if _seo_page_keywords else _seo_page.get("keywords", _seo_default_keywords) %}
 {%- set _seo_repo_url = seo_repo_url | default("https://github.com/AutoLyap/AutoLyap") %}
+{%- set _seo_pypi_url = seo_pypi_url | default("https://pypi.org/project/autolyap/") %}
+{%- set _seo_license_url = seo_license_url | default("https://spdx.org/licenses/GPL-3.0-only.html") %}
+{%- set _seo_paper_url = seo_paper_url | default("https://doi.org/10.48550/arXiv.2506.24076") %}
 {%- set _seo_author = seo_author | default(author, true) | default("AutoLyap contributors", true) %}
+{%- set _seo_contributors = seo_contributors | default([], true) %}
 {%- set _seo_in_language = seo_in_language | default("en-US") %}
 {%- set _seo_organization_name = seo_organization_name | default(_seo_site_name) %}
 {%- set _seo_organization_url = seo_organization_url | default(_seo_baseurl, true) %}
@@ -74,8 +81,17 @@
 {%- set _seo_og_image_path = seo_og_image_path | default("/_static/favicon-master.png") %}
 {%- set _seo_og_image_width = seo_og_image_width | default(512) %}
 {%- set _seo_og_image_height = seo_og_image_height | default(512) %}
-{%- set _seo_search_url = seo_search_url | default(_seo_baseurl ~ "/search/", true) %}
+{%- set _seo_published_iso = seo_published_iso | default("", true) %}
 {%- set _seo_lastmod_iso = seo_lastmod_iso | default("", true) %}
+{%- set _seo_schema_type = seo_schema_type | default("WebPage", true) %}
+{%- set _seo_learning_resource_type = seo_learning_resource_type | default("", true) %}
+{%- set _seo_educational_level = seo_educational_level | default("", true) %}
+{%- set _seo_proficiency_level = seo_proficiency_level | default("", true) %}
+{%- set _seo_dependencies = seo_dependencies | default("", true) %}
+{%- set _seo_teaches = seo_teaches | default([], true) %}
+{%- set _seo_citation = seo_citation | default({}, true) %}
+{%- set _seo_word_count = seo_word_count | default(0, true) %}
+{%- set _seo_breadcrumb_items = seo_breadcrumb_items | default([], true) %}
 {%- set _seo_twitter_site = seo_twitter_site | default("", true) %}
 {%- set _root_doc = root_doc | default(master_doc) %}
 {%- set _page_url = seo_page_url | default(pageurl, true) | default("", true) %}
@@ -94,12 +110,14 @@
 {%- endif %}
 {%- set _is_noindex = seo_is_noindex | default(false) %}
 {%- set _robots_value = "noindex,follow" if _is_noindex else "index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" %}
-{%- set _og_type = "website" if pagename == _root_doc else "article" %}
+{%- set _og_type = "website" if pagename == _root_doc or _seo_schema_type == "CollectionPage" else "article" %}
 {%- if _page_url %}
-<link rel="alternate" hreflang="en" href="{{ _page_url }}"/>
-<link rel="alternate" hreflang="x-default" href="{{ _page_url }}"/>
 <meta property="og:url" content="{{ _page_url }}"/>
 <meta name="twitter:url" content="{{ _page_url }}"/>
+{%- endif %}
+<link rel="license" href="{{ _seo_license_url }}"/>
+{%- if _seo_org_url %}
+<link rel="author" href="{{ _seo_org_url }}/"/>
 {%- endif %}
 {%- if _seo_og_image_url %}
 <meta property="og:image" content="{{ _seo_og_image_url }}"/>
@@ -114,19 +132,22 @@
 <meta name="twitter:image:alt" content="{{ _seo_site_name | e }} logo"/>
 {%- endif %}
 {%- if _seo_lastmod_iso %}
-<meta property="article:modified_time" content="{{ _seo_lastmod_iso }}"/>
 <meta property="og:updated_time" content="{{ _seo_lastmod_iso }}"/>
+{%- if _og_type == "article" %}
+<meta property="article:modified_time" content="{{ _seo_lastmod_iso }}"/>
+{%- endif %}
+{%- endif %}
+{%- if _seo_published_iso and _og_type == "article" %}
+<meta property="article:published_time" content="{{ _seo_published_iso }}"/>
 {%- endif %}
 <meta name="author" content="{{ _seo_author | e }}"/>
 <meta name="description" content="{{ _seo_description | e }}"/>
-<meta name="keywords" content="{{ _seo_keywords | join(', ') | e }}"/>
 <meta name="robots" content="{{ _robots_value }}"/>
-<meta name="googlebot" content="{{ _robots_value }}"/>
 <meta property="og:type" content="{{ _og_type }}"/>
 <meta property="og:site_name" content="{{ _seo_site_name | e }}"/>
 <meta property="og:title" content="{{ _seo_title | e }}"/>
 <meta property="og:description" content="{{ _seo_description | e }}"/>
-<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="{{ _seo_title | e }}"/>
 <meta name="twitter:description" content="{{ _seo_description | e }}"/>
 {%- if _seo_twitter_site %}
@@ -134,38 +155,35 @@
 {%- endif %}
 {%- if _og_type == "article" %}
 {%- set _article_section = pagename.split('/')[0] | replace('_', ' ') | replace('-', ' ') | title %}
-<meta property="article:author" content="{{ _seo_author | e }}"/>
+{%- if _seo_org_url %}
+<meta property="article:author" content="{{ _seo_org_url }}/"/>
+{%- endif %}
 <meta property="article:section" content="{{ _article_section | e }}"/>
 {%- for _keyword in _seo_keywords[:3] %}
 <meta property="article:tag" content="{{ _keyword | e }}"/>
 {%- endfor %}
 {%- endif %}
-{%- set _seo_search_target = _seo_search_url ~ "?q={search_term_string}" %}
-{%- if _seo_baseurl %}
+{%- if pagename == _root_doc and _seo_baseurl %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "@id": {{ (_seo_baseurl ~ "/#website") | tojson }},
   "name": {{ _seo_site_name | tojson }},
+  "alternateName": "AutoLyap documentation",
   "url": {{ (_seo_baseurl ~ "/") | tojson }},
   "description": {{ _seo_default_description | tojson }},
-  "inLanguage": {{ _seo_in_language | tojson }},
+  "inLanguage": {{ _seo_in_language | tojson }}
   {%- if _seo_org_id %}
-  "publisher": { "@id": {{ _seo_org_id | tojson }} },
+  ,"publisher": { "@id": {{ _seo_org_id | tojson }} }
   {%- endif %}
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": {{ _seo_search_target | tojson }},
-    "query-input": "required name=search_term_string"
-  }
 }
 </script>
 {%- endif %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebPage",
+  "@type": {{ _seo_schema_type | tojson }},
   "@id": {{ ((_page_url if _page_url else "") ~ "#webpage") | tojson }},
   "name": {{ _seo_title | tojson }},
   "headline": {{ _seo_title | tojson }},
@@ -174,37 +192,51 @@
   "url": {{ (_page_url if _page_url else "") | tojson }},
   "inLanguage": {{ _seo_in_language | tojson }},
   "mainEntityOfPage": {{ (_page_url if _page_url else "") | tojson }},
-  {%- if _seo_lastmod_iso %}
-  "dateModified": {{ _seo_lastmod_iso | tojson }},
-  {%- endif %}
-  {%- if _seo_org_id %}
-  "publisher": { "@id": {{ _seo_org_id | tojson }} },
-  {%- endif %}
-  {%- if _seo_og_image_url %}
-  "primaryImageOfPage": {
-    "@type": "ImageObject",
-    "url": {{ _seo_og_image_url | tojson }},
-    "width": {{ _seo_og_image_width }},
-    "height": {{ _seo_og_image_height }}
-  },
-  {%- endif %}
+  "isAccessibleForFree": true,
+  "license": {{ _seo_license_url | tojson }},
   "isPartOf": {
     "@type": "WebSite",
-    {%- if _seo_baseurl %}
     "@id": {{ (_seo_baseurl ~ "/#website") | tojson }},
-    {%- endif %}
     "name": {{ _seo_site_name | tojson }}
   },
-  "about": {
-    "@type": "SoftwareSourceCode",
-    "name": {{ _seo_site_name | tojson }},
-    "codeRepository": {{ _seo_repo_url | tojson }},
-    "programmingLanguage": "Python",
-    "license": "https://spdx.org/licenses/GPL-3.0-only.html"
-  }
+  "about": { "@id": {{ (_seo_repo_url ~ "#source") | tojson }} }
+  {%- if _seo_published_iso %}
+  ,"datePublished": {{ _seo_published_iso | tojson }}
+  {%- endif %}
+  {%- if _seo_lastmod_iso %}
+  ,"dateModified": {{ _seo_lastmod_iso | tojson }}
+  {%- endif %}
+  {%- if _seo_org_id %}
+  ,"author": { "@id": {{ _seo_org_id | tojson }} }
+  ,"publisher": { "@id": {{ _seo_org_id | tojson }} }
+  {%- endif %}
+  {%- if _seo_word_count %}
+  ,"wordCount": {{ _seo_word_count }}
+  {%- endif %}
+  {%- if _seo_learning_resource_type %}
+  ,"learningResourceType": {{ _seo_learning_resource_type | tojson }}
+  {%- endif %}
+  {%- if _seo_educational_level %}
+  ,"educationalLevel": {{ _seo_educational_level | tojson }}
+  {%- endif %}
+  {%- if _seo_proficiency_level %}
+  ,"proficiencyLevel": {{ _seo_proficiency_level | tojson }}
+  {%- endif %}
+  {%- if _seo_dependencies %}
+  ,"dependencies": {{ _seo_dependencies | tojson }}
+  {%- endif %}
+  {%- if _seo_teaches %}
+  ,"teaches": {{ _seo_teaches | tojson }}
+  {%- endif %}
+  {%- if _seo_citation %}
+  ,"citation": {{ _seo_citation | tojson }}
+  {%- endif %}
+  {%- if _seo_breadcrumb_items %}
+  ,"breadcrumb": { "@id": {{ ((_page_url if _page_url else "") ~ "#breadcrumb") | tojson }} }
+  {%- endif %}
 }
 </script>
-{%- if _seo_org_url %}
+{%- if pagename == _root_doc and _seo_org_url %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -223,48 +255,26 @@
 }
 </script>
 {%- endif %}
-{%- if _seo_baseurl and _page_url and (pagename != _root_doc or parents) %}
+{%- if _seo_breadcrumb_items %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
+  "@id": {{ ((_page_url if _page_url else "") ~ "#breadcrumb") | tojson }},
   "itemListElement": [
+    {%- for item in _seo_breadcrumb_items %}
     {
       "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": {{ (_seo_baseurl ~ "/") | tojson }}
-    }
-    {%- set _crumb = namespace(pos=2) %}
-    {%- for doc in parents %}
-      {%- set _doc_link = (doc.link | default("", true) | string) %}
-      {%- if _doc_link.startswith("http://") or _doc_link.startswith("https://") %}
-        {%- set _doc_url = _doc_link %}
-      {%- elif _doc_link.startswith("/") %}
-        {%- set _doc_url = _seo_baseurl ~ _doc_link %}
-      {%- else %}
-        {%- set _doc_url = _seo_baseurl ~ "/" ~ _doc_link.lstrip("./") %}
-      {%- endif %}
-    ,{
-      "@type": "ListItem",
-      "position": {{ _crumb.pos }},
-      "name": {{ (doc.title | striptags) | tojson }},
-      "item": {{ _doc_url | tojson }}
-    }
-      {%- set _crumb.pos = _crumb.pos + 1 %}
+      "position": {{ loop.index }},
+      "name": {{ item.name | tojson }},
+      "item": {{ item.url | tojson }}
+    }{{ "," if not loop.last else "" }}
     {%- endfor %}
-    {%- if pagename != _root_doc %}
-    ,{
-      "@type": "ListItem",
-      "position": {{ _crumb.pos }},
-      "name": {{ _seo_title | tojson }},
-      "item": {{ _page_url | tojson }}
-    }
-    {%- endif %}
   ]
 }
 </script>
 {%- endif %}
+{%- if pagename == _root_doc %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -273,11 +283,26 @@
   "name": {{ _seo_site_name | tojson }},
   "url": {{ (_seo_baseurl ~ "/") | tojson }},
   "codeRepository": {{ _seo_repo_url | tojson }},
+  "downloadUrl": {{ _seo_pypi_url | tojson }},
   "programmingLanguage": "Python",
-  "license": "https://spdx.org/licenses/GPL-3.0-only.html",
-  "version": {{ release | tojson }}
+  "runtimePlatform": "Python 3.9 or later",
+  "license": {{ _seo_license_url | tojson }},
+  "version": {{ release | tojson }},
+  "isAccessibleForFree": true,
+  "author": {{ _seo_contributors | tojson }},
+  "publisher": { "@id": {{ _seo_org_id | tojson }} },
+  "sameAs": {{ [_seo_repo_url, _seo_pypi_url] | tojson }},
+  "citation": {
+    "@type": "ScholarlyArticle",
+    "name": "The AutoLyap software suite for computer-assisted Lyapunov analyses of first-order methods",
+    "identifier": {{ _seo_paper_url | tojson }},
+    "url": {{ _seo_paper_url | tojson }},
+    "datePublished": "2026",
+    "author": {{ _seo_contributors | tojson }}
+  }
 }
 </script>
+{%- endif %}
 {% endblock %}
 
 {% block sidebartitle %}

@@ -120,6 +120,23 @@ python -m pip install reuse
 - Output: `docs/build/dirhtml/`.
 - Inspect: `docs/build/dirhtml/index.html`.
 
+### `make -C docs seo-check`
+
+- Audits the generated `docs/build/dirhtml/` site for technical SEO regressions.
+- Checks canonical and social URLs against real output paths, validates JSON-LD
+  and breadcrumbs, verifies sitemap/indexability parity, and requires unique
+  titles and descriptions on indexable pages.
+- Run `make -C docs dirhtml SPHINXOPTS="-W --keep-going"` first.
+
+### `make -C docs performance-check`
+
+- Statically audits the generated `docs/build/dirhtml/` site for performance
+  regressions relevant to PageSpeed.
+- Requires non-blocking external scripts, intrinsic image dimensions and loading
+  hints, page-specific code and MathJax assets, subset-font glyph coverage and
+  size budgets, and removal of duplicate build artifacts.
+- Run `make -C docs dirhtml SPHINXOPTS="-W --keep-going"` first.
+
 ### `make sync-citation`
 
 - Syncs `CITATION.cff` top-level `version:` field with `VERSION`.
@@ -212,6 +229,7 @@ docs/source/examples/scripts/
   chambolle_pock/
   heavy_ball/
   nesterov_momentum/
+  triple_momentum/
   optimized_gradient/
   information_theoretic_exact_method/
   accelerated_proximal_point/
@@ -234,6 +252,7 @@ python docs/source/examples/scripts/heavy_ball/generate_heavy_ball_smooth_convex
 python docs/source/examples/scripts/heavy_ball/generate_heavy_ball_gradient_dominated_smooth_assets.py
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_smooth_convex_assets.py
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_gradient_dominated_smooth_assets.py
+python docs/source/examples/scripts/triple_momentum/generate_triple_momentum_assets.py
 python docs/source/examples/scripts/optimized_gradient/generate_optimized_gradient_assets.py
 python docs/source/examples/scripts/information_theoretic_exact_method/generate_information_theoretic_exact_method_assets.py
 python docs/source/examples/scripts/accelerated_proximal_point/generate_accelerated_proximal_point_assets.py
@@ -259,6 +278,7 @@ Script-specific notable options:
 - `generate_heavy_ball_gradient_dominated_smooth_assets.py`: `--mu-gd`, `--L`
 - `generate_nesterov_momentum_smooth_convex_assets.py`: `--L`
 - `generate_nesterov_momentum_gradient_dominated_smooth_assets.py`: `--mu-gd`, `--L`
+- `generate_triple_momentum_assets.py`: `--mu`, `--L-max`
 - `generate_optimized_gradient_assets.py`: `--L`, `--k-min`, `--k-max`
 - `generate_information_theoretic_exact_method_assets.py`: `--mu`, `--L`, `--k-min`, `--k-max`
 - `generate_accelerated_proximal_point_assets.py`: `--gamma`, `--k-min`, `--k-max`
@@ -284,6 +304,7 @@ python docs/source/examples/scripts/heavy_ball/generate_heavy_ball_smooth_convex
 python docs/source/examples/scripts/heavy_ball/generate_heavy_ball_gradient_dominated_smooth_assets.py --reuse-data
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_smooth_convex_assets.py --reuse-data
 python docs/source/examples/scripts/nesterov_momentum/generate_nesterov_momentum_gradient_dominated_smooth_assets.py --reuse-data
+python docs/source/examples/scripts/triple_momentum/generate_triple_momentum_assets.py --reuse-data
 python docs/source/examples/scripts/optimized_gradient/generate_optimized_gradient_assets.py --reuse-data
 python docs/source/examples/scripts/information_theoretic_exact_method/generate_information_theoretic_exact_method_assets.py --reuse-data
 python docs/source/examples/scripts/accelerated_proximal_point/generate_accelerated_proximal_point_assets.py --reuse-data

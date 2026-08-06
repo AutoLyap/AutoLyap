@@ -22,6 +22,7 @@ docs/source/examples/scripts/
   chambolle_pock/
   heavy_ball/
   nesterov_momentum/
+  triple_momentum/
   optimized_gradient/
   information_theoretic_exact_method/
   accelerated_proximal_point/
