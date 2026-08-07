@@ -3,4 +3,5 @@ sphinx-rtd-theme
 myst-parser
 sphinxcontrib-bibtex
 fonttools[woff]>=4.55
+tinycss2>=1.4
 numpy

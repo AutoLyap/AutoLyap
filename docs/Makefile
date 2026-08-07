@@ -19,7 +19,7 @@ deps:
 	@$(PYTHON) -m pip install -r "$(REQFILE)"
 
 check-deps:
-	@$(PYTHON) -c "import fontTools, numpy, sphinx, sphinx_rtd_theme, myst_parser, sphinxcontrib.bibtex; from sphinx.domains.python._object import PyObject" >/dev/null 2>&1 || \
+	@$(PYTHON) -c "import fontTools, numpy, sphinx, sphinx_rtd_theme, tinycss2, myst_parser, sphinxcontrib.bibtex; from sphinx.domains.python._object import PyObject" >/dev/null 2>&1 || \
 	( \
 		echo "Missing docs dependencies."; \
 		echo "Run: make -C docs deps"; \
