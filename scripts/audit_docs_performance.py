@@ -11,12 +11,14 @@ import re
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fontTools.ttLib import TTFont
 
 
 SCRIPT_RE = re.compile(r"<script\b(?=[^>]*\bsrc=)[^>]*>", re.IGNORECASE)
 IMAGE_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
+CONTAINER_RE = re.compile(r"<(?:div|span)\b[^>]*>", re.IGNORECASE)
 ATTRIBUTE_TEMPLATE = r"\b{}\s*="
 EXPECTED_MATH_TAG_PAGES = {
     "theory/iteration_dependent_analyses/index.html",
@@ -27,12 +29,15 @@ EXPECTED_MATH_HTML_PAGES = {
     "theory/iteration_independent_analyses/index.html",
 }
 FONT_BUDGETS = {
-    "autolyap-lato-normal.woff2": 50_000,
-    "autolyap-lato-bold.woff2": 50_000,
-    "autolyap-lato-normal-italic.woff2": 50_000,
-    "autolyap-lato-bold-italic.woff2": 50_000,
-    "autolyap-fontawesome.woff2": 10_000,
+    "autolyap-lato-normal.woff2": 16_000,
+    "autolyap-lato-bold.woff2": 16_000,
+    "autolyap-lato-normal-italic.woff2": 17_000,
+    "autolyap-lato-bold-italic.woff2": 17_000,
+    "autolyap-lato-greek-normal.woff2": 12_000,
+    "autolyap-lato-greek-bold.woff2": 12_000,
+    "autolyap-fontawesome.woff2": 2_500,
 }
+DOMAIN_GREEK_CODEPOINTS = set(map(ord, "ΓΔΘΛΞΟΠΣΦΨΩαβγδεζηθικλμνξοπρστυφχψω"))
 REQUIRED_FONTAWESOME_CODEPOINTS = {
     0xF019,
     0xF02D,
@@ -80,6 +85,15 @@ def _has_attribute(tag: str, name: str) -> bool:
     return bool(re.search(ATTRIBUTE_TEMPLATE.format(re.escape(name)), tag, re.I))
 
 
+def _attribute_value(tag: str, name: str) -> str:
+    match = re.search(
+        rf"\b{re.escape(name)}\s*=\s*([\"'])(.*?)\1",
+        tag,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    return match.group(2) if match else ""
+
+
 def _relative_page(build_dir: Path, html_path: Path) -> str:
     return html_path.relative_to(build_dir).as_posix()
 
@@ -95,6 +109,19 @@ def _audit_html(build_dir: Path, html_paths: list[Path], errors: list[str]) -> N
         for script_tag in SCRIPT_RE.findall(markup):
             if not re.search(r"\b(?:defer|async)\b", script_tag, re.I):
                 errors.append(f"{relative_page}: parser-blocking script: {script_tag}")
+
+        first_script_index = markup.find("<script")
+        for preload_name in (
+            "autolyap-lato-normal.woff2",
+            "autolyap-lato-bold.woff2",
+            "autolyap-fontawesome.woff2",
+        ):
+            preload_index = markup.find(preload_name)
+            if preload_index < 0 or preload_index > first_script_index:
+                errors.append(
+                    f"{relative_page}: critical font preload is discovered late: "
+                    f"{preload_name}"
+                )
 
         if "jQuery(function" in markup:
             errors.append(
@@ -118,6 +145,13 @@ def _audit_html(build_dir: Path, html_paths: list[Path], errors: list[str]) -> N
                     errors.append(
                         f"{relative_page}: plot image lacks low fetch priority"
                     )
+            image_hostname = urlparse(_attribute_value(image_tag, "src")).hostname
+            if image_hostname == "img.shields.io" and (
+                'fetchpriority="low"' not in image_tag
+            ):
+                errors.append(
+                    f"{relative_page}: remote badge lacks low fetch priority"
+                )
             if 'class="toggler"' in image_tag and (
                 'loading="eager"' not in image_tag or 'decoding="sync"' not in image_tag
             ):
@@ -145,8 +179,105 @@ def _audit_html(build_dir: Path, html_paths: list[Path], errors: list[str]) -> N
             errors.append(
                 f"{relative_page}: obsolete runtime optimization script loaded"
             )
+        if "_sphinx_javascript_frameworks_compat.js" in markup:
+            errors.append(f"{relative_page}: unused Sphinx jQuery shim loaded")
+        if re.search(r'<span\s+class=["\']pre["\']>', markup, flags=re.IGNORECASE):
+            errors.append(f"{relative_page}: neutral Sphinx literal wrappers remain")
+        if re.search(
+            r'<span\s+class=["\'](?:n|p)["\']>', markup, flags=re.IGNORECASE
+        ):
+            errors.append(f"{relative_page}: neutral Pygments token wrappers remain")
+        if re.search(
+            r'<span\s+class=["\']w["\']>\s*</span>', markup, flags=re.IGNORECASE
+        ):
+            errors.append(f"{relative_page}: styled whitespace wrappers remain")
+        if re.search(r"<span\s*></span>", markup, flags=re.IGNORECASE):
+            errors.append(f"{relative_page}: empty generated spans remain")
         if "favicon.ico" in markup:
             errors.append(f"{relative_page}: redundant legacy favicon loaded")
+        if re.search(r"<math\b", markup, flags=re.IGNORECASE):
+            errors.append(f"{relative_page}: raw MathML requires the removed input component")
+        if 'role="doc-biblioentry"' in markup:
+            errors.append(f"{relative_page}: deprecated bibliography role remains")
+        if re.search(
+            r"<dl>\s*<dd><em class=[\"']sig-param[\"']",
+            markup,
+            flags=re.IGNORECASE,
+        ):
+            errors.append(f"{relative_page}: API parameter list lacks a semantic term")
+
+        math_containers = []
+        for tag in CONTAINER_RE.findall(markup):
+            class_match = re.search(
+                r'\bclass\s*=\s*(["\'])(.*?)\1',
+                tag,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+            classes = class_match.group(2).split() if class_match else []
+            if "math" in classes:
+                math_containers.append(classes)
+        if math_containers:
+            if "tex-mml-chtml.js" in markup or "tex-chtml.js" not in markup:
+                errors.append(f"{relative_page}: MathJax includes unused input components")
+            mathjax_script = re.search(
+                r'<script\b(?=[^>]*\btex-chtml\.js)(?=[^>]*\bcrossorigin=["\']anonymous["\'])[^>]*>',
+                markup,
+                flags=re.IGNORECASE,
+            )
+            if mathjax_script is None:
+                errors.append(f"{relative_page}: MathJax cannot reuse the CDN preconnect")
+            preconnect_index = markup.find(
+                '<link rel="preconnect" href="https://cdn.jsdelivr.net"'
+            )
+            mathjax_index = markup.find("tex-chtml.js")
+            if preconnect_index < 0 or preconnect_index > mathjax_index:
+                errors.append(f"{relative_page}: MathJax CDN preconnect is discovered late")
+            zero_font_preload = "MathJax_Zero.woff\" as=\"font\"" in markup
+            expects_zero_font_preload = (
+                relative_page
+                == "theory/iteration_independent_analyses/index.html"
+            )
+            if zero_font_preload != expects_zero_font_preload:
+                errors.append(
+                    f"{relative_page}: desktop MathJax zero-font preload differs"
+                )
+            if zero_font_preload and 'media="(min-width: 769px)"' not in markup:
+                errors.append(
+                    f"{relative_page}: MathJax zero-font preload is not desktop-only"
+                )
+            has_math_loading_guard = (
+                'classList.add("autolyap-math-loading")' in markup
+                and 'classList.remove("autolyap-math-loading")' in markup
+                and ",8000);" in markup
+            )
+            if has_math_loading_guard != expects_zero_font_preload:
+                errors.append(
+                    f"{relative_page}: bounded MathJax loading guard differs"
+                )
+            expected_eager = min(4, len(math_containers))
+            eager_prefix = sum(
+                "math-initial" in classes
+                for classes in math_containers[:expected_eager]
+            )
+            total_eager = sum(
+                "math-initial" in classes for classes in math_containers
+            )
+            if eager_prefix != expected_eager or total_eager != expected_eager:
+                errors.append(
+                    f"{relative_page}: expected exactly {expected_eager} initial math "
+                    f"containers, got prefix={eager_prefix}, total={total_eager}"
+                )
+            uses_lazy = '"ui/lazy"' in markup
+            if len(math_containers) > expected_eager and (
+                not uses_lazy or '"lazyAlwaysTypeset"' not in markup
+            ):
+                errors.append(
+                    f"{relative_page}: MathJax lazy typesetting is not configured"
+                )
+            if len(math_containers) == expected_eager and uses_lazy:
+                errors.append(
+                    f"{relative_page}: MathJax lazy component is redundant"
+                )
 
     if math_tag_pages != EXPECTED_MATH_TAG_PAGES:
         errors.append(
@@ -216,14 +347,84 @@ def _audit_fonts(build_dir: Path, html_paths: list[Path], errors: list[str]) -> 
                 + ", ".join(f"U+{codepoint:04X}" for codepoint in sorted(missing))
             )
 
+    for greek_name in (
+        "autolyap-lato-greek-normal.woff2",
+        "autolyap-lato-greek-bold.woff2",
+    ):
+        greek_path = font_dir / greek_name
+        if not greek_path.is_file():
+            continue
+        greek_cmap = set(TTFont(greek_path).getBestCmap())
+        missing = DOMAIN_GREEK_CODEPOINTS - greek_cmap
+        if missing:
+            errors.append(
+                f"{greek_name}: missing domain Greek glyphs "
+                + ", ".join(f"U+{codepoint:04X}" for codepoint in sorted(missing))
+            )
+
 
 def _audit_artifacts(build_dir: Path, errors: list[str]) -> None:
     static_dir = build_dir / "_static"
     custom_css = (static_dir / "custom.css").read_text(encoding="utf-8")
-    if 'font-family: "AutoLyap Lato Subset"' not in custom_css or (
-        '"AutoLyap Lato Subset", "Lato"' not in custom_css
+    custom_css_path = static_dir / "custom.css"
+    if custom_css_path.stat().st_size > 21_000:
+        errors.append(
+            "minified custom CSS exceeds 21,000-byte budget: "
+            f"{custom_css_path.stat().st_size:,} bytes"
+        )
+    pygments_css_path = static_dir / "pygments.css"
+    if pygments_css_path.is_file() and pygments_css_path.stat().st_size > 1_300:
+        errors.append(
+            "pruned Pygments CSS exceeds 1,300-byte budget: "
+            f"{pygments_css_path.stat().st_size:,} bytes"
+        )
+    theme_css_path = static_dir / "css" / "theme.css"
+    theme_css = theme_css_path.read_text(encoding="utf-8")
+    if theme_css_path.stat().st_size > 54_000:
+        errors.append(
+            "minified RTD theme exceeds 54,000-byte budget: "
+            f"{theme_css_path.stat().st_size:,} bytes"
+        )
+    for selector in (
+        ".current",
+        ".fa-bars",
+        ".rst-content",
+        ".search",
+        ".shift",
+        ".shift-up",
+        ".toctree-expand",
+        ".wy-nav-top",
+        ".wy-menu-vertical",
+        ".wy-nav-content",
+        ".wy-nav-side",
+        ".wy-table-responsive",
     ):
+        if selector not in theme_css:
+            errors.append(f"pruned RTD theme lost critical selector: {selector}")
+    if re.search(
+        r"@font-face\{font-family:(?:FontAwesome|Roboto Slab)",
+        theme_css,
+        flags=re.IGNORECASE,
+    ):
+        errors.append("theme CSS retains superseded font faces")
+    if not re.search(
+        r'font-family:\s*"AutoLyap Lato Subset"', custom_css
+    ) or not re.search(r'"AutoLyap Lato Subset"\s*,\s*"Lato"', custom_css):
         errors.append("subset Lato lacks the full Lato fallback family")
+    if "autolyap-lato-greek-normal.woff2" not in custom_css or (
+        "autolyap-lato-greek-bold.woff2" not in custom_css
+    ):
+        errors.append("runtime Greek search fonts are not declared")
+    if ".autolyap-sr-only" not in custom_css:
+        errors.append("wrapped API signatures lack screen-reader-only terms")
+    compact_custom_css = re.sub(r"\s+", "", custom_css)
+    for selector in (
+        "html.autolyap-math-loading:has(#iteration-independent-analyses>div.math.math-initial",
+        "html.autolyap-math-loading#iteration-independent-analyses>div.math.math-initial:not([id])",
+        "html.autolyap-math-loading#equation-eq-constant-abcd.math-initial",
+    ):
+        if selector not in compact_custom_css:
+            errors.append(f"initial theory math lacks geometry guard: {selector}")
     if 'img[src^="https://img.shields.io/"][width][height]' not in custom_css:
         errors.append("dynamic badges can be forced to a stale width")
     image_dir = build_dir / "_images"
@@ -235,6 +436,16 @@ def _audit_artifacts(build_dir: Path, errors: list[str]) -> None:
     for obsolete in (static_dir / "perf.js", static_dir / "badge_links.js"):
         if obsolete.exists():
             errors.append(f"obsolete static asset remains: {obsolete}")
+    legacy_jquery_shim = static_dir / "_sphinx_javascript_frameworks_compat.js"
+    if legacy_jquery_shim.exists():
+        errors.append(f"unused compatibility asset remains: {legacy_jquery_shim}")
+    for unused_font_pattern in ("fontawesome-webfont.*", "Roboto-Slab-*"):
+        unused_fonts = list((static_dir / "css" / "fonts").glob(unused_font_pattern))
+        if unused_fonts:
+            errors.append(f"superseded theme fonts remain: {unused_fonts}")
+    copied_sources = build_dir / "_sources"
+    if copied_sources.exists():
+        errors.append(f"unreferenced page sources remain: {copied_sources}")
 
 
 def main() -> int:

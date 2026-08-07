@@ -18,13 +18,24 @@
 
 {% block scripts %}
 {%- if not embedded %}
+  <link rel="preload" href="{{ pathto('_static/fonts/autolyap-lato-normal.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
+  <link rel="preload" href="{{ pathto('_static/fonts/autolyap-lato-bold.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
+  <link rel="preload" href="{{ pathto('_static/fonts/autolyap-fontawesome.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
+  {%- if page_has_math | default(false) %}
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
+  {%- if pagename == "theory/iteration_independent_analyses" %}
+  <script>document.documentElement.classList.add("autolyap-math-loading");window.setTimeout(function(){document.documentElement.classList.remove("autolyap-math-loading");},8000);</script>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2/MathJax_Zero.woff" as="font" type="font/woff" crossorigin="anonymous" media="(min-width: 769px)"/>
+  {%- endif %}
+  {%- endif %}
   {%- for scriptfile in script_files %}
     {%- set _script_tag = js_tag(scriptfile) -%}
     {%- if " src=" in _script_tag and " defer=" not in _script_tag and " async=" not in _script_tag -%}
       {%- set _script_tag = _script_tag | replace("<script ", "<script defer=\"defer\" ", 1) -%}
     {%- endif -%}
     {%- if "mathjax@3.2.2" in _script_tag and page_needs_math_html | default(false) %}
-    <script>window.MathJax.loader.load.push("[tex]/html");window.MathJax.tex.packages["[+]"]=["html"];</script>
+    <script>window.MathJax.loader=window.MathJax.loader||{};window.MathJax.loader.load=window.MathJax.loader.load||[];window.MathJax.loader.load.push("[tex]/html");window.MathJax.tex.packages["[+]"]=["html"];</script>
     {%- endif %}
     {{ _script_tag }}
   {%- endfor %}
@@ -44,13 +55,6 @@
 
 {% block extrahead %}
 {{ super() }}
-<link rel="preload" href="{{ pathto('_static/fonts/autolyap-lato-normal.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
-<link rel="preload" href="{{ pathto('_static/fonts/autolyap-lato-bold.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
-<link rel="preload" href="{{ pathto('_static/fonts/autolyap-fontawesome.woff2', 1) }}" as="font" type="font/woff2" crossorigin="anonymous"/>
-{%- if page_has_math | default(false) %}
-<link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
-{%- endif %}
 <link rel="icon" type="image/svg+xml" href="{{ pathto('_static/favicon.svg', 1) }}"/>
 <link rel="icon" type="image/png" sizes="32x32" href="{{ pathto('_static/favicon-32.png', 1) }}"/>
 <link rel="icon" type="image/png" sizes="64x64" href="{{ pathto('_static/favicon.png', 1) }}"/>

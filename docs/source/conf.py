@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
 # SPDX-License-Identifier: GPL-3.0-only
 
+import json
 import os
 import re
 import shutil
@@ -13,6 +14,7 @@ from pathlib import Path
 from urllib.parse import unquote, urljoin, urlparse
 from xml.sax.saxutils import escape as xml_escape
 
+import tinycss2
 from docutils import nodes
 from sphinx import addnodes
 from sphinx.domains.python._object import PyObject
@@ -64,6 +66,8 @@ exclude_patterns = ["release_notes/_template.md"]
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
+html_copy_source = False
+html_show_sourcelink = False
 html_show_sphinx = False
 html_baseurl = f"{seo_baseurl}/"
 numfig = True
@@ -904,13 +908,23 @@ html_context = {
 maximum_signature_line_length = 1
 toc_object_entries = True
 html_use_opensearch = "https://autolyap.github.io"
-# Pin MathJax for stable glyph rendering across environments.
-mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
+# Pin MathJax for stable glyph rendering across environments.  The docs contain
+# TeX input only, so omit the unused MathML input component from the bundle.
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"
+mathjax_options = {"defer": "defer", "crossorigin": "anonymous"}
 
 # MathJax macros aligned with Paper/ver_5/commands.tex and Paper/ver_5/preamble.tex.
 mathjax3_config = {
     "loader": {
-        "load": [],
+        # Math-heavy reference pages contain hundreds of expressions.  MathJax's
+        # lazy component keeps the initial render bounded to the viewport while
+        # preserving the same CommonHTML output as readers scroll.
+        "load": ["ui/lazy"],
+    },
+    "options": {
+        "lazyMargin": "200px",
+        # Preserve the initial viewport's geometry before lazy observation starts.
+        "lazyAlwaysTypeset": [".math.math-initial"],
     },
     "tex": {
         "packages": {"[+]": []},
@@ -1296,6 +1310,10 @@ def _filter_optional_script_files(
     filtered = []
     for script_file in script_files:
         script_name = _script_filename(script_file)
+        # Sphinx emits this legacy jQuery shim when a theme registers jQuery.
+        # Current Sphinx, RTD theme, and authored scripts use none of its APIs.
+        if "_sphinx_javascript_frameworks_compat.js" in script_name:
+            continue
         if "copybutton.js" in script_name and not keep_copybutton:
             continue
         if "math_tag_links.js" in script_name and not keep_math_tag_links:
@@ -1320,6 +1338,22 @@ def _filter_optional_css_files(context, *, page_has_code_blocks):
 
 
 _HTML_IMAGE_RE = re.compile(r"<img\b[^>]*?/?>", flags=re.IGNORECASE)
+_HTML_CONTAINER_RE = re.compile(r"<(?:div|span)\b[^>]*>", flags=re.IGNORECASE)
+_NEUTRAL_PRE_SPAN_RE = re.compile(
+    r"<span\s+class=([\"'])pre\1>(?P<text>[^<]*)</span>",
+    flags=re.IGNORECASE,
+)
+_WHITESPACE_PYGMENTS_SPAN_RE = re.compile(
+    r"<span\s+class=([\"'])w\1>(?P<text>\s*)</span>",
+    flags=re.IGNORECASE,
+)
+_EMPTY_SPAN_RE = re.compile(r"<span\s*></span>", flags=re.IGNORECASE)
+_HTML_SPAN_TAG_RE = re.compile(r"<span\b[^>]*>|</span\s*>", flags=re.IGNORECASE)
+_NEUTRAL_PYGMENTS_OPENING_RE = re.compile(
+    r"<span\s+class=([\"'])(?:n|p)\1\s*>", flags=re.IGNORECASE
+)
+_NEUTRAL_PRE_SELECTOR_RE = re.compile(r"\.pre(?![\w-])")
+_NEUTRAL_PYGMENTS_SELECTOR_RE = re.compile(r"\.(?:n|p)(?![\w-])")
 _BADGE_LINK_RE = re.compile(
     r"<a\b[^>]*>\s*<img\b[^>]*\bsrc=[\"']https://img\.shields\.io/[^>]*?/?>\s*</a>",
     flags=re.IGNORECASE,
@@ -1331,6 +1365,12 @@ _SHIELDS_IMAGE_DIMENSIONS = {
     "Paper": (169, 20),
     "Open in Colab": (111, 20),
 }
+_DOMAIN_GREEK_CHARACTERS = "ΓΔΘΛΞΟΠΣΦΨΩαβγδεζηθικλμνξοπρστυφχψω"
+_MATHJAX_CONFIG_RE = re.compile(
+    r"(?P<prefix><script>window\.MathJax = )(?P<config>\{.*?\})(?P<suffix></script>)",
+    flags=re.DOTALL,
+)
+_CUSTOM_TEX_COMMAND_RE = re.compile(r"\\([A-Za-z]+)")
 
 
 def _html_attribute(tag, name):
@@ -1352,6 +1392,123 @@ def _append_html_attribute(tag, name, value):
     return f'{tag[:-1].rstrip()} {name}="{value}">'
 
 
+def _append_html_class(tag, class_name):
+    """Append one class to a generated element without disturbing its markup."""
+    class_match = re.search(
+        r"\bclass\s*=\s*([\"'])(.*?)\1",
+        tag,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if class_match is None:
+        return _append_html_attribute(tag, "class", class_name)
+    classes = class_match.group(2).split()
+    if class_name in classes:
+        return tag
+    classes.append(class_name)
+    start, end = class_match.span(2)
+    return f"{tag[:start]}{' '.join(classes)}{tag[end:]}"
+
+
+def _mark_initial_math(markup, limit=4):
+    """Eagerly typeset the math that can influence initial viewport geometry."""
+    marked = 0
+
+    def _mark_container(match):
+        nonlocal marked
+        tag = match.group(0)
+        classes = _html_attribute(tag, "class").split()
+        if marked >= limit or "math" not in classes:
+            return tag
+        marked += 1
+        return _append_html_class(tag, "math-initial")
+
+    return _HTML_CONTAINER_RE.sub(_mark_container, markup)
+
+
+def _unwrap_neutral_pygments_spans(markup):
+    """Unwrap exact ``n``/``p`` token spans while preserving nested markup."""
+    stack = []
+    removals = []
+    for match in _HTML_SPAN_TAG_RE.finditer(markup):
+        tag = match.group(0)
+        if tag.lower().startswith("</span"):
+            if not stack:
+                continue
+            opening, should_unwrap = stack.pop()
+            if should_unwrap:
+                removals.extend((opening.span(), match.span()))
+            continue
+        if tag.rstrip().endswith("/>"):
+            continue
+        stack.append((match, bool(_NEUTRAL_PYGMENTS_OPENING_RE.fullmatch(tag))))
+
+    for start, end in sorted(removals, reverse=True):
+        markup = f"{markup[:start]}{markup[end:]}"
+    return markup
+
+
+def _macro_definition_source(value):
+    """Return the TeX source from one MathJax macro definition value."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list) and value and isinstance(value[0], str):
+        return value[0]
+    return ""
+
+
+def _specialize_mathjax_config(markup):
+    """Keep only page-used macros and skip lazy loading when all math is eager."""
+    match = _MATHJAX_CONFIG_RE.search(markup)
+    if match is None:
+        return markup
+    config = json.loads(match.group("config"))
+    configured_macros = config.get("tex", {}).get("macros", {})
+    page_source = f"{markup[: match.start()]}{markup[match.end() :]}"
+    required_macros = set(_CUSTOM_TEX_COMMAND_RE.findall(page_source)) & set(
+        configured_macros
+    )
+    pending = list(required_macros)
+    while pending:
+        macro_name = pending.pop()
+        dependencies = set(
+            _CUSTOM_TEX_COMMAND_RE.findall(
+                _macro_definition_source(configured_macros[macro_name])
+            )
+        ) & set(configured_macros)
+        for dependency in dependencies - required_macros:
+            required_macros.add(dependency)
+            pending.append(dependency)
+    config["tex"]["macros"] = {
+        name: value
+        for name, value in configured_macros.items()
+        if name in required_macros
+    }
+
+    math_containers = [
+        _html_attribute(tag, "class").split()
+        for tag in _HTML_CONTAINER_RE.findall(page_source)
+        if "math" in _html_attribute(tag, "class").split()
+    ]
+    if math_containers and all(
+        "math-initial" in classes for classes in math_containers
+    ):
+        loader = config.get("loader", {})
+        loader["load"] = [
+            component for component in loader.get("load", []) if component != "ui/lazy"
+        ]
+        if not loader.get("load"):
+            config.pop("loader", None)
+        options = config.get("options", {})
+        options.pop("lazyMargin", None)
+        options.pop("lazyAlwaysTypeset", None)
+        if not options:
+            config.pop("options", None)
+
+    serialized = json.dumps(config, ensure_ascii=False, separators=(",", ":"))
+    replacement = f"{match.group('prefix')}{serialized}{match.group('suffix')}"
+    return f"{markup[: match.start()]}{replacement}{markup[match.end() :]}"
+
+
 @lru_cache(maxsize=None)
 def _svg_intrinsic_dimensions(path_string):
     """Read integer intrinsic dimensions from one of the generated plot SVGs."""
@@ -1369,17 +1526,15 @@ def _svg_intrinsic_dimensions(path_string):
     return int(width), int(height)
 
 
-def _optimize_content_image_markup(app, context):
-    """Emit image sizing and loading hints before the browser discovers images."""
+def _optimize_content_markup(app, context):
+    """Emit stable loading hints before the browser discovers page resources."""
     body = context.get("body")
     if not body:
         return
 
     static_dir = Path(app.srcdir) / "_static"
-    badge_index = 0
 
     def _enhance_image(match):
-        nonlocal badge_index
         tag = match.group(0)
         source = _html_attribute(tag, "src")
         alt = _html_attribute(tag, "alt")
@@ -1397,15 +1552,16 @@ def _optimize_content_image_markup(app, context):
         tag = _append_html_attribute(tag, "decoding", "async")
         if is_badge:
             tag = _append_html_attribute(tag, "loading", "eager")
-            if badge_index == 0:
-                tag = _append_html_attribute(tag, "fetchpriority", "high")
-            badge_index += 1
+            # Badges are visible immediately, but they must not compete with the
+            # document fonts and render-blocking stylesheets on a cold load.
+            tag = _append_html_attribute(tag, "fetchpriority", "low")
         else:
             tag = _append_html_attribute(tag, "loading", "lazy")
             tag = _append_html_attribute(tag, "fetchpriority", "low")
         return tag
 
     optimized_body = _HTML_IMAGE_RE.sub(_enhance_image, str(body))
+    optimized_body = _mark_initial_math(optimized_body)
 
     def _enhance_badge_link(match):
         markup = match.group(0)
@@ -1446,6 +1602,11 @@ def _font_subset_codepoints(outdir):
         parser.feed(html_path.read_text("utf-8"))
         codepoints.update(parser.characters)
     return {codepoint for codepoint in codepoints if not 0xE000 <= codepoint <= 0xF8FF}
+
+
+def _font_greek_codepoints():
+    """Return domain symbols that can appear only in runtime search queries."""
+    return set(map(ord, _DOMAIN_GREEK_CHARACTERS))
 
 
 def _fontawesome_subset_codepoints(outdir):
@@ -1489,6 +1650,45 @@ def _built_image_dimensions(path):
 
 def _finalize_generated_markup(outdir):
     """Cover generated index/search markup that bypasses document doctrees."""
+    static_dir = Path(outdir) / "_static"
+    html_paths = list(Path(outdir).rglob("*.html"))
+    generated_markup = "\n".join(
+        html_path.read_text(encoding="utf-8") for html_path in html_paths
+    )
+    active_assets = [
+        asset_path
+        for asset_path in [
+            *static_dir.rglob("*.css"),
+            *static_dir.rglob("*.js"),
+        ]
+        if asset_path.name in generated_markup
+    ]
+    styled_pre_assets = [
+        asset_path
+        for asset_path in active_assets
+        if _NEUTRAL_PRE_SELECTOR_RE.search(
+            asset_path.read_text(encoding="utf-8", errors="ignore")
+        )
+    ]
+    if styled_pre_assets:
+        raise RuntimeError(
+            "refusing to unwrap styled Sphinx .pre spans: "
+            + ", ".join(str(path) for path in styled_pre_assets)
+        )
+    pygments_span_assets = [
+        asset_path
+        for asset_path in active_assets
+        if asset_path.suffix == ".css"
+        and _NEUTRAL_PYGMENTS_SELECTOR_RE.search(
+            asset_path.read_text(encoding="utf-8", errors="ignore")
+        )
+    ]
+    if pygments_span_assets:
+        raise RuntimeError(
+            "refusing to unwrap active Pygments token spans: "
+            + ", ".join(str(path) for path in pygments_span_assets)
+        )
+
     external_script_re = re.compile(
         r"<script\b(?=[^>]*\bsrc=)[^>]*>", flags=re.IGNORECASE
     )
@@ -1498,9 +1698,24 @@ def _finalize_generated_markup(outdir):
         r"\}\);\s*</script>",
         flags=re.IGNORECASE,
     )
+    signature_parameter_list_re = re.compile(
+        r"(<dl>\s*)(?=<dd><em class=[\"']sig-param[\"'])",
+        flags=re.IGNORECASE,
+    )
 
-    for html_path in Path(outdir).rglob("*.html"):
+    for html_path in html_paths:
         markup = html_path.read_text("utf-8")
+        # Sphinx wraps literal text in class-only spans.  No shipped stylesheet
+        # or script styles `.pre`, so these boxes only inflate the DOM.
+        markup = _NEUTRAL_PRE_SPAN_RE.sub(lambda match: match.group("text"), markup)
+        # The active Pygments style leaves names and punctuation unstyled.  Its
+        # `.w` rule only colors whitespace, which has no painted glyphs.
+        markup = _unwrap_neutral_pygments_spans(markup)
+        markup = _WHITESPACE_PYGMENTS_SPAN_RE.sub(
+            lambda match: match.group("text"), markup
+        )
+        markup = _EMPTY_SPAN_RE.sub("", markup)
+        markup = _specialize_mathjax_config(markup)
 
         def _defer_script(match):
             tag = match.group(0)
@@ -1515,6 +1730,13 @@ def _finalize_generated_markup(outdir):
                 r"SphinxRtdTheme.Navigation.enable(\1);"
                 "},{once:true});</script>"
             ),
+            markup,
+        )
+        # Sphinx emits deprecated bibliography roles and parameter-only inner
+        # definition lists.  Repair their semantics without changing layout.
+        markup = markup.replace('role="doc-biblioentry"', 'role="listitem"')
+        markup = signature_parameter_list_re.sub(
+            r'\1<dt class="autolyap-sr-only">Parameters</dt>\n',
             markup,
         )
 
@@ -1559,22 +1781,321 @@ def _subset_font(source, destination, codepoints):
             "--flavor=woff2",
             f"--unicodes={unicodes}",
             "--ignore-missing-unicodes",
-            "--layout-features=*",
-            "--glyph-names",
-            "--symbol-cmap",
-            "--legacy-cmap",
+            # Keep fontTools' standard shaping features, but do not retain
+            # discretionary alternates that the documentation CSS never enables.
             "--notdef-glyph",
             "--notdef-outline",
             "--recommended-glyphs",
-            "--name-IDs=*",
-            "--name-legacy",
-            "--name-languages=*",
-            "--retain-gids",
             "--drop-tables+=FFTM",
             "--no-recalc-timestamp",
         ],
         check=True,
     )
+
+
+class _CssUsageParser(HTMLParser):
+    """Collect static classes and IDs that generated theme selectors can match."""
+
+    def __init__(self):
+        super().__init__()
+        self.classes = set()
+        self.ids = set()
+
+    def handle_starttag(self, _tag, attrs):
+        for name, value in attrs:
+            if not value:
+                continue
+            if name == "class":
+                self.classes.update(value.split())
+            elif name == "id":
+                self.ids.add(value)
+
+
+_RUNTIME_THEME_CLASSES = {
+    # sphinx-rtd-theme navigation and table transformations
+    "current",
+    "on",
+    "shift",
+    "shift-up",
+    "toctree-expand",
+    "wy-table-responsive",
+    # Sphinx search and query highlighting
+    "highlight-link",
+    "highlighted",
+    "kind-index",
+    "kind-object",
+    "kind-text",
+    "kind-title",
+}
+_CSS_CLASS_REFERENCE_RE = re.compile(r"\.([A-Za-z_][\w-]*)")
+_CSS_ID_REFERENCE_RE = re.compile(r"#([A-Za-z_][\w-]*)")
+_QUOTED_IDENTIFIER_RE = re.compile(
+    r"[\"']([A-Za-z_][\w-]*(?:\s+[A-Za-z_][\w-]*)*)[\"']"
+)
+
+
+def _generated_css_usage(outdir):
+    """Return selector identifiers present in HTML or authored runtime assets."""
+    parser = _CssUsageParser()
+    for html_path in Path(outdir).rglob("*.html"):
+        parser.feed(html_path.read_text(encoding="utf-8"))
+
+    parser.classes.update(_RUNTIME_THEME_CLASSES)
+    runtime_assets = [
+        Path(outdir) / "_static" / "custom.css",
+        *Path(outdir).joinpath("_static").rglob("*.js"),
+    ]
+    for asset_path in runtime_assets:
+        if not asset_path.is_file():
+            continue
+        source = asset_path.read_text(encoding="utf-8")
+        parser.classes.update(_CSS_CLASS_REFERENCE_RE.findall(source))
+        parser.ids.update(_CSS_ID_REFERENCE_RE.findall(source))
+        # Capture class names passed as JavaScript string constants, including
+        # classList operations that do not contain a CSS-style leading dot.
+        for value in _QUOTED_IDENTIFIER_RE.findall(source):
+            parser.classes.update(value.split())
+
+    return parser.classes, parser.ids
+
+
+def _split_selector_branches(tokens):
+    """Split a selector prelude on top-level commas without touching functions."""
+    branches = []
+    branch = []
+    for token in tokens:
+        if token.type == "literal" and token.value == ",":
+            branches.append(branch)
+            branch = []
+        else:
+            branch.append(token)
+    branches.append(branch)
+    return branches
+
+
+def _selector_can_match(tokens, used_classes, used_ids):
+    """Conservatively reject selectors requiring absent top-level classes/IDs."""
+    for index, token in enumerate(tokens[:-1]):
+        next_token = tokens[index + 1]
+        if (
+            token.type == "literal"
+            and token.value == "."
+            and next_token.type == "ident"
+            and next_token.value not in used_classes
+        ):
+            return False
+    return all(
+        token.value in used_ids
+        for token in tokens
+        if token.type == "hash" and getattr(token, "is_identifier", False)
+    )
+
+
+def _prune_css_rules(rules, used_classes, used_ids):
+    """Drop only selector branches that cannot match the generated site."""
+    retained = []
+    grouping_at_rules = {"container", "document", "layer", "media", "supports"}
+
+    for rule in rules:
+        if rule.type == "qualified-rule":
+            branches = _split_selector_branches(rule.prelude)
+            live_branches = [
+                branch
+                for branch in branches
+                if _selector_can_match(branch, used_classes, used_ids)
+            ]
+            if not live_branches:
+                continue
+            if len(live_branches) != len(branches):
+                selector = ",".join(
+                    tinycss2.serialize(branch) for branch in live_branches
+                )
+                rule.prelude = tinycss2.parse_component_value_list(selector)
+            retained.append(rule)
+            continue
+
+        if (
+            rule.type == "at-rule"
+            and rule.content is not None
+            and rule.lower_at_keyword in grouping_at_rules
+        ):
+            nested = tinycss2.parse_rule_list(
+                rule.content,
+                skip_comments=False,
+                skip_whitespace=False,
+            )
+            nested = _prune_css_rules(nested, used_classes, used_ids)
+            rule.content = tinycss2.parse_component_value_list(
+                tinycss2.serialize(nested)
+            )
+        retained.append(rule)
+
+    return retained
+
+
+def _theme_font_face_family(rule):
+    """Return a normalized family name for a top-level ``@font-face`` rule."""
+    if (
+        rule.type != "at-rule"
+        or rule.lower_at_keyword != "font-face"
+        or rule.content is None
+    ):
+        return ""
+    declarations = tinycss2.parse_declaration_list(
+        rule.content,
+        skip_comments=True,
+        skip_whitespace=True,
+    )
+    for declaration in declarations:
+        if declaration.type == "declaration" and declaration.lower_name == "font-family":
+            return tinycss2.serialize(declaration.value).strip(" \"'").casefold()
+    return ""
+
+
+def _prune_theme_css(outdir, source_theme_css_path):
+    """Remove RTD component selectors unused by any generated page or script."""
+    theme_css_path = Path(outdir) / "_static" / "css" / "theme.css"
+    source_theme_css_path = Path(source_theme_css_path)
+    if not theme_css_path.is_file() or not source_theme_css_path.is_file():
+        return
+
+    used_classes, used_ids = _generated_css_usage(outdir)
+    stylesheet = tinycss2.parse_stylesheet(
+        source_theme_css_path.read_text(encoding="utf-8"),
+        skip_comments=False,
+        skip_whitespace=False,
+    )
+    # custom.css supplies the active FontAwesome subset and already overrides
+    # every rendered Roboto Slab use with the site's Lato family.
+    stylesheet = [
+        rule
+        for rule in stylesheet
+        if _theme_font_face_family(rule) not in {"fontawesome", "roboto slab"}
+    ]
+    stylesheet = _prune_css_rules(stylesheet, used_classes, used_ids)
+    theme_css_path.write_text(tinycss2.serialize(stylesheet), encoding="utf-8")
+
+
+def _prune_generated_stylesheet(outdir, stylesheet_path):
+    """Remove selectors that cannot match any generated page or runtime class."""
+    stylesheet_path = Path(stylesheet_path)
+    if not stylesheet_path.is_file():
+        return
+    used_classes, used_ids = _generated_css_usage(outdir)
+    stylesheet = tinycss2.parse_stylesheet(
+        stylesheet_path.read_text(encoding="utf-8"),
+        skip_comments=False,
+        skip_whitespace=False,
+    )
+    stylesheet = _prune_css_rules(stylesheet, used_classes, used_ids)
+    stylesheet_path.write_text(tinycss2.serialize(stylesheet), encoding="utf-8")
+
+
+def _minify_generated_stylesheet(stylesheet_path):
+    """Remove non-rendering comments and formatting from built CSS."""
+    stylesheet_path = Path(stylesheet_path)
+    if not stylesheet_path.is_file():
+        return
+    stylesheet = tinycss2.parse_stylesheet(
+        stylesheet_path.read_text(encoding="utf-8"),
+        skip_comments=True,
+        skip_whitespace=True,
+    )
+    stylesheet_path.write_text(_serialize_minified_css_rules(stylesheet), encoding="utf-8")
+
+
+def _compact_css_prelude(tokens):
+    """Collapse formatting whitespace while retaining selector combinators."""
+    compact = []
+    for index, token in enumerate(tokens):
+        if token.type != "whitespace":
+            compact.append(tinycss2.serialize([token]))
+            continue
+        previous = next(
+            (candidate for candidate in reversed(tokens[:index]) if candidate.type != "whitespace"),
+            None,
+        )
+        following = next(
+            (candidate for candidate in tokens[index + 1 :] if candidate.type != "whitespace"),
+            None,
+        )
+        if previous is None or following is None:
+            continue
+        if (
+            previous.type == "literal"
+            and previous.value in {",", ">", "+", "~"}
+        ) or (
+            following.type == "literal"
+            and following.value in {",", ">", "+", "~"}
+        ):
+            continue
+        if not compact or compact[-1] != " ":
+            compact.append(" ")
+    return "".join(compact)
+
+
+def _serialize_minified_declarations(content):
+    """Serialize one declaration block without indentation or redundant separators."""
+    declarations = tinycss2.parse_declaration_list(
+        content,
+        skip_comments=True,
+        skip_whitespace=True,
+    )
+    if any(item.type == "error" for item in declarations):
+        return tinycss2.serialize(content).strip()
+    serialized = []
+    for declaration in declarations:
+        if declaration.type != "declaration":
+            serialized.append(tinycss2.serialize([declaration]).strip())
+            continue
+        value = tinycss2.serialize(declaration.value).strip()
+        important = "!important" if declaration.important else ""
+        serialized.append(f"{declaration.name}:{value}{important}")
+    return ";".join(filter(None, serialized))
+
+
+def _serialize_minified_css_rules(rules):
+    """Serialize stylesheet rules recursively without changing declarations."""
+    declaration_at_rules = {"font-face", "page", "property", "counter-style"}
+    grouping_at_rules = {
+        "-webkit-keyframes",
+        "container",
+        "document",
+        "keyframes",
+        "layer",
+        "media",
+        "supports",
+    }
+    serialized = []
+    for rule in rules:
+        if rule.type == "qualified-rule":
+            prelude = _compact_css_prelude(rule.prelude)
+            declarations = _serialize_minified_declarations(rule.content)
+            serialized.append(f"{prelude}{{{declarations}}}")
+            continue
+        if rule.type != "at-rule":
+            serialized.append(tinycss2.serialize([rule]).strip())
+            continue
+
+        keyword = rule.lower_at_keyword
+        prelude = _compact_css_prelude(rule.prelude)
+        header = f"@{keyword}{f' {prelude}' if prelude else ''}"
+        if rule.content is None:
+            serialized.append(f"{header};")
+        elif keyword in declaration_at_rules:
+            serialized.append(
+                f"{header}{{{_serialize_minified_declarations(rule.content)}}}"
+            )
+        elif keyword in grouping_at_rules:
+            nested = tinycss2.parse_rule_list(
+                rule.content,
+                skip_comments=True,
+                skip_whitespace=True,
+            )
+            serialized.append(f"{header}{{{_serialize_minified_css_rules(nested)}}}")
+        else:
+            serialized.append(f"{header}{{{tinycss2.serialize(rule.content).strip()}}}")
+    return "".join(serialized)
 
 
 def _write_performance_assets(app, exception):
@@ -1608,14 +2129,34 @@ def _write_performance_assets(app, exception):
             output_font_dir / output_name,
             text_codepoints,
         )
+    for source_name, output_name in {
+        "lato-normal.woff2": "autolyap-lato-greek-normal.woff2",
+        "lato-bold.woff2": "autolyap-lato-greek-bold.woff2",
+    }.items():
+        _subset_font(
+            theme_font_dir / source_name,
+            output_font_dir / output_name,
+            _font_greek_codepoints(),
+        )
     _subset_font(
         theme_font_dir / "fontawesome-webfont.woff2",
         output_font_dir / "autolyap-fontawesome.woff2",
         _fontawesome_subset_codepoints(outdir),
     )
+    static_dir = outdir / "_static"
+    _prune_theme_css(outdir, theme_font_dir.parent / "theme.css")
+    _prune_generated_stylesheet(outdir, static_dir / "pygments.css")
 
     # Image directives already copied these SVGs to _images; the static copies are unused.
-    static_dir = outdir / "_static"
+    _minify_generated_stylesheet(static_dir / "css" / "theme.css")
+    _minify_generated_stylesheet(static_dir / "custom.css")
+    _minify_generated_stylesheet(static_dir / "pygments.css")
+    # No generated page references the legacy compatibility shim after filtering.
+    (static_dir / "_sphinx_javascript_frameworks_compat.js").unlink(missing_ok=True)
+    for unused_font_pattern in ("fontawesome-webfont.*", "Roboto-Slab-*"):
+        for unused_font in (static_dir / "css" / "fonts").glob(unused_font_pattern):
+            unused_font.unlink()
+    shutil.rmtree(outdir / "_sources", ignore_errors=True)
     image_dir = outdir / "_images"
     for static_svg in static_dir.glob("*.svg"):
         if (image_dir / static_svg.name).is_file():
@@ -1858,7 +2399,7 @@ def _inject_seo_page_context(app, pagename, templatename, context, doctree):
         context,
         page_has_code_blocks=feature_flags["page_has_code_blocks"],
     )
-    _optimize_content_image_markup(app, context)
+    _optimize_content_markup(app, context)
 
     is_noindex = _is_noindex_docname(pagename, seo_pages)
     context["seo_is_noindex"] = is_noindex

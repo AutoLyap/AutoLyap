@@ -2,7 +2,6 @@
   let cachedEqnoStyle = null;
   let alignRafId = 0;
   const alignRetryTimeoutIds = [];
-  let observerIdleTimeoutId = 0;
   const EQ_ALIGN_SELECTORS = [
     "div.math.eq-align-dep-w",
     "div.math.eq-align-dep-theta",
@@ -230,6 +229,12 @@
       .forEach(bindSplitInlineLabel);
   }
 
+  function hasInlineLabelTargets() {
+    return Object.values(INLINE_LABEL_TARGETS).some((targetId) =>
+      document.getElementById(targetId)
+    );
+  }
+
   function clearAlignment(mathBlock, mjx) {
     mathBlock.classList.remove("eq-align-equals-group");
     mjx.style.removeProperty("width");
@@ -327,15 +332,6 @@
     }
   }
 
-  function armObserverIdleTimeout(observer) {
-    if (observerIdleTimeoutId) {
-      window.clearTimeout(observerIdleTimeoutId);
-    }
-    observerIdleTimeoutId = window.setTimeout(() => {
-      observer.disconnect();
-    }, 20000);
-  }
-
   function nodeHasMathContent(node) {
     if (!(node instanceof Element)) {
       return false;
@@ -361,8 +357,11 @@
       return;
     }
 
+    const shouldBindInlineLabels = hasInlineLabelTargets();
     bindAllTags();
-    bindAllInlineLabels();
+    if (shouldBindInlineLabels) {
+      bindAllInlineLabels();
+    }
     if (hasAlignmentTargets()) {
       scheduleEqualsAlignment();
       scheduleAlignmentRetries();
@@ -390,14 +389,16 @@
           if (node.matches("mjx-tag")) {
             bindTag(node);
           }
-          if (node.matches("mjx-mtext")) {
+          if (shouldBindInlineLabels && node.matches("mjx-mtext")) {
             bindInlineTextNode(node);
           }
-          if (node.matches("mjx-mi")) {
+          if (shouldBindInlineLabels && node.matches("mjx-mi")) {
             bindSplitInlineLabel(node);
           }
           bindAllTags(node);
-          bindAllInlineLabels(node);
+          if (shouldBindInlineLabels) {
+            bindAllInlineLabels(node);
+          }
           if (!sawAlignmentMutation && hasAlignmentTargets(node)) {
             sawAlignmentMutation = true;
           }
@@ -407,7 +408,6 @@
         return;
       }
 
-      armObserverIdleTimeout(observer);
       if (!sawAlignmentMutation && hasAlignmentTargets()) {
         sawAlignmentMutation = true;
       }
@@ -417,7 +417,6 @@
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    armObserverIdleTimeout(observer);
   }
 
   if (
