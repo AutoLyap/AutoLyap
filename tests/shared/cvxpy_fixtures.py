@@ -92,7 +92,8 @@ def cvxpy_convergence_solver_options(request):
         return make_cvxpy_solver_options("CLARABEL", extra_params={"max_iter": 400})
     if profile == "scs":
         require_cvxpy_scs_solver()
-        return make_cvxpy_solver_options("SCS")
+        # Rate comparisons need tighter accuracy near the feasibility boundary.
+        return make_cvxpy_solver_options("SCS", extra_params={"eps": 1e-8})
     if profile == "copt":
         require_cvxpy_copt_solver()
         return make_cvxpy_solver_options("COPT")
