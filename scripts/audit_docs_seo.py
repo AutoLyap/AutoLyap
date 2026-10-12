@@ -19,7 +19,19 @@ from urllib.parse import unquote, urlparse
 
 
 DEFAULT_BASE_URL = "https://autolyap.github.io"
+REPOSITORY_URL = "https://github.com/AutoLyap/AutoLyap"
+PACKAGE_URL = "https://pypi.org/project/autolyap/"
 SITEMAP_NAMESPACE = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+CRITICAL_INDEXABLE_PATHS = {
+    "index.html",
+    "quick_start/index.html",
+    "theory/index.html",
+    "examples/index.html",
+    "api_reference/index.html",
+    "base_algorithms/index.html",
+    "iteration_independent_analysis/index.html",
+    "iteration_dependent_analysis/index.html",
+}
 PAGE_SCHEMA_TYPES = {
     "APIReference",
     "CollectionPage",
@@ -39,6 +51,8 @@ class PageHead:
         default_factory=lambda: defaultdict(list)
     )
     canonical_urls: list[str] = field(default_factory=list)
+    markdown_urls: list[str] = field(default_factory=list)
+    describedby_urls: list[str] = field(default_factory=list)
     json_ld_texts: list[str] = field(default_factory=list)
     html_languages: list[str] = field(default_factory=list)
 
@@ -53,13 +67,16 @@ class _HeadParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.result = PageHead()
+        self._in_head = False
         self._in_title = False
         self._json_ld_parts: list[str] | None = None
 
     def handle_starttag(self, tag: str, attrs) -> None:
         attributes = {str(key).lower(): value or "" for key, value in attrs}
         tag = tag.lower()
-        if tag == "html" and attributes.get("lang"):
+        if tag == "head":
+            self._in_head = True
+        elif tag == "html" and attributes.get("lang"):
             self.result.html_languages.append(attributes["lang"])
         elif tag == "title":
             self._in_title = True
@@ -71,8 +88,18 @@ class _HeadParser(HTMLParser):
                 self.result.meta_properties[attributes["property"].lower()].append(
                     content
                 )
-        elif tag == "link" and "canonical" in attributes.get("rel", "").lower().split():
-            self.result.canonical_urls.append(attributes.get("href", "").strip())
+        elif tag == "link":
+            relations = attributes.get("rel", "").lower().split()
+            href = attributes.get("href", "").strip()
+            if "canonical" in relations:
+                self.result.canonical_urls.append(href)
+            if self._in_head:
+                if "alternate" in relations and attributes.get("type", "").lower() == (
+                    "text/markdown"
+                ):
+                    self.result.markdown_urls.append(href)
+                if "describedby" in relations:
+                    self.result.describedby_urls.append(href)
         elif tag == "script" and attributes.get("type", "").lower() == (
             "application/ld+json"
         ):
@@ -80,7 +107,9 @@ class _HeadParser(HTMLParser):
 
     def handle_endtag(self, tag: str) -> None:
         tag = tag.lower()
-        if tag == "title":
+        if tag == "head":
+            self._in_head = False
+        elif tag == "title":
             self._in_title = False
         elif tag == "script" and self._json_ld_parts is not None:
             self.result.json_ld_texts.append("".join(self._json_ld_parts).strip())
@@ -146,6 +175,124 @@ def _schema_types(document: dict) -> set[str]:
     return set()
 
 
+def _require_schema_reference(
+    document: dict, field_name: str, expected_id: str, page: str, errors: list[str]
+) -> None:
+    value = document.get(field_name)
+    actual_id = value.get("@id") if isinstance(value, dict) else None
+    if actual_id != expected_id:
+        errors.append(
+            f"{page}: schema {field_name} must reference {expected_id!r}, "
+            f"got {actual_id!r}"
+        )
+
+
+def _markdown_url(page_url: str) -> str:
+    if page_url.endswith("/"):
+        return f"{page_url}index.md"
+    return f"{page_url.removesuffix('.html')}.md"
+
+
+def _audit_agent_discovery(
+    output_dir: Path, base_url: str, pages: list[dict], version: str, errors: list[str]
+) -> None:
+    expected_markdown_urls = set()
+    for page in pages:
+        relative = page["relative"]
+        export_path = (output_dir / relative).with_suffix(".md")
+        head = page["head"]
+        if page["noindex"]:
+            if head.markdown_urls or export_path.is_file():
+                errors.append(
+                    f"{relative}: noindex page must not expose a Markdown export"
+                )
+            if head.describedby_urls:
+                errors.append(
+                    f"{relative}: noindex page must not expose discovery links"
+                )
+            continue
+
+        expected_url = _expected_url(output_dir / relative, output_dir, base_url)
+        expected_markdown = _markdown_url(expected_url)
+        expected_markdown_urls.add(expected_markdown)
+        markdown_url = _one(
+            head.markdown_urls, "Markdown alternate link", relative, errors
+        )
+        if markdown_url and markdown_url != expected_markdown:
+            errors.append(
+                f"{relative}: Markdown alternate {markdown_url!r} != {expected_markdown!r}"
+            )
+        describedby = _one(
+            head.describedby_urls, "llms.txt describedby link", relative, errors
+        )
+        if describedby and describedby != f"{base_url}/llms.txt":
+            errors.append(f"{relative}: describedby must point to {base_url}/llms.txt")
+
+        if not export_path.is_file():
+            errors.append(f"{relative}: missing Markdown export {export_path.name!r}")
+            continue
+        export_text = export_path.read_text(encoding="utf-8")
+        export_lines = export_text.splitlines()
+        header_lines = export_lines[:10]
+        canonical_header = f"Canonical HTML: {expected_url}"
+        version_header = f"Documentation version: {version}"
+        if export_lines[:1] != [canonical_header] or [
+            line for line in header_lines if line.startswith("Canonical HTML:")
+        ] != [canonical_header]:
+            errors.append(
+                f"{relative}: Markdown export lacks correct canonical HTML header"
+            )
+        if (
+            not version
+            or export_lines[1:2] != [version_header]
+            or [
+                line
+                for line in header_lines
+                if line.startswith("Documentation version:")
+            ]
+            != [version_header]
+        ):
+            errors.append(
+                f"{relative}: Markdown export lacks matching documentation version"
+            )
+        content_lines = [
+            line
+            for line in export_lines
+            if not line.startswith(("Canonical HTML:", "Documentation version:"))
+        ]
+        if not "\n".join(content_lines).strip():
+            errors.append(f"{relative}: Markdown export has no documentation content")
+
+    index_path = output_dir / "llms.txt"
+    if not index_path.is_file():
+        errors.append("Missing llms.txt")
+        return
+    index_text = index_path.read_text(encoding="utf-8")
+    if not index_text.startswith("# AutoLyap\n"):
+        errors.append("llms.txt lacks the AutoLyap heading")
+    version_lines = [
+        line
+        for line in index_text.splitlines()
+        if line.startswith("Documentation version:")
+    ]
+    if not version or version_lines != [f"Documentation version: {version}"]:
+        errors.append("llms.txt lacks matching documentation version")
+    listed_urls = [
+        url
+        for url in re.findall(r"\[[^\n]*?\]\((https?://[^)\s]+)\)", index_text)
+        if url.endswith(".md")
+    ]
+    for url in sorted(expected_markdown_urls):
+        count = listed_urls.count(url)
+        if count != 1:
+            errors.append(
+                f"llms.txt: expected one Markdown entry for {url!r}, got {count}"
+            )
+    unexpected = set(listed_urls) - expected_markdown_urls
+    if unexpected:
+        errors.append(f"llms.txt: unexpected Markdown exports: {sorted(unexpected)!r}")
+
+
 def _valid_iso_datetime(value: str) -> bool:
     return bool(
         re.fullmatch(
@@ -171,6 +318,7 @@ def audit(
     """Return all SEO audit errors for ``output_dir``."""
     errors: list[str] = []
     pages: list[dict] = []
+    software_version = ""
     output_dir = output_dir.resolve()
     base_url = base_url.rstrip("/")
 
@@ -246,8 +394,20 @@ def audit(
 
         robot_tokens = {token.strip().lower() for token in robots.split(",")}
         noindex = "noindex" in robot_tokens
+        if relative in CRITICAL_INDEXABLE_PATHS and (
+            noindex or "none" in robot_tokens or "nofollow" in robot_tokens
+        ):
+            errors.append(
+                f"{relative}: critical page must remain indexable and followable"
+            )
         if not noindex and "index" not in robot_tokens:
             errors.append(f"{relative}: indexable page lacks an index robots directive")
+        if not noindex and (
+            "follow" not in robot_tokens or {"none", "nofollow"} & robot_tokens
+        ):
+            errors.append(
+                f"{relative}: indexable page lacks a valid follow robots directive"
+            )
         if not noindex and not 70 <= len(description) <= 160:
             errors.append(
                 f"{relative}: meta description length {len(description)} is outside 70..160"
@@ -279,15 +439,37 @@ def audit(
             errors.append(
                 f"{relative}: expected one page schema for canonical, got {len(page_schemas)}"
             )
-        elif not noindex:
+        else:
             page_schema = page_schemas[0]
+            if page_schema.get("@id") != f"{expected_url}#webpage":
+                errors.append(f"{relative}: page schema has an invalid @id")
+            for field_name, expected_id in (
+                ("isPartOf", f"{base_url}/#website"),
+                ("about", f"{base_url}/#software"),
+                ("author", f"{base_url}/#organization"),
+                ("publisher", f"{base_url}/#organization"),
+            ):
+                _require_schema_reference(
+                    page_schema, field_name, expected_id, relative, errors
+                )
             for date_field in ("datePublished", "dateModified"):
-                date_value = page_schema.get(date_field, "")
+                if date_field not in page_schema:
+                    continue
+                date_value = page_schema[date_field]
                 if not isinstance(date_value, str) or not _valid_iso_datetime(
                     date_value
                 ):
                     errors.append(
-                        f"{relative}: invalid or missing schema {date_field}: {date_value!r}"
+                        f"{relative}: invalid schema {date_field}: {date_value!r}"
+                    )
+            if not noindex:
+                if relative != "index.html":
+                    _require_schema_reference(
+                        page_schema,
+                        "breadcrumb",
+                        f"{expected_url}#breadcrumb",
+                        relative,
+                        errors,
                     )
 
         breadcrumbs = [
@@ -300,6 +482,8 @@ def audit(
                 f"{relative}: expected one BreadcrumbList, got {len(breadcrumbs)}"
             )
         for breadcrumb in breadcrumbs:
+            if breadcrumb.get("@id") != f"{expected_url}#breadcrumb":
+                errors.append(f"{relative}: BreadcrumbList has an invalid @id")
             items = breadcrumb.get("itemListElement", [])
             positions = [
                 item.get("position") for item in items if isinstance(item, dict)
@@ -337,6 +521,49 @@ def audit(
                 f"{relative}: unexpected site entity counts "
                 f"{(site_entities, organization_entities, source_entities)!r}"
             )
+        if relative == "index.html":
+            for document in json_documents:
+                types = _schema_types(document)
+                for entity_type, expected_id in (
+                    ("WebSite", f"{base_url}/#website"),
+                    ("Organization", f"{base_url}/#organization"),
+                    ("SoftwareSourceCode", f"{base_url}/#software"),
+                ):
+                    if entity_type not in types:
+                        continue
+                    if document.get("@id") != expected_id:
+                        errors.append(f"{relative}: {entity_type} has an invalid @id")
+                    if document.get("url") != f"{base_url}/":
+                        errors.append(
+                            f"{relative}: {entity_type} has an invalid documentation URL"
+                        )
+                    if entity_type != "Organization":
+                        _require_schema_reference(
+                            document,
+                            "publisher",
+                            f"{base_url}/#organization",
+                            relative,
+                            errors,
+                        )
+                if "SoftwareSourceCode" in types:
+                    value = document.get("version")
+                    if not isinstance(value, str) or not value.strip():
+                        errors.append(f"{relative}: SoftwareSourceCode lacks a version")
+                    else:
+                        software_version = value
+                    if document.get("codeRepository") != REPOSITORY_URL:
+                        errors.append(
+                            f"{relative}: SoftwareSourceCode has an invalid codeRepository"
+                        )
+                    identities = document.get("sameAs", [])
+                    if (
+                        not isinstance(identities, list)
+                        or not all(isinstance(identity, str) for identity in identities)
+                        or not {REPOSITORY_URL, PACKAGE_URL}.issubset(identities)
+                    ):
+                        errors.append(
+                            f"{relative}: SoftwareSourceCode lacks repository/package identities"
+                        )
 
         if baseline_dir is not None:
             baseline_path = baseline_dir.resolve() / path.relative_to(output_dir)
@@ -354,10 +581,15 @@ def audit(
                 "description": description,
                 "canonical": canonical,
                 "noindex": noindex,
+                "head": head,
             }
         )
 
     indexable_pages = [page for page in pages if not page["noindex"]]
+    missing_critical = CRITICAL_INDEXABLE_PATHS - {page["relative"] for page in pages}
+    if missing_critical:
+        errors.append(f"Missing critical pages: {sorted(missing_critical)!r}")
+    _audit_agent_discovery(output_dir, base_url, pages, software_version, errors)
     for field_name in ("title", "description", "canonical"):
         occurrences: dict[str, list[str]] = defaultdict(list)
         for page in indexable_pages:
@@ -388,7 +620,9 @@ def audit(
                     "s:lastmod", default="", namespaces=SITEMAP_NAMESPACE
                 )
                 sitemap_urls.append(location)
-                if not _valid_iso_datetime(lastmod):
+                if entry.find("s:lastmod", SITEMAP_NAMESPACE) is not None and not (
+                    _valid_iso_datetime(lastmod)
+                ):
                     errors.append(
                         f"sitemap.xml: invalid lastmod for {location!r}: {lastmod!r}"
                     )

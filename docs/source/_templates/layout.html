@@ -81,6 +81,7 @@
 {%- set _seo_organization_url = seo_organization_url | default(_seo_baseurl, true) %}
 {%- set _seo_org_url = (_seo_organization_url | default("", true)).rstrip("/") %}
 {%- set _seo_org_id = (_seo_org_url ~ "/#organization") if _seo_org_url else "" %}
+{%- set _seo_software_id = _seo_baseurl ~ "/#software" %}
 {%- set _seo_social_profiles = seo_social_profiles | default([_seo_repo_url]) %}
 {%- set _seo_og_image_path = seo_og_image_path | default("/_static/favicon-master.png") %}
 {%- set _seo_og_image_width = seo_og_image_width | default(512) %}
@@ -105,6 +106,11 @@
   {%- else %}
     {%- set _page_url = _seo_baseurl ~ "/" ~ pagename ~ ".html" %}
   {%- endif %}
+{%- endif %}
+{%- if not (seo_is_noindex | default(false)) and _page_url %}
+{%- set _markdown_url = (_page_url ~ "index.md") if _page_url.endswith("/") else (_page_url[:-5] ~ ".md") %}
+<link rel="alternate" type="text/markdown" title="Markdown documentation" href="{{ _markdown_url | e }}"/>
+<link rel="describedby" type="text/plain" href="{{ _seo_baseurl }}/llms.txt"/>
 {%- endif %}
 {%- set _seo_og_image_url = _seo_og_image_path %}
 {%- if _seo_og_image_path and _seo_baseurl and _seo_og_image_path.startswith("/") %}
@@ -203,7 +209,7 @@
     "@id": {{ (_seo_baseurl ~ "/#website") | tojson }},
     "name": {{ _seo_site_name | tojson }}
   },
-  "about": { "@id": {{ (_seo_repo_url ~ "#source") | tojson }} }
+  "about": { "@id": {{ _seo_software_id | tojson }} }
   {%- if _seo_published_iso %}
   ,"datePublished": {{ _seo_published_iso | tojson }}
   {%- endif %}
@@ -283,7 +289,7 @@
 {
   "@context": "https://schema.org",
   "@type": "SoftwareSourceCode",
-  "@id": {{ (_seo_repo_url ~ "#source") | tojson }},
+  "@id": {{ _seo_software_id | tojson }},
   "name": {{ _seo_site_name | tojson }},
   "url": {{ (_seo_baseurl ~ "/") | tojson }},
   "codeRepository": {{ _seo_repo_url | tojson }},

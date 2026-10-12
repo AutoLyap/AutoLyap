@@ -4,4 +4,5 @@ myst-parser
 sphinxcontrib-bibtex
 fonttools[woff]>=4.55
 tinycss2>=1.4
+markdownify>=1.2,<2
 numpy

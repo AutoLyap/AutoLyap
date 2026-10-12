@@ -1,20 +1,22 @@
 # SPDX-FileCopyrightText: 2025-2026 AutoLyap contributors
 # SPDX-License-Identifier: GPL-3.0-only
 
+import hashlib
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
-from datetime import date, datetime, timezone
+from datetime import date
 from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import unquote, urljoin, urlparse
+from urllib.parse import quote, unquote, urljoin, urlparse, urlunparse
 from xml.sax.saxutils import escape as xml_escape
 
 import tinycss2
+from tinycss2.serializer import serialize_string_value
 from docutils import nodes
 from sphinx import addnodes
 from sphinx.domains.python._object import PyObject
@@ -34,6 +36,7 @@ seo_license_url = "https://spdx.org/licenses/GPL-3.0-only.html"
 seo_paper_url = "https://doi.org/10.48550/arXiv.2506.24076"
 
 sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, str(root))
 
 extensions = [
     "sphinx.ext.autodoc",
@@ -2151,6 +2154,7 @@ def _write_performance_assets(app, exception):
     _minify_generated_stylesheet(static_dir / "css" / "theme.css")
     _minify_generated_stylesheet(static_dir / "custom.css")
     _minify_generated_stylesheet(static_dir / "pygments.css")
+    _bundle_generated_stylesheets(outdir)
     # No generated page references the legacy compatibility shim after filtering.
     (static_dir / "_sphinx_javascript_frameworks_compat.js").unlink(missing_ok=True)
     for unused_font_pattern in ("fontawesome-webfont.*", "Roboto-Slab-*"):
@@ -2161,6 +2165,104 @@ def _write_performance_assets(app, exception):
     for static_svg in static_dir.glob("*.svg"):
         if (image_dir / static_svg.name).is_file():
             static_svg.unlink()
+
+
+def _rebase_stylesheet_urls(stylesheet_path, output_directory):
+    """Keep CSS resource URLs pointing at the same files after bundling."""
+    stylesheet_path = Path(stylesheet_path)
+    tokens = tinycss2.parse_component_value_list(stylesheet_path.read_text("utf-8"))
+
+    def _rebase(value):
+        parsed = urlparse(value)
+        if parsed.scheme or parsed.netloc or not parsed.path or parsed.path.startswith("/"):
+            return value
+        resource = stylesheet_path.parent / unquote(parsed.path)
+        relative_path = Path(os.path.relpath(resource, output_directory)).as_posix()
+        return urlunparse(parsed._replace(path=quote(relative_path, safe="/")))
+
+    def _walk(values):
+        for token in values:
+            if token.type == "url":
+                token.value = _rebase(token.value)
+                token.representation = f'url("{serialize_string_value(token.value)}")'
+            elif token.type == "function" and token.lower_name == "url":
+                for argument in token.arguments:
+                    if argument.type == "string":
+                        argument.value = _rebase(argument.value)
+                        argument.representation = f'"{serialize_string_value(argument.value)}"'
+            else:
+                if hasattr(token, "content"):
+                    _walk(token.content)
+                if hasattr(token, "arguments"):
+                    _walk(token.arguments)
+
+    _walk(tokens)
+    return tinycss2.serialize(tokens)
+
+
+def _bundle_generated_stylesheets(outdir):
+    """Combine final styles in their original cascade order and version the bytes."""
+    outdir = Path(outdir).resolve()
+    static_dir = outdir / "_static"
+    source_names = ("pygments.css", "css/theme.css", "custom.css")
+    rebased_styles = {
+        name: _rebase_stylesheet_urls(static_dir / name, static_dir)
+        for name in source_names
+    }
+    link_re = re.compile(r"<link\b[^>]*>", flags=re.IGNORECASE)
+    generated_bundles = set()
+
+    for html_path in outdir.rglob("*.html"):
+        markup = html_path.read_text("utf-8")
+        stylesheets = []
+        sources = []
+        preloads = []
+        for match in link_re.finditer(markup):
+            tag = match.group(0)
+            relation = _html_attribute(tag, "rel").lower()
+            href = urlparse(_html_attribute(tag, "href"))
+            if relation == "preload" and _html_attribute(tag, "as") == "font":
+                if Path(href.path).name in {
+                    "autolyap-lato-normal.woff2",
+                    "autolyap-lato-bold.woff2",
+                    "autolyap-fontawesome.woff2",
+                }:
+                    preloads.append(match)
+            if relation != "stylesheet" or href.scheme or href.netloc:
+                continue
+            stylesheet_path = (html_path.parent / unquote(href.path)).resolve()
+            if not stylesheet_path.is_relative_to(static_dir):
+                continue
+            name = stylesheet_path.relative_to(static_dir).as_posix()
+            if name in rebased_styles:
+                sources.append(name)
+            elif re.fullmatch(r"styles-[0-9a-f]{12}\.css", name):
+                # Unchanged pages can retain a bundle link on incremental builds.
+                sources.extend(source_names if "<pre" in markup else source_names[1:])
+            else:
+                continue
+            stylesheets.append(match)
+        if not stylesheets:
+            continue
+
+        content = "\n".join(rebased_styles[name] for name in sources).encode("utf-8")
+        bundle_name = f"styles-{hashlib.sha256(content).hexdigest()[:12]}.css"
+        bundle_path = static_dir / bundle_name
+        if bundle_path not in generated_bundles:
+            bundle_path.write_bytes(content)
+            generated_bundles.add(bundle_path)
+        bundle_href = Path(os.path.relpath(bundle_path, html_path.parent)).as_posix()
+        replacement = "\n".join(match.group(0) for match in preloads)
+        replacement += f'\n<link rel="stylesheet" type="text/css" href="{bundle_href}" />'
+        edits = [(match.start(), match.end(), "") for match in stylesheets + preloads]
+        edits.append((stylesheets[0].start(), stylesheets[0].start(), replacement))
+        for start, end, value in sorted(edits, reverse=True):
+            markup = markup[:start] + value + markup[end:]
+        html_path.write_text(markup, encoding="utf-8")
+
+    for obsolete in static_dir.glob("styles-*.css"):
+        if obsolete not in generated_bundles:
+            obsolete.unlink()
 
 
 def _remove_duplicate_viewport_metatag(context):
@@ -2177,71 +2279,11 @@ def _remove_duplicate_viewport_metatag(context):
     context["metatags"] = type(metatags)(cleaned)
 
 
-def _as_utc_iso(value):
-    """Normalize an ISO datetime string to a UTC ``Z`` representation."""
-    try:
-        parsed = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
-    except ValueError:
-        return ""
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return (
-        parsed.astimezone(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
-
-
-@lru_cache(maxsize=None)
-def _git_source_dates(source_path_string):
-    """Return first and latest Git timestamps for one documentation source."""
-    source_path = Path(source_path_string).resolve()
-    history = []
-    try:
-        relative_path = source_path.relative_to(root)
-        result = subprocess.run(
-            [
-                "git",
-                "log",
-                "--follow",
-                "--format=%cI",
-                "--",
-                relative_path.as_posix(),
-            ],
-            cwd=root,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0:
-            history = [
-                normalized
-                for line in result.stdout.splitlines()
-                if (normalized := _as_utc_iso(line))
-            ]
-    except (OSError, subprocess.SubprocessError, ValueError):
-        history = []
-
-    if history:
-        return history[-1], history[0]
-
-    try:
-        timestamp = datetime.fromtimestamp(source_path.stat().st_mtime, tz=timezone.utc)
-    except OSError:
-        return "", ""
-    fallback = timestamp.replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    return fallback, fallback
-
-
 def _document_source_dates(app, docname):
-    """Return first-published and latest Git dates for a document source."""
-    try:
-        source_path = Path(app.env.doc2path(docname))
-    except Exception:
-        return "", ""
-    return _git_source_dates(str(source_path))
+    """Return trustworthy Git dates for a page and its content dependencies."""
+    from scripts.docs_dates import document_source_dates
+
+    return document_source_dates(app, docname, repo_root=root)
 
 
 _COLLECTION_DOCNAMES = {
@@ -2469,6 +2511,26 @@ def _write_sitemap_and_robots(app, exception):
     (outdir / "robots.txt").write_text("\n".join(robots_lines) + "\n", encoding="utf-8")
 
 
+def _write_discovery_assets(app, exception):
+    """Export resolved public documentation for text-based retrieval."""
+    if exception is not None or app.builder.format != "html":
+        return
+
+    from scripts.docs_discovery import write_discovery_exports
+
+    baseurl = _normalized_baseurl(app)
+    if not baseurl:
+        return
+    write_discovery_exports(
+        app.outdir,
+        base_url=baseurl,
+        project=app.config.project,
+        release=app.config.release,
+        description=app.config.html_context.get("seo_site_description", ""),
+        macros=app.config.mathjax3_config.get("tex", {}).get("macros", {}),
+    )
+
+
 def _patch_bibtex_local_citation_targets():
     """Prefer same-page bibliography entries when resolving repeated cite keys."""
     try:
@@ -2563,6 +2625,7 @@ def setup(app):
     app.connect("doctree-read", _suppress_member_toc_entries)
     app.connect("build-finished", _write_sitemap_and_robots)
     app.connect("build-finished", _write_performance_assets)
+    app.connect("build-finished", _write_discovery_assets, priority=800)
     # Defer non-critical scripts to reduce render-blocking time.
     app.add_js_file("copybutton.js", defer="defer")
     app.add_js_file("content_width_toggle.js", defer="defer")
