@@ -7,18 +7,22 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
+import tinycss2
 from fontTools.ttLib import TTFont
 
 
 SCRIPT_RE = re.compile(r"<script\b(?=[^>]*\bsrc=)[^>]*>", re.IGNORECASE)
 IMAGE_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
 CONTAINER_RE = re.compile(r"<(?:div|span)\b[^>]*>", re.IGNORECASE)
+LINK_RE = re.compile(r"<link\b[^>]*>", re.IGNORECASE)
+STYLESHEET_BUNDLE_RE = re.compile(r"styles-([0-9a-f]{12})\.css")
 ATTRIBUTE_TEMPLATE = r"\b{}\s*="
 EXPECTED_MATH_TAG_PAGES = {
     "theory/iteration_dependent_analyses/index.html",
@@ -98,6 +102,191 @@ def _relative_page(build_dir: Path, html_path: Path) -> str:
     return html_path.relative_to(build_dir).as_posix()
 
 
+def _resolved_css_url(value: str, css_path: Path, build_dir: Path) -> str:
+    """Resolve stylesheet resources independently of their relative spelling."""
+    parsed = urlparse(value)
+    if parsed.scheme or parsed.netloc or not parsed.path:
+        return value
+    path = unquote(parsed.path)
+    resource = (
+        build_dir / path.lstrip("/")
+        if path.startswith("/")
+        else css_path.parent / path
+    ).resolve()
+    suffix = f"?{parsed.query}" if parsed.query else ""
+    if parsed.fragment:
+        suffix += f"#{parsed.fragment}"
+    return resource.as_uri() + suffix
+
+
+def _normalized_css_tokens(tokens, css_path: Path, build_dir: Path, urls: set[str]):
+    """Compare ordered CSS syntax while ignoring comments and URL quoting."""
+    normalized = []
+    for token in tokens:
+        kind = token.type
+        if kind == "comment":
+            continue
+        if kind == "url" or (
+            kind == "function" and token.lower_name == "url"
+        ):
+            if kind == "url":
+                value = token.value
+            else:
+                arguments = [
+                    argument
+                    for argument in token.arguments
+                    if argument.type not in {"whitespace", "comment"}
+                ]
+                value = (
+                    arguments[0].value
+                    if len(arguments) == 1 and arguments[0].type == "string"
+                    else tinycss2.serialize(token.arguments).strip()
+                )
+            resolved = _resolved_css_url(value, css_path, build_dir)
+            urls.add(resolved)
+            normalized.append(("url", resolved))
+        elif kind == "qualified-rule":
+            normalized.append(
+                (
+                    kind,
+                    _normalized_css_tokens(token.prelude, css_path, build_dir, urls),
+                    _normalized_css_tokens(token.content, css_path, build_dir, urls),
+                )
+            )
+        elif kind == "at-rule":
+            normalized.append(
+                (
+                    kind,
+                    token.lower_at_keyword,
+                    _normalized_css_tokens(token.prelude, css_path, build_dir, urls),
+                    None
+                    if token.content is None
+                    else _normalized_css_tokens(token.content, css_path, build_dir, urls),
+                )
+            )
+        elif kind == "function":
+            normalized.append(
+                (
+                    kind,
+                    token.name,
+                    _normalized_css_tokens(token.arguments, css_path, build_dir, urls),
+                )
+            )
+        elif hasattr(token, "content"):
+            normalized.append(
+                (kind, _normalized_css_tokens(token.content, css_path, build_dir, urls))
+            )
+        elif kind == "whitespace":
+            normalized.append((kind, " "))
+        elif kind == "string":
+            normalized.append((kind, token.value))
+        else:
+            normalized.append((kind, token.serialize()))
+    return tuple(normalized)
+
+
+def _stylesheet_signature(css_path: Path, build_dir: Path, urls: set[str]):
+    rules = tinycss2.parse_stylesheet(
+        css_path.read_text(encoding="utf-8"),
+        skip_comments=True,
+        skip_whitespace=True,
+    )
+    return _normalized_css_tokens(rules, css_path, build_dir, urls)
+
+
+def _audit_local_resource(value: str, context: str, build_dir: Path, errors: list[str]) -> None:
+    parsed = urlparse(value)
+    if parsed.scheme != "file":
+        return
+    resource_path = Path(unquote(parsed.path))
+    if not resource_path.is_relative_to(build_dir) or not resource_path.is_file():
+        errors.append(f"{context}: local resource does not resolve: {value}")
+
+
+def _audit_stylesheets(build_dir: Path, html_paths: list[Path], errors: list[str]) -> None:
+    """Require early font hints and one equivalent, correctly rebased CSS bundle."""
+    static_dir = build_dir / "_static"
+    provenance = [
+        static_dir / "pygments.css",
+        static_dir / "css/theme.css",
+        static_dir / "custom.css",
+    ]
+    missing_sources = [path for path in provenance if not path.is_file()]
+    if missing_sources:
+        errors.extend(f"missing stylesheet provenance: {path}" for path in missing_sources)
+        return
+    source_signatures = {
+        path: _stylesheet_signature(path, build_dir, set()) for path in provenance
+    }
+    checked_bundles = {}
+
+    for html_path in html_paths:
+        relative_page = _relative_page(build_dir, html_path)
+        markup = html_path.read_text(encoding="utf-8")
+        stylesheets = [
+            match
+            for match in LINK_RE.finditer(markup)
+            if "stylesheet" in _attribute_value(match.group(), "rel").lower().split()
+        ]
+        if len(stylesheets) != 1:
+            errors.append(
+                f"{relative_page}: expected one bundled stylesheet, got {len(stylesheets)}"
+            )
+            continue
+        stylesheet = stylesheets[0]
+        if _attribute_value(stylesheet.group(), "media").lower() not in {"", "all"} or (
+            "alternate" in _attribute_value(stylesheet.group(), "rel").lower().split()
+        ):
+            errors.append(f"{relative_page}: stylesheet bundle changes loading conditions")
+        for preload_name in (
+            "autolyap-lato-normal.woff2",
+            "autolyap-lato-bold.woff2",
+            "autolyap-fontawesome.woff2",
+        ):
+            early_preloads = [
+                match
+                for match in LINK_RE.finditer(markup, 0, stylesheet.start())
+                if _attribute_value(match.group(), "rel").lower() == "preload"
+                and _attribute_value(match.group(), "as").lower() == "font"
+                and Path(urlparse(_attribute_value(match.group(), "href")).path).name
+                == preload_name
+            ]
+            if not early_preloads:
+                errors.append(
+                    f"{relative_page}: critical font preload follows stylesheet: {preload_name}"
+                )
+
+        href = _attribute_value(stylesheet.group(), "href")
+        parsed = urlparse(href)
+        bundle_path = (html_path.parent / unquote(parsed.path)).resolve()
+        bundle_match = STYLESHEET_BUNDLE_RE.fullmatch(bundle_path.name)
+        if parsed.scheme or parsed.netloc or parsed.path.startswith("/") or (
+            bundle_path.parent != static_dir or bundle_match is None
+        ):
+            errors.append(f"{relative_page}: invalid relative stylesheet bundle: {href}")
+            continue
+        if not bundle_path.is_file():
+            errors.append(f"{relative_page}: stylesheet bundle does not resolve: {href}")
+            continue
+        if bundle_path not in checked_bundles:
+            digest = hashlib.sha256(bundle_path.read_bytes()).hexdigest()[:12]
+            if digest != bundle_match.group(1):
+                errors.append(f"stylesheet bundle hash differs from final bytes: {bundle_path.name}")
+            urls: set[str] = set()
+            checked_bundles[bundle_path] = _stylesheet_signature(bundle_path, build_dir, urls)
+            for value in sorted(urls):
+                _audit_local_resource(value, bundle_path.name, build_dir, errors)
+        expected_sources = provenance if "<pre" in markup else provenance[1:]
+        expected = tuple(
+            rule for path in expected_sources for rule in source_signatures[path]
+        )
+        if checked_bundles[bundle_path] != expected:
+            errors.append(
+                f"{relative_page}: bundled CSS differs from original rules, cascade order, "
+                "or resolved resource URLs"
+            )
+
+
 def _audit_html(build_dir: Path, html_paths: list[Path], errors: list[str]) -> None:
     math_tag_pages: set[str] = set()
     math_html_pages: set[str] = set()
@@ -105,6 +294,18 @@ def _audit_html(build_dir: Path, html_paths: list[Path], errors: list[str]) -> N
     for html_path in html_paths:
         relative_page = _relative_page(build_dir, html_path)
         markup = html_path.read_text(encoding="utf-8")
+
+        for match in LINK_RE.finditer(markup):
+            tag = match.group()
+            if _attribute_value(tag, "rel").lower() == "preload" and (
+                _attribute_value(tag, "as").lower() == "font"
+            ):
+                _audit_local_resource(
+                    _resolved_css_url(_attribute_value(tag, "href"), html_path, build_dir),
+                    relative_page,
+                    build_dir,
+                    errors,
+                )
 
         for script_tag in SCRIPT_RE.findall(markup):
             if not re.search(r"\b(?:defer|async)\b", script_tag, re.I):
@@ -129,6 +330,12 @@ def _audit_html(build_dir: Path, html_paths: list[Path], errors: list[str]) -> N
             )
 
         for image_tag in IMAGE_RE.findall(markup):
+            _audit_local_resource(
+                _resolved_css_url(_attribute_value(image_tag, "src"), html_path, build_dir),
+                relative_page,
+                build_dir,
+                errors,
+            )
             missing = [
                 name
                 for name in ("width", "height", "loading", "decoding")
@@ -160,13 +367,12 @@ def _audit_html(build_dir: Path, html_paths: list[Path], errors: list[str]) -> N
                 )
 
         has_code = "<pre" in markup
-        has_pygments = "pygments.css" in markup
         has_copy_control = "copybutton.js" in markup
-        if has_code and (not has_pygments or not has_copy_control):
+        if has_code and not has_copy_control:
             errors.append(
-                f"{relative_page}: code page lacks Pygments CSS or copy controls"
+                f"{relative_page}: code page lacks copy controls"
             )
-        if not has_code and (has_pygments or has_copy_control):
+        if not has_code and has_copy_control:
             errors.append(
                 f"{relative_page}: code-only assets loaded without a code block"
             )
@@ -460,6 +666,7 @@ def main() -> int:
         return 2
 
     errors: list[str] = []
+    _audit_stylesheets(build_dir, html_paths, errors)
     _audit_html(build_dir, html_paths, errors)
     _audit_fonts(build_dir, html_paths, errors)
     _audit_artifacts(build_dir, errors)

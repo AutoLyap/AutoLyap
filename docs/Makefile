@@ -19,7 +19,7 @@ deps:
 	@$(PYTHON) -m pip install -r "$(REQFILE)"
 
 check-deps:
-	@$(PYTHON) -c "import fontTools, numpy, sphinx, sphinx_rtd_theme, tinycss2, myst_parser, sphinxcontrib.bibtex; from sphinx.domains.python._object import PyObject" >/dev/null 2>&1 || \
+	@$(PYTHON) -c "import fontTools, markdownify, numpy, sphinx, sphinx_rtd_theme, tinycss2, myst_parser, sphinxcontrib.bibtex; from sphinx.domains.python._object import PyObject" >/dev/null 2>&1 || \
 	( \
 		echo "Missing docs dependencies."; \
 		echo "Run: make -C docs deps"; \
@@ -32,6 +32,7 @@ dirhtml: check-deps
 	$(SPHINXBUILD) -M dirhtml "$(SOURCEDIR)" "$(BUILDDIR)" -d "$$DOCTREEDIR" $(SPHINXOPTS)
 
 seo-check:
+	@$(PYTHON) -m unittest discover -s ../scripts/tests -p 'test_docs_*.py'
 	@$(PYTHON) ../scripts/audit_docs_seo.py "$(BUILDDIR)/dirhtml"
 
 performance-check:

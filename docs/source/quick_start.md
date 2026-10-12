@@ -13,7 +13,7 @@ Lyapunov construction and target metric.
 
 **Google Colab**
 
-[![Open in Colab](https://img.shields.io/badge/Open_in-Colab-5fa8e8?style=flat&logo=googlecolab&logoColor=white&labelColor=111111)](https://colab.research.google.com/github/AutoLyap/AutoLyap/blob/main/notebooks/quick_start_colab.ipynb)
+[![Open in Colab](https://img.shields.io/badge/Open_in-Colab-2570ae?style=flat&logo=googlecolab&logoColor=white&labelColor=111111)](https://colab.research.google.com/github/AutoLyap/AutoLyap/blob/main/notebooks/quick_start_colab.ipynb)
 
 ## Setup
 

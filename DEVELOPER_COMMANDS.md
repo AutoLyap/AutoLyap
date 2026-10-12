@@ -126,6 +126,10 @@ python -m pip install reuse
 - Checks canonical and social URLs against real output paths, validates JSON-LD
   and breadcrumbs, verifies sitemap/indexability parity, and requires unique
   titles and descriptions on indexable pages.
+- Verifies Markdown discovery links, the generated `llms.txt` index, software
+  entity relationships, and critical pages' indexability. Runs export and indexing
+  regression tests for code, equations, citations, tables, links, and metadata
+  before auditing the build.
 - Run `make -C docs dirhtml SPHINXOPTS="-W --keep-going"` first.
 
 ### `make -C docs performance-check`
@@ -135,6 +139,8 @@ python -m pip install reuse
 - Requires non-blocking external scripts, intrinsic image dimensions and loading
   hints, page-specific code and MathJax assets, subset-font glyph coverage and
   size budgets, and removal of duplicate build artifacts.
+- Checks that each page loads one content-versioned stylesheet with font
+  preloads first, preserves the original CSS cascade, and resolves local assets.
 - Run `make -C docs dirhtml SPHINXOPTS="-W --keep-going"` first.
 
 ### `make sync-citation`
